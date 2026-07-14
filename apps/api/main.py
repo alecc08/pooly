@@ -396,6 +396,7 @@ class ActionIn(BaseModel):
 class ParamValueOut(BaseModel):
     value: float
     date: date
+    unit: Optional[str] = None
 
 
 class CurrentConditionsOut(BaseModel):
@@ -410,7 +411,15 @@ class CurrentConditionsOut(BaseModel):
     temp: Optional[ParamValueOut] = None
 
 
+class InstallationSummaryOut(BaseModel):
+    id: int
+    name: str
+    type: str
+
+
 class HistoryEntryOut(BaseModel):
+    # Unlike CurrentConditionsOut, this doesn't carry per-field units yet —
+    # add them here too if/when history import is built.
     date: date
     ph: Optional[float] = None
     chlorine: Optional[float] = None
@@ -905,6 +914,19 @@ def _resolve_installation_for_api_key(
     return resolved
 
 
+@app.get("/v1/installations", response_model=List[InstallationSummaryOut])
+@limiter.limit("60/minute")
+def api_installations(
+    request: Request,
+    user: User = Depends(get_current_user_by_api_key),
+    session: Session = Depends(get_session),
+):
+    installations = session.exec(
+        select(Installation).where(Installation.user_id == user.id)
+    ).all()
+    return installations
+
+
 @app.get("/v1/current", response_model=CurrentConditionsOut)
 @limiter.limit("60/minute")
 def api_current_conditions(
@@ -914,6 +936,7 @@ def api_current_conditions(
     session: Session = Depends(get_session),
 ):
     resolved_id = _resolve_installation_for_api_key(installation_id, user, session)
+    installation = session.get(Installation, resolved_id)
     cutoff = date.today() - timedelta(days=90)
     actions = session.exec(
         select(Action)
@@ -921,7 +944,7 @@ def api_current_conditions(
         .order_by(Action.date.desc())
         .limit(500)
     ).all()
-    return CurrentConditionsOut(**extract_current_conditions(actions))
+    return CurrentConditionsOut(**extract_current_conditions(actions, installation))
 
 
 @app.get("/v1/history", response_model=List[HistoryEntryOut])

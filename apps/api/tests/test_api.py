@@ -352,3 +352,72 @@ def test_delete_installation_not_found(client: TestClient):
     login(client)
     r = client.delete("/installations/999")
     assert r.status_code == 404
+
+
+# ── Public API (Home Assistant, etc.) ───────────────────────────────────────
+
+def get_api_key(client: TestClient) -> str:
+    r = client.post("/me/api-key")
+    assert r.status_code == 200
+    return r.json()["key"]
+
+
+def auth_headers(key: str) -> dict:
+    return {"Authorization": f"Bearer {key}"}
+
+
+def test_v1_installations_lists_owned_installations(client: TestClient):
+    login(client)
+    key = get_api_key(client)
+    client.post("/installations", json={"name": "Backyard Pool", "type": "pool"})
+    client.post("/installations", json={"name": "Hot Tub", "type": "spa"})
+    r = client.get("/v1/installations", headers=auth_headers(key))
+    assert r.status_code == 200
+    data = r.json()
+    names = {i["name"]: i["type"] for i in data}
+    assert names == {"Backyard Pool": "pool", "Hot Tub": "spa"}
+    assert set(data[0].keys()) == {"id", "name", "type"}
+
+
+def test_v1_installations_requires_api_key(client: TestClient):
+    login(client)
+    client.post("/installations", json={"name": "My pool"})
+    r = client.get("/v1/installations")
+    assert r.status_code == 401
+
+
+def test_v1_current_includes_units(client: TestClient):
+    login(client)
+    key = get_api_key(client)
+    inst_r = client.post(
+        "/installations",
+        json={"name": "My pool", "temp_unit": "F", "conc_unit": "ppm", "hardness_unit": "°f", "salt_unit": "g/L"},
+    )
+    installation_id = inst_r.json()["id"]
+    client.post(
+        "/actions",
+        json={
+            "date": TODAY,
+            "action_type": "Measurement",
+            "installation_id": installation_id,
+            "notes": "pH 7.4 chlorine 3 TAC 80 hardness 200 salt 3200 stabilizer 40 combined 0.1 temperature 85",
+        },
+    )
+    r = client.get(f"/v1/current?installation_id={installation_id}", headers=auth_headers(key))
+    assert r.status_code == 200
+    data = r.json()
+    assert data["ph"]["unit"] is None
+    assert data["chlorine"]["unit"] == "ppm"
+    assert data["stabilizer"]["unit"] == "ppm"
+    assert data["cc"]["unit"] == "ppm"
+    assert data["tac"]["unit"] == "°f"
+    assert data["hardness"]["unit"] == "°f"
+    assert data["salt"]["unit"] == "g/L"
+    assert data["temp"]["unit"] == "°F"
+
+
+def test_v1_current_requires_api_key(client: TestClient):
+    login(client)
+    client.post("/installations", json={"name": "My pool"})
+    r = client.get("/v1/current")
+    assert r.status_code == 401
