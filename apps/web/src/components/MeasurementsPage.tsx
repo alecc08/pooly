@@ -108,8 +108,8 @@ function StatusBadge({ ph, chlorine, tac }: { ph: number | null; chlorine: numbe
   if (!hasData) return <span style={{ color: 'var(--text-muted)', fontFamily: '"IBM Plex Mono", monospace', fontSize: 10 }}>—</span>
   const cfg = {
     clear:  { label: t('status_normal'),     color: 'var(--status-ok-text)',     bg: 'var(--status-ok-bg)'     },
-    cloudy: { label: t('status_surveiller'), color: 'var(--status-warn-text)',   bg: 'var(--status-warn-bg)'   },
-    green:  { label: t('status_hors_norme'), color: 'var(--status-danger-text)', bg: 'var(--status-danger-bg)' },
+    cloudy: { label: t('status_watch'), color: 'var(--status-warn-text)',   bg: 'var(--status-warn-bg)'   },
+    green:  { label: t('status_out_of_range'), color: 'var(--status-danger-text)', bg: 'var(--status-danger-bg)' },
   }[status]
   return (
     <span style={{
@@ -164,10 +164,10 @@ export default function MeasurementsPage({ actions }: Props) {
   const [period, setPeriod] = useState<Period>(1)
 
   const PERIODS: { label: string; value: Period }[] = [
-    { label: t('mesures_filtre_mois'),  value: 1 },
-    { label: t('mesures_filtre_3mois'), value: 3 },
-    { label: t('mesures_filtre_6mois'), value: 6 },
-    { label: t('mesures_filtre_tout'),  value: null },
+    { label: t('measurements_filter_month'),  value: 1 },
+    { label: t('measurements_filter_3months'), value: 3 },
+    { label: t('measurements_filter_6months'), value: 6 },
+    { label: t('measurements_filter_all'),  value: null },
   ]
 
   const today = new Date()
@@ -239,12 +239,12 @@ export default function MeasurementsPage({ actions }: Props) {
 
   // ── Trend sub-text ────────────────────────────────────────────────────────
   function trendNode() {
-    if (!phTrend) return <span style={kpiSub}>{t('mesures_pas_assez')}</span>
+    if (!phTrend) return <span style={kpiSub}>{t('measurements_not_enough_data')}</span>
     const { trend } = phTrend
     const cfg = {
-      up:     { icon: '↑', label: t('mesures_hausse'), color: 'var(--status-ok-text)'     },
-      down:   { icon: '↓', label: t('mesures_baisse'), color: 'var(--status-danger-text)' },
-      stable: { icon: '→', label: t('mesures_stable'), color: 'var(--text-muted)'         },
+      up:     { icon: '↑', label: t('measurements_rising'), color: 'var(--status-ok-text)'     },
+      down:   { icon: '↓', label: t('measurements_falling'), color: 'var(--status-danger-text)' },
+      stable: { icon: '→', label: t('measurements_stable'), color: 'var(--text-muted)'         },
     }[trend]
     return (
       <span style={{ ...kpiSub, color: cfg.color, fontWeight: 500 }}>
@@ -254,9 +254,9 @@ export default function MeasurementsPage({ actions }: Props) {
   }
 
   function daysAgoLabel(n: number): string {
-    if (n === 0) return t('kpi_aujourd_hui')
-    if (n === 1) return t('mesures_il_y_a_1')
-    return [t('mesures_il_y_a_n'), String(n), t('mesures_jours')].filter(Boolean).join(' ')
+    if (n === 0) return t('kpi_today')
+    if (n === 1) return t('measurements_ago_1')
+    return [t('measurements_ago_n'), String(n), t('measurements_days_ago')].filter(Boolean).join(' ')
   }
 
   return (
@@ -264,10 +264,10 @@ export default function MeasurementsPage({ actions }: Props) {
       {/* Header */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
-          {t('page_mesures_title')}
+          {t('page_measurements_title')}
         </div>
         <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-          {t('page_mesures_sub')}
+          {t('page_measurements_sub')}
         </div>
       </div>
 
@@ -276,14 +276,14 @@ export default function MeasurementsPage({ actions }: Props) {
 
         {/* KPI 1 */}
         <div style={{ ...card, padding: '12px 14px' }}>
-          <div style={kpiLabel}>{t('mesures_ce_mois')}</div>
+          <div style={kpiLabel}>{t('measurements_this_month')}</div>
           <div style={kpiValue}>{measuresThisMonth}</div>
-          <div style={kpiSub}>{t('mesures_releves')}</div>
+          <div style={kpiSub}>{t('measurements_records_saved')}</div>
         </div>
 
         {/* KPI 2 — Tendance pH */}
         <div style={{ ...card, padding: '12px 14px' }}>
-          <div style={kpiLabel}>{t('mesures_tendance_ph')}</div>
+          <div style={kpiLabel}>{t('measurements_ph_trend')}</div>
           {phTrend ? (
             <div style={{ ...kpiValue, fontSize: 16 }}>
               {phTrend.first.toFixed(1)} → {phTrend.last.toFixed(1)}
@@ -296,7 +296,7 @@ export default function MeasurementsPage({ actions }: Props) {
 
         {/* KPI 3 — Last reading */}
         <div style={{ ...card, padding: '12px 14px' }}>
-          <div style={kpiLabel}>{t('mesures_dernier_releve')}</div>
+          <div style={kpiLabel}>{t('measurements_last_record')}</div>
           {lastMeasure ? (
             <>
               <div style={{ ...kpiValue, fontSize: 16 }}>{formatDateLong(lastMeasure.date, locale)}</div>
@@ -305,7 +305,7 @@ export default function MeasurementsPage({ actions }: Props) {
           ) : (
             <>
               <div style={{ ...kpiValue, color: 'var(--text-muted)' }}>—</div>
-              <div style={kpiSub}>{t('mesures_aucun_releve')}</div>
+              <div style={kpiSub}>{t('measurements_no_record')}</div>
             </>
           )}
         </div>
@@ -344,17 +344,17 @@ export default function MeasurementsPage({ actions }: Props) {
         {/* pH chart */}
         <div style={{ ...card, padding: 16 }}>
           <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
-            {t('graph_evolution_ph')}
+            {t('graph_ph_trend')}
           </div>
-          <BarChart bars={phBars} empty={t('mesures_aucune_mesure_ph')} notEnough={t('graph_pas_assez_donnees')} />
+          <BarChart bars={phBars} empty={t('measurements_no_ph_period')} notEnough={t('graph_not_enough_data')} />
         </div>
 
         {/* Chlorine chart */}
         <div style={{ ...card, padding: 16 }}>
           <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
-            {t('graph_evolution_chlore')}
+            {t('graph_chlorine_trend')}
           </div>
-          <BarChart bars={clBars} empty={t('mesures_aucune_mesure_chlore')} notEnough={t('graph_pas_assez_donnees')} />
+          <BarChart bars={clBars} empty={t('measurements_no_chlorine_period')} notEnough={t('graph_not_enough_data')} />
         </div>
       </div>
 
@@ -363,23 +363,23 @@ export default function MeasurementsPage({ actions }: Props) {
         {/* Table header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-            {t('mesures_tous_releves')}
+            {t('measurements_all_records')}
           </div>
           <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, color: 'var(--text-muted)' }}>
-            {tableRows.length} {t('mesures_releves')}
+            {tableRows.length} {t('measurements_records_saved')}
           </div>
         </div>
 
         {tableRows.length === 0 ? (
           <p style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
-            {t('mesures_aucun_releve_periode')}
+            {t('measurements_no_records_period')}
           </p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="mesures-table">
               <thead>
                 <tr>
-                  {[t('table_date'), t('param_ph'), t('param_chlore'), t('param_tac'), t('param_temperature'), t('mesures_statut')].map(col => (
+                  {[t('table_date'), t('param_ph'), t('param_chlorine'), t('param_tac'), t('param_temp_label'), t('measurements_status')].map(col => (
                     <th key={col} style={{
                       fontFamily: '"IBM Plex Mono", monospace',
                       fontSize: 10, fontWeight: 500,

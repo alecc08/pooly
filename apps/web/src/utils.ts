@@ -472,10 +472,10 @@ export function getTodoItems(actions: Action[], params: MeasuredParams, t: (key:
       title: t('todo_ph_title'),
       subtitle: t('todo_ph_subtitle'),
       delay: nextPh === null
-        ? t('kpi_jamais_mesure')
+        ? t('kpi_never_measured')
         : overdue
-          ? `${t('kpi_en_retard')} (${Math.abs(nextPh)} ${t('todo_j_abbr')})`
-          : `${t('kpi_dans')} ${nextPh} ${t('todo_j_abbr')}`,
+          ? `${t('kpi_overdue')} (${Math.abs(nextPh)} ${t('todo_day_abbr')})`
+          : `${t('kpi_in')} ${nextPh} ${t('todo_day_abbr')}`,
       isOverdue: overdue || nextPh === null,
     })
   }
@@ -491,9 +491,9 @@ export function getTodoItems(actions: Action[], params: MeasuredParams, t: (key:
       id: 'filter-maintenance',
       icon: '🔧',
       iconBg: '#feecec',
-      title: t('todo_filtre_title'),
-      subtitle: t('todo_filtre_subtitle'),
-      delay: filterDays === null ? t('todo_jamais_fait') : `${t('kpi_en_retard')} (${filterDays} ${t('todo_j_abbr')})`,
+      title: t('todo_filter_title'),
+      subtitle: t('todo_filter_subtitle'),
+      delay: filterDays === null ? t('todo_never_done') : `${t('kpi_overdue')} (${filterDays} ${t('todo_day_abbr')})`,
       isOverdue: true,
     })
   }
@@ -504,9 +504,9 @@ export function getTodoItems(actions: Action[], params: MeasuredParams, t: (key:
       id: 'chlorine-low',
       icon: '⚠️',
       iconBg: '#fff4e0',
-      title: t('todo_chlore_faible_title'),
-      subtitle: `${t('param_chlore')} : ${params.chlorine} mg/L (${t('todo_chlore_min_recommande')})`,
-      delay: t('todo_verifier'),
+      title: t('todo_low_chlorine_title'),
+      subtitle: `${t('param_chlorine')} : ${params.chlorine} mg/L (${t('todo_chlorine_min_recommended')})`,
+      delay: t('todo_check'),
       isOverdue: false,
     })
   }

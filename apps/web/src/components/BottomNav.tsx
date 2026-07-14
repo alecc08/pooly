@@ -20,7 +20,7 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
           <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
-        {t('nav_journal')}
+        {t('nav_log')}
       </button>
 
       <button
@@ -30,12 +30,12 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
         </svg>
-        {t('nav_mesures')}
+        {t('nav_measurements')}
       </button>
 
       <button
         onClick={onAdd}
-        aria-label={t('nav_nouvelle_entree_aria')}
+        aria-label={t('nav_new_entry_aria')}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -68,7 +68,7 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
           fontWeight: 600,
           color: '#38bdf8',
           fontFamily: 'Sora, sans-serif',
-        }}>{t('nav_nouveau')}</span>
+        }}>{t('nav_new')}</span>
       </button>
 
       <button
@@ -79,7 +79,7 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
-        {t('nav_historique')}
+        {t('nav_history')}
       </button>
     </nav>
   )

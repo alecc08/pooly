@@ -41,11 +41,11 @@ function getCategory(action: Action): Category {
 }
 
 function getTitle(action: Action, products: Product[], t: (key: TranslationKey) => string): string {
-  if (action.action_type === 'Measurement' || action.action_type === 'pH Measurement') return t('action_type_mesure')
+  if (action.action_type === 'Measurement' || action.action_type === 'pH Measurement') return t('action_type_measurement')
   if (action.action_type === 'Add product') {
     const p = products.find(p => p.id === action.product_id)
     if (p) return translateLabel(t, PRODUCT_LABELS, p.name)
-    return t('action_type_ajout_produit')
+    return t('action_type_add_product')
   }
   return translateLabel(t, ACTION_TYPE_LABELS, action.action_type)
 }
@@ -122,13 +122,13 @@ function EntryCard({ action, products, onEdit, onDelete }: {
 
   const STATUS_CFG = {
     clear:  { label: t('status_normal'),     color: 'var(--status-ok-text)',     bg: 'var(--status-ok-bg)'     },
-    cloudy: { label: t('status_surveiller'), color: 'var(--status-warn-text)',   bg: 'var(--status-warn-bg)'   },
-    green:  { label: t('status_hors_norme'), color: 'var(--status-danger-text)', bg: 'var(--status-danger-bg)' },
+    cloudy: { label: t('status_watch'), color: 'var(--status-warn-text)',   bg: 'var(--status-warn-bg)'   },
+    green:  { label: t('status_out_of_range'), color: 'var(--status-danger-text)', bg: 'var(--status-danger-bg)' },
   }
 
   const TYPE_PILL: Record<'traitement' | 'entretien', { label: string; color: string; bg: string }> = {
-    traitement: { label: t('historique_traitement_badge'), color: 'var(--badge-purple-text)', bg: 'var(--badge-purple-bg)' },
-    entretien:  { label: t('historique_entretien_badge'),  color: 'var(--badge-blue-text)',   bg: 'var(--badge-blue-bg)'   },
+    traitement: { label: t('history_treatment_badge'), color: 'var(--badge-purple-text)', bg: 'var(--badge-purple-bg)' },
+    entretien:  { label: t('history_maintenance_badge'),  color: 'var(--badge-blue-text)',   bg: 'var(--badge-blue-bg)'   },
   }
 
   // Status badge (measurement) or type pill (treatment/maintenance)
@@ -225,7 +225,7 @@ function EntryCard({ action, products, onEdit, onDelete }: {
           {onEdit && (
             <button
               onClick={() => onEdit(action)}
-              title={t('modal_modifier')}
+              title={t('modal_edit')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
             >
               <Pencil size={13} />
@@ -234,7 +234,7 @@ function EntryCard({ action, products, onEdit, onDelete }: {
           {onDelete && (
             <button
               onClick={() => onDelete(action)}
-              title={t('modal_supprimer')}
+              title={t('modal_delete')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
             >
               <Trash2 size={13} />
@@ -261,10 +261,10 @@ export default function HistoryPage({ actions, products, onEdit, onDelete }: Pro
   const [search, setSearch] = useState('')
 
   const FILTER_BTNS: { label: string; value: FilterType }[] = [
-    { label: t('historique_tout'),         value: 'all' },
-    { label: t('historique_mesures'),      value: 'mesure' },
-    { label: t('historique_traitements'),  value: 'traitement' },
-    { label: t('historique_entretiens'),   value: 'entretien' },
+    { label: t('history_all'),         value: 'all' },
+    { label: t('history_measurements'),      value: 'mesure' },
+    { label: t('history_treatments'),  value: 'traitement' },
+    { label: t('history_maintenance'),   value: 'entretien' },
   ]
 
   const filtered = useMemo(() => {
@@ -299,10 +299,10 @@ export default function HistoryPage({ actions, products, onEdit, onDelete }: Pro
       {/* Header */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
-          {t('page_historique_title')}
+          {t('page_history_title')}
         </div>
         <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-          {t('page_historique_sub')}
+          {t('page_history_sub')}
         </div>
       </div>
 
@@ -337,7 +337,7 @@ export default function HistoryPage({ actions, products, onEdit, onDelete }: Pro
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder={t('historique_rechercher')}
+          placeholder={t('history_search')}
           style={{
             fontFamily: '"Sora", sans-serif',
             fontSize: 11, color: 'var(--text-primary)',
@@ -358,7 +358,7 @@ export default function HistoryPage({ actions, products, onEdit, onDelete }: Pro
           minHeight: 120,
           fontFamily: '"Sora", sans-serif', fontSize: 13, color: 'var(--text-muted)',
         }}>
-          {t('historique_aucune_entree')}
+          {t('history_no_entries')}
         </div>
       ) : (
         grouped.map(({ ym, list }) => (

@@ -29,7 +29,7 @@ export default function InstallationModal({ open, onClose }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setError(t('modal_install_nom_requis')); return }
+    if (!name.trim()) { setError(t('modal_install_name_required')); return }
     setLoading(true)
     setError(null)
     try {
@@ -55,7 +55,7 @@ export default function InstallationModal({ open, onClose }: Props) {
       setHardnessUnit('ppm')
       onClose()
     } catch {
-      setError(t('modal_install_erreur_creation'))
+      setError(t('modal_install_create_error'))
     } finally {
       setLoading(false)
     }
@@ -102,12 +102,12 @@ export default function InstallationModal({ open, onClose }: Props) {
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 18, paddingTop: 4 }}>
           {/* Nom */}
           <div style={{ display: 'grid', gap: 6 }}>
-            <Label htmlFor="inst-name">{t('modal_install_nom')}</Label>
+            <Label htmlFor="inst-name">{t('modal_install_name')}</Label>
             <Input
               id="inst-name"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder={t('modal_install_nom_placeholder')}
+              placeholder={t('modal_install_name_placeholder')}
             />
           </div>
 
@@ -115,7 +115,7 @@ export default function InstallationModal({ open, onClose }: Props) {
           <div style={{ display: 'grid', gap: 8 }}>
             <Label>{t('modal_install_type')}</Label>
             <div style={{ display: 'flex', gap: 10 }}>
-              {([['pool', '🏊', t('modal_install_piscine')], ['spa', '🛁', t('modal_install_spa')]] as const).map(([tp, icon, label]) => (
+              {([['pool', '🏊', t('modal_install_pool')], ['spa', '🛁', t('modal_install_spa')]] as const).map(([tp, icon, label]) => (
                 <button
                   key={tp}
                   type="button"
@@ -136,9 +136,9 @@ export default function InstallationModal({ open, onClose }: Props) {
 
           {/* Désinfectant */}
           <div style={{ display: 'grid', gap: 8 }}>
-            <Label>{t('modal_install_desinfectant')}</Label>
+            <Label>{t('modal_install_sanitizer')}</Label>
             <div style={{ display: 'flex', gap: 8 }}>
-              {([['chlorine', t('modal_install_chlore')], ['bromine', t('modal_install_brome')], ['salt', t('modal_install_sel')]] as const).map(([s, label]) => (
+              {([['chlorine', t('modal_install_chlorine')], ['bromine', t('modal_install_bromine')], ['salt', t('modal_install_salt')]] as const).map(([s, label]) => (
                 <button
                   key={s}
                   type="button"
@@ -158,7 +158,7 @@ export default function InstallationModal({ open, onClose }: Props) {
 
           {/* Capacité */}
           <div style={{ display: 'grid', gap: 8 }}>
-            <Label htmlFor="inst-volume">{t('modal_install_capacite')}</Label>
+            <Label htmlFor="inst-volume">{t('modal_install_capacity')}</Label>
             <div style={{ display: 'flex', gap: 8 }}>
               <Input
                 id="inst-volume"
@@ -192,7 +192,7 @@ export default function InstallationModal({ open, onClose }: Props) {
 
           {/* Unités de mesure */}
           <div style={{ display: 'grid', gap: 8 }}>
-            <Label>{t('modal_install_unites')}</Label>
+            <Label>{t('modal_install_units')}</Label>
             <div style={{ display: 'grid', gap: 6 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={unitRowLabel}>{t('unit_temperature')}</span>
@@ -205,7 +205,7 @@ export default function InstallationModal({ open, onClose }: Props) {
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={unitRowLabel}>{t('unit_sel')}</span>
+                <span style={unitRowLabel}>{t('unit_salt')}</span>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {(['ppm', 'g/L'] as const).map(u => (
                     <button key={u} type="button" onClick={() => setSaltUnit(u)} style={unitPillStyle(saltUnit === u)}>
@@ -225,7 +225,7 @@ export default function InstallationModal({ open, onClose }: Props) {
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={unitRowLabel}>{t('unit_durete')}</span>
+                <span style={unitRowLabel}>{t('unit_hardness')}</span>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {(['ppm', '°dH', '°f'] as const).map(u => (
                     <button key={u} type="button" onClick={() => setHardnessUnit(u)} style={unitPillStyle(hardnessUnit === u)}>
@@ -244,7 +244,7 @@ export default function InstallationModal({ open, onClose }: Props) {
           )}
 
           <Button type="submit" disabled={loading} className="w-full">
-            {loading ? t('modal_install_creation') : t('modal_install_creer')}
+            {loading ? t('modal_install_creating') : t('modal_install_create')}
           </Button>
         </form>
       </DialogContent>

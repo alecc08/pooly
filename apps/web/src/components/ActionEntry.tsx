@@ -46,7 +46,7 @@ export default function ActionEntry({ action, products, onEdit }: Props) {
           <button
             type="button"
             onClick={() => onEdit(action)}
-            title={t('modal_modifier')}
+            title={t('modal_edit')}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               padding: 4, borderRadius: 4, color: 'var(--pooly-muted)',

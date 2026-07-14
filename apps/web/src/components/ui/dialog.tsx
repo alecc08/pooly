@@ -71,7 +71,7 @@ const DialogContent = React.forwardRef<
           flexShrink: 0,
         }}
       >
-        ✕<span className="sr-only">{t('common_fermer')}</span>
+        ✕<span className="sr-only">{t('common_close')}</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>

@@ -217,9 +217,9 @@ function SpaGreenSvg({ opacity }: SvgProps) {
 // ── Config ─────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG = {
-  clear:  { labelKey: 'eau_claire',  statusKey: 'status_normal',     color: 'var(--status-ok-text)'     },
-  cloudy: { labelKey: 'eau_trouble', statusKey: 'status_surveiller', color: 'var(--status-warn-text)'   },
-  green:  { labelKey: 'eau_verte',   statusKey: 'status_hors_norme', color: 'var(--status-danger-text)' },
+  clear:  { labelKey: 'water_clear',  statusKey: 'status_normal',        color: 'var(--status-ok-text)'     },
+  cloudy: { labelKey: 'water_cloudy', statusKey: 'status_watch',         color: 'var(--status-warn-text)'   },
+  green:  { labelKey: 'water_green',  statusKey: 'status_out_of_range',  color: 'var(--status-danger-text)' },
 } as const
 
 // ── Component ──────────────────────────────────────────────────────────────
