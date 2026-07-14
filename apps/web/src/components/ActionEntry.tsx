@@ -1,5 +1,6 @@
 import { Pencil } from 'lucide-react'
 import type { Action, Product } from '../types'
+import { useT } from '../context/LocaleContext'
 
 type Props = {
   action: Action
@@ -29,6 +30,7 @@ function getActionBadgeClass(actionType: string): string {
 }
 
 export default function ActionEntry({ action, products, onEdit }: Props) {
+  const { t } = useT()
   return (
     <tr>
       <td className="mono">{formatDate(action.date)}</td>
@@ -44,7 +46,7 @@ export default function ActionEntry({ action, products, onEdit }: Props) {
           <button
             type="button"
             onClick={() => onEdit(action)}
-            title="Modifier"
+            title={t('modal_modifier')}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               padding: 4, borderRadius: 4, color: 'var(--pooly-muted)',

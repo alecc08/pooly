@@ -1,4 +1,20 @@
+import copy
+
+import pytest
 from fastapi.testclient import TestClient
+
+from main import WATER_PARAMS, _apply_range_overrides
+
+
+@pytest.fixture
+def water_params_snapshot():
+    """Deep-copies WATER_PARAMS before the test and restores it after, so
+    range-override tests can't leak mutations into other tests in the session
+    (main — and WATER_PARAMS — is imported once and shared session-wide)."""
+    original = copy.deepcopy(WATER_PARAMS)
+    yield
+    WATER_PARAMS.clear()
+    WATER_PARAMS.update(copy.deepcopy(original))
 
 
 def login(client: TestClient):
@@ -117,6 +133,8 @@ def test_get_installation_params_piscine_sel(client: TestClient):
     params = params_r.json()
     assert params["salt"]["ideal"] == [2700, 3400]
     assert params["cya"]["ideal"] == [60, 80]
+    assert params["cl"]["ideal"] == [1.0, 3.0]
+    assert params["durete"]["ideal"] == [100, 500]
     assert "cc" in params
 
 
@@ -133,6 +151,8 @@ def test_get_installation_params_spa_sel(client: TestClient):
     assert params["temp"]["ideal"] == [36, 40]
     assert params["salt"]["ideal"] == [2500, 3200]
     assert params["cya"]["ideal"] == [30, 50]
+    assert params["cl"]["ideal"] == [3.0, 5.0]
+    assert params["durete"]["ideal"] == [100, 500]
 
 
 def test_get_installation_params_chlore_includes_cc(client: TestClient):
@@ -169,6 +189,44 @@ def test_get_installation_params_unknown_sanitizer_returns_empty(client: TestCli
     params_r = client.get(f"/installations/{installation_id}/params")
     assert params_r.status_code == 200
     assert params_r.json() == {}
+
+
+# ── Range overrides (RANGE_<TYPE>_<SANITIZER>_<PARAM>_{IDEAL,ACCEPTABLE}_{MIN,MAX}) ──
+
+def test_apply_range_overrides_full(monkeypatch, water_params_snapshot):
+    monkeypatch.setenv("RANGE_PISCINE_SEL_SALT_IDEAL_MIN", "3600")
+    monkeypatch.setenv("RANGE_PISCINE_SEL_SALT_IDEAL_MAX", "4400")
+    monkeypatch.setenv("RANGE_PISCINE_SEL_SALT_ACCEPTABLE_MIN", "3000")
+    monkeypatch.setenv("RANGE_PISCINE_SEL_SALT_ACCEPTABLE_MAX", "5000")
+    _apply_range_overrides()
+    ranges = WATER_PARAMS[("piscine", "sel")]["salt"]
+    assert ranges["ideal"] == (3600.0, 4400.0)
+    assert ranges["acceptable"] == (3000.0, 5000.0)
+
+
+def test_apply_range_overrides_partial_leaves_other_side_default(monkeypatch, water_params_snapshot):
+    monkeypatch.setenv("RANGE_PISCINE_SEL_SALT_IDEAL_MIN", "3600")
+    monkeypatch.setenv("RANGE_PISCINE_SEL_SALT_IDEAL_MAX", "4400")
+    _apply_range_overrides()
+    ranges = WATER_PARAMS[("piscine", "sel")]["salt"]
+    assert ranges["ideal"] == (3600.0, 4400.0)
+    assert ranges["acceptable"] == (2500, 4500)
+
+
+def test_apply_range_overrides_noop_without_env_vars(water_params_snapshot):
+    before = copy.deepcopy(WATER_PARAMS)
+    _apply_range_overrides()
+    assert WATER_PARAMS == before
+
+
+def test_apply_range_overrides_ignores_param_not_present_for_combo(monkeypatch, water_params_snapshot):
+    # ("piscine", "brome") has no "cl" key — an override targeting it must be a no-op.
+    monkeypatch.setenv("RANGE_PISCINE_BROME_CL_IDEAL_MIN", "1.0")
+    monkeypatch.setenv("RANGE_PISCINE_BROME_CL_IDEAL_MAX", "3.0")
+    before = copy.deepcopy(WATER_PARAMS[("piscine", "brome")])
+    _apply_range_overrides()
+    assert WATER_PARAMS[("piscine", "brome")] == before
+    assert "cl" not in WATER_PARAMS[("piscine", "brome")]
 
 
 def test_create_installation_with_volume(client: TestClient):

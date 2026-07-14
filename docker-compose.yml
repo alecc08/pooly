@@ -27,6 +27,8 @@ services:
       context: ./apps/api
       dockerfile: Dockerfile
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-pooly}:${POSTGRES_PASSWORD:?required}@db:5432/${POSTGRES_DB:-pooly}
       SESSION_SECRET: ${SESSION_SECRET:?La variable SESSION_SECRET est requise}

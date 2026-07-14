@@ -51,4 +51,5 @@ export type InstallationWaterParams = {
   salt?: { ideal: [number, number]; acceptable: [number, number] }
   cya?: { ideal: [number, number]; acceptable: [number, number] }
   cc?: { ideal: [number, number]; acceptable: [number, number] }
+  durete?: { ideal: [number, number]; acceptable: [number, number] }
 }

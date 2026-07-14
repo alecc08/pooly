@@ -42,7 +42,7 @@ export default function ProfileDialog({ user, onSave, onClose }: Props) {
       setSuccess(true)
       setTimeout(onClose, 900)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erreur')
+      setError(err instanceof Error ? err.message : t('erreur_generique'))
     } finally {
       setLoading(false)
     }

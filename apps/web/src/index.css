@@ -775,6 +775,13 @@ input[type="checkbox"]:checked::after {
     border-bottom: none;
   }
 
+  /* Sel installations have 5 param blocks (odd) once Chlore is added — the lone
+     trailing block would otherwise sit half-width with a stray left border. */
+  .params-banner > *:nth-last-child(1):nth-child(5) {
+    flex-basis: 100% !important;
+    border-left: none !important;
+  }
+
   /* History table: hide Paramètres & Notes columns on mobile */
   .history-col-params,
   .history-col-notes {

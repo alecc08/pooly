@@ -303,7 +303,7 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
                 <polyline points="16 17 21 12 16 7" />
                 <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
-              {locale === 'fr' ? 'Déco' : 'Out'}
+              {t('nav_deconnexion_courte')}
             </button>
           )}
         </div>

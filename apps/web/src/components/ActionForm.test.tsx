@@ -99,12 +99,13 @@ describe('ActionForm', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  it('sel installation, appareil mode: renders Sel, Stabilisant and Chlore combiné fields', () => {
+  it('sel installation, appareil mode: renders Sel, Chlore libre, Stabilisant and Chlore combiné fields', () => {
     setActiveInstallation(makeInstallation({ sanitizer: 'sel' }))
     const editAction = makeMesureAction()
     render(<ActionForm products={products} editAction={editAction} onEdit={vi.fn()} />)
 
     expect(screen.getByText('Sel')).toBeInTheDocument()
+    expect(screen.getByText('Chlore libre')).toBeInTheDocument()
     expect(screen.getByText('Stabilisant (CYA)')).toBeInTheDocument()
     expect(screen.getByText('Chlore combiné (CC)')).toBeInTheDocument()
   })
@@ -144,7 +145,7 @@ describe('ActionForm', () => {
     expect(payload.notes).toContain('combiné: 0.3')
   })
 
-  it('bandelette mode for a sel installation does not render a salt/CYA/CC swatch panel', () => {
+  it('bandelette mode for a sel installation does not render a salt/CYA/CC swatch panel, but does render Chlore', () => {
     localStorage.setItem('pooly_mesure_mode', 'bandelette')
     setActiveInstallation(makeInstallation({ sanitizer: 'sel' }))
     const editAction = makeMesureAction()
@@ -153,6 +154,7 @@ describe('ActionForm', () => {
     expect(screen.queryByText('Sel')).not.toBeInTheDocument()
     expect(screen.queryByText('Stabilisant (CYA)')).not.toBeInTheDocument()
     expect(screen.queryByText('Chlore combiné (CC)')).not.toBeInTheDocument()
+    expect(screen.getByText('Chlore libre')).toBeInTheDocument()
   })
 
   describe('température (unit-aware temperature field)', () => {

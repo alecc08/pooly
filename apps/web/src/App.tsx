@@ -141,8 +141,8 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
       if (!res.ok) throw new Error('Erreur lors de la suppression')
       setActions(prev => prev.filter(a => a.id !== id))
       setDeletingAction(null)
-    } catch (e) {
-      alert((e as Error).message)
+    } catch {
+      alert(t('app_erreur_suppression'))
     }
   }
 
@@ -155,7 +155,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
     })
     if (!res.ok) {
       const data = await res.json()
-      throw new Error(data.detail || 'Erreur')
+      throw new Error(data.detail || t('erreur_generique'))
     }
     const data = await res.json()
     onUserUpdate(data.user)
@@ -173,8 +173,8 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
       const updated: Action = await res.json()
       setActions(prev => prev.map(a => a.id === id ? updated : a).sort((a, b) => b.date.localeCompare(a.date)))
       setEditingAction(null)
-    } catch (e) {
-      alert((e as Error).message)
+    } catch {
+      alert(t('app_erreur_modification'))
     }
   }
 
@@ -323,7 +323,7 @@ export default function App() {
     setUser(null)
   }
 
-  if (authLoading) return <div className="page-loading">Chargement…</div>
+  if (authLoading) return <div className="page-loading">{localeValue.t('chargement')}</div>
 
   return (
     <LocaleContext.Provider value={localeValue}>

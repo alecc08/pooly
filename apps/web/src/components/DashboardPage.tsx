@@ -27,7 +27,9 @@ import {
   getNextMeasureInDays,
   getTreatmentsThisMonth,
   getTodoItems,
+  translateLabel,
 } from '../utils'
+import { ACTION_TYPE_LABELS } from './ActionForm'
 
 function formatDateLong(d: Date, locale: Locale): string {
   return d.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-GB', {
@@ -75,7 +77,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
   const daysSince = useMemo(() => daysSinceLastAction(actions), [actions])
   const nextMeasure = useMemo(() => getNextMeasureInDays(actions), [actions])
   const treatments = useMemo(() => getTreatmentsThisMonth(actions, yearMonth), [actions, yearMonth])
-  const todoItems = useMemo(() => getTodoItems(actions, params), [actions, params])
+  const todoItems = useMemo(() => getTodoItems(actions, params, t), [actions, params, t])
 
   function lastActionLabel(): string {
     if (actions.length === 0) return '—'
@@ -185,7 +187,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
             {lastActionLabel()}
           </div>
           <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-muted)' }}>
-            {lastActionType() || t('kpi_aucune_action')}
+            {lastActionType() ? translateLabel(t, ACTION_TYPE_LABELS, lastActionType()) : t('kpi_aucune_action')}
           </div>
         </div>
 
@@ -234,13 +236,22 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
             showDivider={true}
           />
         ) : sanitizer === 'sel' ? (
-          <ParamBlock
-            label={t('param_sel')}
-            value={params.salt !== null ? params.salt.toFixed(0) : '—'}
-            unit={active?.salt_unit ?? 'ppm'}
-            status={params.salt !== null ? getSelStatus(params.salt, ranges ?? undefined) : null}
-            showDivider={true}
-          />
+          <>
+            <ParamBlock
+              label={t('param_sel')}
+              value={params.salt !== null ? params.salt.toFixed(0) : '—'}
+              unit={active?.salt_unit ?? 'ppm'}
+              status={params.salt !== null ? getSelStatus(params.salt, ranges ?? undefined) : null}
+              showDivider={true}
+            />
+            <ParamBlock
+              label={t('param_chlore')}
+              value={params.chlore !== null ? params.chlore.toFixed(1) : '—'}
+              unit={active?.conc_unit ?? 'mg/L'}
+              status={params.chlore !== null ? getChloreStatus(params.chlore, ranges ?? undefined) : null}
+              showDivider={true}
+            />
+          </>
         ) : (
           <ParamBlock
             label={t('param_chlore')}
@@ -344,14 +355,14 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
                         <div style={{ display: 'flex', gap: 2, opacity: hoveredRowId === action.id ? 1 : 0, transition: 'opacity 0.15s' }}>
                           <button
                             onClick={() => onEdit(action)}
-                            title="Modifier"
+                            title={t('modal_modifier')}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
                           >
                             <Pencil size={13} />
                           </button>
                           <button
                             onClick={() => onDelete(action)}
-                            title="Supprimer"
+                            title={t('modal_supprimer')}
                             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
                           >
                             <Trash2 size={13} />
@@ -553,6 +564,7 @@ function StatusBadge({ status }: { status: ParamStatus }) {
 }
 
 function ActionTypeBadge({ actionType }: { actionType: string }) {
+  const { t } = useT()
   let color = 'var(--text-muted)', bg = 'var(--bg-surface-2)'
   if (actionType === 'Mesure' || actionType === 'Mesure de pH') {
     color = 'var(--badge-orange-text)'; bg = 'var(--badge-orange-bg)'
@@ -572,7 +584,7 @@ function ActionTypeBadge({ actionType }: { actionType: string }) {
       padding: '2px 6px', borderRadius: 4,
       display: 'inline-block', whiteSpace: 'nowrap',
     }}>
-      {actionType}
+      {translateLabel(t, ACTION_TYPE_LABELS, actionType)}
     </span>
   )
 }

@@ -11,7 +11,18 @@ import {
   getDureteStatus,
   extractMeasuredParams,
   installationParamsToRanges,
+  getTodoItems,
+  type MeasuredParams,
 } from './utils'
+import { translations } from './i18n/translations'
+
+const t = (key: string) => (translations.fr as Record<string, string>)[key] ?? key
+
+function daysAgo(n: number): string {
+  const d = new Date()
+  d.setUTCDate(d.getUTCDate() - n)
+  return d.toISOString().slice(0, 10)
+}
 
 const makeInstallation = (overrides: Partial<Installation> = {}): Installation => ({
   id: 1,
@@ -238,5 +249,85 @@ describe('installationParamsToRanges — unit-aware temp/sel/durete', () => {
 
     const fRanges = installationParamsToRanges(params, makeInstallation({ durete_unit: '°f' }))
     expect(fRanges.durete!.ideal).toEqual([10, 50])
+  })
+
+  it('prefers a backend-provided durete range over PARAM_RANGES when present, with unit conversion still applied on top', () => {
+    const withDurete: InstallationWaterParams = { ...params, durete: { ideal: [10, 20], acceptable: [5, 30] } }
+
+    const ppmRanges = installationParamsToRanges(withDurete, makeInstallation())
+    expect(ppmRanges.durete).toEqual({ ideal: [10, 20], acceptable: [5, 30] })
+
+    const dhRanges = installationParamsToRanges(withDurete, makeInstallation({ durete_unit: '°dH' }))
+    expect(dhRanges.durete!.ideal[0]).toBeCloseTo(ppmToGermanDegrees(10), 5)
+    expect(dhRanges.durete!.ideal[1]).toBeCloseTo(ppmToGermanDegrees(20), 5)
+  })
+})
+
+describe('getTodoItems', () => {
+  const emptyParams: MeasuredParams = {
+    ph: null, chlore: null, tac: null, temp: null, brome: null,
+    durete: null, salt: null, stabilisant: null, cc: null, date: null,
+  }
+
+  it('flags pH as never measured when there is no measurement history', () => {
+    const items = getTodoItems([], emptyParams, t)
+    const ph = items.find(i => i.id === 'ph-measure')
+    expect(ph).toBeDefined()
+    expect(ph!.delay).toBe('Jamais mesuré')
+    expect(ph!.isOverdue).toBe(true)
+  })
+
+  it('flags pH as overdue past the 7-day cycle', () => {
+    const actions = [makeAction({ action_type: 'Mesure', qty: '7.2', date: daysAgo(10) })]
+    const items = getTodoItems(actions, emptyParams, t)
+    const ph = items.find(i => i.id === 'ph-measure')
+    expect(ph!.delay).toBe('En retard (3 j)')
+    expect(ph!.isOverdue).toBe(true)
+  })
+
+  it('shows an upcoming pH measurement within the 5-day warn window', () => {
+    const actions = [makeAction({ action_type: 'Mesure', qty: '7.2', date: daysAgo(3) })]
+    const items = getTodoItems(actions, emptyParams, t)
+    const ph = items.find(i => i.id === 'ph-measure')
+    expect(ph!.delay).toBe('Dans 4 j')
+    expect(ph!.isOverdue).toBe(false)
+  })
+
+  it('does not flag pH when well within the cycle (more than 5 days left)', () => {
+    const actions = [makeAction({ action_type: 'Mesure', qty: '7.2', date: daysAgo(1) })]
+    const items = getTodoItems(actions, emptyParams, t)
+    expect(items.find(i => i.id === 'ph-measure')).toBeUndefined()
+  })
+
+  it('flags filter maintenance as never done with no history', () => {
+    const items = getTodoItems([], emptyParams, t)
+    const filter = items.find(i => i.id === 'filter-maintenance')
+    expect(filter!.delay).toBe('Jamais fait')
+  })
+
+  it('flags filter maintenance as overdue past 14 days', () => {
+    const actions = [makeAction({ action_type: 'Nettoyage cartouche', date: daysAgo(20) })]
+    const items = getTodoItems(actions, emptyParams, t)
+    const filter = items.find(i => i.id === 'filter-maintenance')
+    expect(filter!.delay).toBe('En retard (20 j)')
+  })
+
+  it('does not flag filter maintenance when recently done', () => {
+    const actions = [makeAction({ action_type: 'Nettoyage cartouche', date: daysAgo(2) })]
+    const items = getTodoItems(actions, emptyParams, t)
+    expect(items.find(i => i.id === 'filter-maintenance')).toBeUndefined()
+  })
+
+  it('flags low chlore', () => {
+    const items = getTodoItems([], { ...emptyParams, chlore: 0.5 }, t)
+    const chlore = items.find(i => i.id === 'chlore-low')
+    expect(chlore!.title).toBe('Chlore faible')
+    expect(chlore!.subtitle).toBe('Chlore libre : 0.5 mg/L (min. recommandé : 1 mg/L)')
+    expect(chlore!.delay).toBe('Vérifier')
+  })
+
+  it('does not flag chlore when at or above the minimum', () => {
+    const items = getTodoItems([], { ...emptyParams, chlore: 1.2 }, t)
+    expect(items.find(i => i.id === 'chlore-low')).toBeUndefined()
   })
 })

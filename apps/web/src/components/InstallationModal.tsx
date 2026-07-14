@@ -54,8 +54,8 @@ export default function InstallationModal({ open, onClose }: Props) {
       setConcUnit('mg/L')
       setDureteUnit('ppm')
       onClose()
-    } catch (err) {
-      setError((err as Error).message)
+    } catch {
+      setError(t('modal_install_erreur_creation'))
     } finally {
       setLoading(false)
     }
@@ -107,7 +107,7 @@ export default function InstallationModal({ open, onClose }: Props) {
               id="inst-name"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="Ma piscine, Spa du jardin…"
+              placeholder={t('modal_install_nom_placeholder')}
             />
           </div>
 

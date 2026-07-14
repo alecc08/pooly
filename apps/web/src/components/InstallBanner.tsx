@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useT } from '../context/LocaleContext'
 
 const DISMISS_KEY = 'pooly_install_dismissed'
 const DISMISS_TTL = 7 * 24 * 60 * 60 * 1000 // 7 jours
@@ -10,6 +11,7 @@ function isDismissedRecently(): boolean {
 }
 
 export default function InstallBanner() {
+  const { t } = useT()
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = useState(false)
 
@@ -43,18 +45,18 @@ export default function InstallBanner() {
       <div style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>💧</div>
       <div style={{ flex: 1 }}>
         <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>
-          Installer Pooly
+          {t('install_banner_titre')}
         </div>
         <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 11, opacity: 0.65, marginTop: 2 }}>
-          Accès rapide depuis l'écran d'accueil
+          {t('install_banner_sous_titre')}
         </div>
       </div>
       <button className="install-banner-btn" onClick={handleInstall}>
-        Installer
+        {t('install_banner_bouton')}
       </button>
       <button
         onClick={handleDismiss}
-        aria-label="Fermer"
+        aria-label={t('common_fermer')}
         style={{
           background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)',
           fontSize: 18, cursor: 'pointer', padding: '4px 2px', lineHeight: 1, flexShrink: 0,

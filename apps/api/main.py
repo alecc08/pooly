@@ -27,50 +27,79 @@ limiter = Limiter(key_func=get_remote_address)
 
 WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
     ("piscine", "brome"): {
-        "ph":   {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
-        "br":   {"ideal": (2.0, 5.0), "acceptable": (1.0, 10.0)},
-        "tac":  {"ideal": (80, 180),  "acceptable": (60, 200)},
-        "temp": {"ideal": (24, 28),   "acceptable": (15, 35)},
+        "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
+        "br":     {"ideal": (2.0, 5.0), "acceptable": (1.0, 10.0)},
+        "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
+        "temp":   {"ideal": (24, 28),   "acceptable": (15, 35)},
+        "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
     ("piscine", "chlore"): {
-        "ph":   {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
-        "cl":   {"ideal": (1.0, 3.0), "acceptable": (0.5, 4.0)},
-        "cc":   {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
-        "tac":  {"ideal": (80, 180),  "acceptable": (60, 200)},
-        "temp": {"ideal": (24, 28),   "acceptable": (15, 35)},
+        "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
+        "cl":     {"ideal": (1.0, 3.0), "acceptable": (0.5, 4.0)},
+        "cc":     {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
+        "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
+        "temp":   {"ideal": (24, 28),   "acceptable": (15, 35)},
+        "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
     ("spa", "brome"): {
-        "ph":   {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
-        "br":   {"ideal": (3.0, 6.0), "acceptable": (2.0, 10.0)},
-        "tac":  {"ideal": (80, 180),  "acceptable": (60, 200)},
-        "temp": {"ideal": (36, 40),   "acceptable": (30, 42)},
+        "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
+        "br":     {"ideal": (3.0, 6.0), "acceptable": (2.0, 10.0)},
+        "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
+        "temp":   {"ideal": (36, 40),   "acceptable": (30, 42)},
+        "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
     ("spa", "chlore"): {
-        "ph":   {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
-        "cl":   {"ideal": (3.0, 5.0), "acceptable": (2.0, 6.0)},
-        "cc":   {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
-        "tac":  {"ideal": (80, 180),  "acceptable": (60, 200)},
-        "temp": {"ideal": (36, 40),   "acceptable": (30, 42)},
+        "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
+        "cl":     {"ideal": (3.0, 5.0), "acceptable": (2.0, 6.0)},
+        "cc":     {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
+        "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
+        "temp":   {"ideal": (36, 40),   "acceptable": (30, 42)},
+        "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
     ("piscine", "sel"): {
-        "ph":   {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
-        "salt": {"ideal": (2700, 3400), "acceptable": (2500, 4500)},
-        "cya":  {"ideal": (60, 80),     "acceptable": (30, 100)},
-        "cc":   {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
-        "tac":  {"ideal": (80, 180),    "acceptable": (60, 200)},
-        "temp": {"ideal": (24, 28),     "acceptable": (15, 35)},
+        "ph":     {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
+        "salt":   {"ideal": (2700, 3400), "acceptable": (2500, 4500)},
+        "cya":    {"ideal": (60, 80),     "acceptable": (30, 100)},
+        "cl":     {"ideal": (1.0, 3.0),   "acceptable": (0.5, 4.0)},
+        "cc":     {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
+        "tac":    {"ideal": (80, 180),    "acceptable": (60, 200)},
+        "temp":   {"ideal": (24, 28),     "acceptable": (15, 35)},
+        "durete": {"ideal": (100, 500),   "acceptable": (50, 1000)},
     },
     # Salt spas are far less standardized than salt pools; this band is an
     # approximation pending better field data.
     ("spa", "sel"): {
-        "ph":   {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
-        "salt": {"ideal": (2500, 3200), "acceptable": (2000, 4000)},
-        "cya":  {"ideal": (30, 50),     "acceptable": (0, 80)},
-        "cc":   {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
-        "tac":  {"ideal": (80, 180),    "acceptable": (60, 200)},
-        "temp": {"ideal": (36, 40),     "acceptable": (30, 42)},
+        "ph":     {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
+        "salt":   {"ideal": (2500, 3200), "acceptable": (2000, 4000)},
+        "cya":    {"ideal": (30, 50),     "acceptable": (0, 80)},
+        "cl":     {"ideal": (3.0, 5.0),   "acceptable": (2.0, 6.0)},
+        "cc":     {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
+        "tac":    {"ideal": (80, 180),    "acceptable": (60, 200)},
+        "temp":   {"ideal": (36, 40),     "acceptable": (30, 42)},
+        "durete": {"ideal": (100, 500),   "acceptable": (50, 1000)},
     },
 }
+
+
+def _apply_range_overrides(target: Optional[Dict[Tuple[str, str], Dict]] = None) -> None:
+    """Applies RANGE_<TYPE>_<SANITIZER>_<PARAM>_{IDEAL,ACCEPTABLE}_{MIN,MAX} env var
+    overrides onto WATER_PARAMS (or an explicit `target` dict, for tests). Only
+    overrides (type, sanitizer, param) combos that already exist in the dict — never
+    invents new param keys for a combo that doesn't have them."""
+    params = WATER_PARAMS if target is None else target
+    for (inst_type, sanitizer), params_for_combo in params.items():
+        for param, ranges in params_for_combo.items():
+            for band in ("ideal", "acceptable"):
+                lo, hi = ranges[band]
+                prefix = f"RANGE_{inst_type.upper()}_{sanitizer.upper()}_{param.upper()}_{band.upper()}"
+                min_env = os.getenv(f"{prefix}_MIN")
+                max_env = os.getenv(f"{prefix}_MAX")
+                new_lo = float(min_env) if min_env is not None else lo
+                new_hi = float(max_env) if max_env is not None else hi
+                ranges[band] = (new_lo, new_hi)
+
+
+_apply_range_overrides()
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────

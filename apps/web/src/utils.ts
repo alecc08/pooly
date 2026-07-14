@@ -1,5 +1,6 @@
 import type { Action, Installation, InstallationWaterParams } from './types'
 import { celsiusToFahrenheit, ppmToGramsPerLiter, ppmToGermanDegrees, ppmToFrenchDegrees, convertRange } from './units'
+import type { TranslationKey } from './i18n/translations'
 
 // ── Water status ──────────────────────────────────────────────────────────────
 
@@ -33,18 +34,19 @@ export type DynamicRanges = {
  * Convert API InstallationWaterParams to DynamicRanges (cl→chlore, br→brome, salt→sel, cya→stabilisant).
  * When an installation is provided, temp/sel/durete ranges are converted to the installation's
  * chosen unit ("store as entered" model — chlore/brome/tac/cc are display-label-only, no math).
- * durete is synthesized client-side from PARAM_RANGES since the backend never returns it.
+ * durete falls back to PARAM_RANGES.durete only for combos that don't return one from the backend.
  */
 export function installationParamsToRanges(params: InstallationWaterParams, installation?: Installation): DynamicRanges {
   const temp = installation?.temp_unit === 'F' ? convertRange(params.temp, celsiusToFahrenheit) : params.temp
   const sel = installation?.salt_unit === 'g/L' && params.salt ? convertRange(params.salt, ppmToGramsPerLiter) : params.salt
 
+  const dureteBase = params.durete ?? PARAM_RANGES.durete
   const dureteUnit = installation?.durete_unit ?? 'ppm'
   const durete = dureteUnit === '°dH'
-    ? convertRange(PARAM_RANGES.durete, ppmToGermanDegrees)
+    ? convertRange(dureteBase, ppmToGermanDegrees)
     : dureteUnit === '°f'
-      ? convertRange(PARAM_RANGES.durete, ppmToFrenchDegrees)
-      : PARAM_RANGES.durete
+      ? convertRange(dureteBase, ppmToFrenchDegrees)
+      : dureteBase
 
   return {
     ph: params.ph,
@@ -157,6 +159,12 @@ export function getWaterStatus(params: WaterParams, ranges?: DynamicRanges): { s
   }
 
   return { status: 'clear', hasData: true }
+}
+
+/** Renders a DB-stored/matched raw string (action type, product name, quick tag) as a
+ * translated label, without ever touching the raw value used for storage/matching. */
+export function translateLabel(t: (key: TranslationKey) => string, map: Record<string, TranslationKey>, raw: string): string {
+  return map[raw] ? t(map[raw]) : raw
 }
 
 export function getActionsThisMonth(actions: Action[], yearMonth: string): Action[] {
@@ -436,7 +444,7 @@ export function getTreatmentsThisMonth(
 /**
  * Computes recommended to-do items based on action history and measured params.
  */
-export function getTodoItems(actions: Action[], params: MeasuredParams): TodoItem[] {
+export function getTodoItems(actions: Action[], params: MeasuredParams, t: (key: TranslationKey) => string): TodoItem[] {
   const items: TodoItem[] = []
 
   // pH measurement: warn after 5 days, cycle 7 days
@@ -447,13 +455,13 @@ export function getTodoItems(actions: Action[], params: MeasuredParams): TodoIte
       id: 'ph-measure',
       icon: '⚗️',
       iconBg: overdue ? '#feecec' : '#fff4e0',
-      title: 'Mesure du pH',
-      subtitle: 'Recommandé tous les 7 jours',
+      title: t('todo_ph_title'),
+      subtitle: t('todo_ph_subtitle'),
       delay: nextPh === null
-        ? 'Jamais mesuré'
+        ? t('kpi_jamais_mesure')
         : overdue
-          ? `En retard (${Math.abs(nextPh)} j)`
-          : `Dans ${nextPh} j`,
+          ? `${t('kpi_en_retard')} (${Math.abs(nextPh)} ${t('todo_j_abbr')})`
+          : `${t('kpi_dans')} ${nextPh} ${t('todo_j_abbr')}`,
       isOverdue: overdue || nextPh === null,
     })
   }
@@ -469,9 +477,9 @@ export function getTodoItems(actions: Action[], params: MeasuredParams): TodoIte
       id: 'filter-maintenance',
       icon: '🔧',
       iconBg: '#feecec',
-      title: 'Entretien du filtre',
-      subtitle: 'Nettoyage cartouche ou contre-lavage',
-      delay: filterDays === null ? 'Jamais fait' : `En retard (${filterDays} j)`,
+      title: t('todo_filtre_title'),
+      subtitle: t('todo_filtre_subtitle'),
+      delay: filterDays === null ? t('todo_jamais_fait') : `${t('kpi_en_retard')} (${filterDays} ${t('todo_j_abbr')})`,
       isOverdue: true,
     })
   }
@@ -482,9 +490,9 @@ export function getTodoItems(actions: Action[], params: MeasuredParams): TodoIte
       id: 'chlore-low',
       icon: '⚠️',
       iconBg: '#fff4e0',
-      title: 'Chlore faible',
-      subtitle: `Chlore libre : ${params.chlore} mg/L (min. recommandé : 1 mg/L)`,
-      delay: 'Vérifier',
+      title: t('todo_chlore_faible_title'),
+      subtitle: `${t('param_chlore')} : ${params.chlore} mg/L (${t('todo_chlore_min_recommande')})`,
+      delay: t('todo_verifier'),
       isOverdue: false,
     })
   }

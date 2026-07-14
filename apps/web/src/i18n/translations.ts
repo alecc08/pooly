@@ -230,6 +230,86 @@ export const translations = {
     ma_piscine: 'MA PISCINE',
     mon_spa: 'MON SPA',
     mon_installation: 'MON INSTALLATION',
+
+    // Bandelette — zones
+    zone_low: 'LOW',
+    zone_ok: 'OK',
+    zone_high: 'HIGH',
+    zone_ideal: 'IDÉAL',
+    zone_vhigh: 'V.HIGH',
+
+    // Paramètres additionnels
+    param_durete: 'Dureté totale',
+    param_cc: 'Chlore combiné (CC)',
+    param_stabilisant: 'Stabilisant (CYA)',
+    band_tac_alcalinite: 'Alcalinité — TAC',
+
+    // Modal — divers
+    modal_ideal_prefix: 'Idéal :',
+    modal_produit_placeholder: 'Produit…',
+    modal_qte_placeholder: 'Qté',
+    modal_supprimer_action_aria: 'Supprimer cette action',
+    modal_install_nom_placeholder: 'Ma piscine, Spa du jardin…',
+    modal_install_erreur_creation: "Erreur lors de la création de l'installation",
+
+    // Types d'action
+    action_type_nettoyage_cartouche: 'Nettoyage cartouche',
+    action_type_nettoyage_filtre_skimmer: 'Nettoyage filtre skimmer',
+    action_type_contre_lavage: 'Contre-lavage',
+    action_type_mesure: 'Mesure',
+    action_type_calibrage_ph: 'Calibrage pH',
+    action_type_ajout_produit: 'Ajout de produit',
+    action_type_purge: 'Purge',
+    action_type_changement_eau: "Changement d'eau",
+
+    // Produits
+    product_ph_moins: 'pH -',
+    product_ph_plus: 'pH +',
+    product_floculant: 'Floculant',
+    product_anti_algue: 'Anti-algue',
+    product_chlore_choc: 'Chlore-choc',
+    product_brome_choc: 'Brome-choc',
+
+    // Statut rapide — tags
+    tag_niveau_ok: 'Niveau OK',
+    tag_skimmer_propre: 'Skimmer propre',
+    tag_panier_vide: 'Panier vidé',
+    tag_robot_passe: 'Robot passé',
+    tag_backwash_fait: 'Backwash fait',
+    tag_aspirateur_passe: 'Aspirateur passé',
+    tag_epuisette_passee: 'Épuisette passée',
+    tag_filtres_propres: 'Filtres propres',
+    tag_couvercle_remis: 'Couvercle remis',
+    tag_purge_faite: 'Purge faite',
+    tag_nettoyage_coque: 'Nettoyage coque',
+
+    // Historique — badges de type
+    historique_traitement_badge: 'Traitement',
+    historique_entretien_badge: 'Entretien',
+
+    // Topbar
+    nav_deconnexion_courte: 'Déco',
+
+    // Bandeau installation PWA
+    install_banner_titre: 'Installer Pooly',
+    install_banner_sous_titre: "Accès rapide depuis l'écran d'accueil",
+    install_banner_bouton: 'Installer',
+
+    // Erreurs génériques
+    erreur_generique: 'Erreur',
+    app_erreur_suppression: 'Erreur lors de la suppression',
+    app_erreur_modification: 'Erreur lors de la modification',
+
+    // À faire (todo)
+    todo_ph_title: 'Mesure du pH',
+    todo_ph_subtitle: 'Recommandé tous les 7 jours',
+    todo_filtre_title: 'Entretien du filtre',
+    todo_filtre_subtitle: 'Nettoyage cartouche ou contre-lavage',
+    todo_jamais_fait: 'Jamais fait',
+    todo_j_abbr: 'j',
+    todo_chlore_faible_title: 'Chlore faible',
+    todo_chlore_min_recommande: 'min. recommandé : 1 mg/L',
+    todo_verifier: 'Vérifier',
   },
 
   en: {
@@ -461,6 +541,86 @@ export const translations = {
     ma_piscine: 'MY POOL',
     mon_spa: 'MY SPA',
     mon_installation: 'MY INSTALLATION',
+
+    // Bandelette — zones
+    zone_low: 'LOW',
+    zone_ok: 'OK',
+    zone_high: 'HIGH',
+    zone_ideal: 'IDEAL',
+    zone_vhigh: 'V.HIGH',
+
+    // Paramètres additionnels
+    param_durete: 'Total hardness',
+    param_cc: 'Combined chlorine (CC)',
+    param_stabilisant: 'Stabilizer (CYA)',
+    band_tac_alcalinite: 'Alkalinity — TAC',
+
+    // Modal — divers
+    modal_ideal_prefix: 'Ideal:',
+    modal_produit_placeholder: 'Product…',
+    modal_qte_placeholder: 'Qty',
+    modal_supprimer_action_aria: 'Remove this action',
+    modal_install_nom_placeholder: 'My pool, Backyard spa…',
+    modal_install_erreur_creation: 'Error creating installation',
+
+    // Types d'action
+    action_type_nettoyage_cartouche: 'Cartridge cleaning',
+    action_type_nettoyage_filtre_skimmer: 'Skimmer filter cleaning',
+    action_type_contre_lavage: 'Backwash',
+    action_type_mesure: 'Measurement',
+    action_type_calibrage_ph: 'pH calibration',
+    action_type_ajout_produit: 'Add product',
+    action_type_purge: 'Drain',
+    action_type_changement_eau: 'Water change',
+
+    // Produits
+    product_ph_moins: 'pH -',
+    product_ph_plus: 'pH +',
+    product_floculant: 'Flocculant',
+    product_anti_algue: 'Algaecide',
+    product_chlore_choc: 'Shock chlorine',
+    product_brome_choc: 'Shock bromine',
+
+    // Statut rapide — tags
+    tag_niveau_ok: 'Level OK',
+    tag_skimmer_propre: 'Skimmer clean',
+    tag_panier_vide: 'Basket emptied',
+    tag_robot_passe: 'Robot run',
+    tag_backwash_fait: 'Backwash done',
+    tag_aspirateur_passe: 'Vacuumed',
+    tag_epuisette_passee: 'Skimmed',
+    tag_filtres_propres: 'Filters clean',
+    tag_couvercle_remis: 'Cover replaced',
+    tag_purge_faite: 'Drain done',
+    tag_nettoyage_coque: 'Shell cleaned',
+
+    // Historique — badges de type
+    historique_traitement_badge: 'Treatment',
+    historique_entretien_badge: 'Maintenance',
+
+    // Topbar
+    nav_deconnexion_courte: 'Out',
+
+    // Bandeau installation PWA
+    install_banner_titre: 'Install Pooly',
+    install_banner_sous_titre: 'Quick access from your home screen',
+    install_banner_bouton: 'Install',
+
+    // Erreurs génériques
+    erreur_generique: 'Error',
+    app_erreur_suppression: 'Error deleting entry',
+    app_erreur_modification: 'Error updating entry',
+
+    // À faire (todo)
+    todo_ph_title: 'pH measurement',
+    todo_ph_subtitle: 'Recommended every 7 days',
+    todo_filtre_title: 'Filter maintenance',
+    todo_filtre_subtitle: 'Cartridge cleaning or backwash',
+    todo_jamais_fait: 'Never done',
+    todo_j_abbr: 'd',
+    todo_chlore_faible_title: 'Low chlorine',
+    todo_chlore_min_recommande: 'min. recommended: 1 mg/L',
+    todo_verifier: 'Check',
   },
 } as const
 
