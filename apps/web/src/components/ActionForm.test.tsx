@@ -174,7 +174,7 @@ describe('ActionForm', () => {
 
       expect(screen.getByText(/Idéal.*°F/)).toBeInTheDocument()
 
-      const input = screen.getByPlaceholderText('25')
+      const input = screen.getByPlaceholderText('77')
       fireEvent.change(input, { target: { value: '77' } })
       fireEvent.blur(input)
 
@@ -215,6 +215,32 @@ describe('ActionForm', () => {
       render(<ActionForm products={products} editAction={editAction} onEdit={vi.fn()} />)
 
       expect(screen.queryByText('Température')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('edit mode round-trip (regression: rowFromAction must re-fill every field, not just pH)', () => {
+    it('re-populates every appareil-mode field with its real saved value, not the placeholder', () => {
+      setActiveInstallation(makeInstallation({ sanitizer: 'sel', temp_unit: 'F' }))
+      // Notes built the same way toPayload (ActionForm.tsx) would for a sel installation
+      // with every field filled — this is the exact shape a real save produces.
+      const editAction = makeMesureAction({
+        qty: '7',
+        notes: 'chlore: 1.5. TAC: 120. dureté: 250. sel: 3200. stabilisant: 65. combiné: 0.1. température: 82. Eau claire. Niveau OK',
+      })
+      render(<ActionForm products={products} editAction={editAction} onEdit={vi.fn()} />)
+
+      expect((screen.getByPlaceholderText('7.2') as HTMLInputElement).value).toBe('7')
+      expect((screen.getByPlaceholderText('3000') as HTMLInputElement).value).toBe('3200')
+      expect((screen.getByPlaceholderText('1.5') as HTMLInputElement).value).toBe('1.5')
+      expect((screen.getByPlaceholderText('120') as HTMLInputElement).value).toBe('120')
+      expect((screen.getByPlaceholderText('250') as HTMLInputElement).value).toBe('250')
+      expect((screen.getByPlaceholderText('70') as HTMLInputElement).value).toBe('65')
+      expect((screen.getByPlaceholderText('0.1') as HTMLInputElement).value).toBe('0.1')
+      // Placeholder is unit-aware (77 = round(celsiusToFahrenheit(25))) for a °F installation.
+      expect((screen.getByPlaceholderText('77') as HTMLInputElement).value).toBe('82')
+
+      const notes = screen.getByLabelText('Notes') as HTMLTextAreaElement
+      expect(notes.value).toBe('Eau claire. Niveau OK')
     })
   })
 })

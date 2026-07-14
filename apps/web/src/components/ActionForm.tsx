@@ -22,6 +22,14 @@ import {
   getTempStatus,
   translateLabel,
   PARAM_RANGES,
+  RX_BROME,
+  RX_CHLORE,
+  RX_TAC,
+  RX_DURETE,
+  RX_SEL,
+  RX_STABILISANT,
+  RX_CC,
+  RX_TEMP,
   type DynamicRanges,
 } from '../utils'
 import { celsiusToFahrenheit, ppmToGramsPerLiter, ppmToGermanDegrees, ppmToFrenchDegrees, convertRange, formatUnitRange } from '../units'
@@ -162,22 +170,22 @@ function rowFromAction(action: Action, products: Product[]): ActionRow {
   if (action.action_type === 'Mesure' || action.action_type === 'Mesure de pH') {
     base.action_type = 'Mesure'
     base.m_ph = action.qty
-    const bromeM = action.notes.match(/brome\s*(?:total)?\s*:?\s*([\d.]+)/i)
+    const bromeM = action.notes.match(RX_BROME)
     if (bromeM) base.m_brome = bromeM[1]
-    const chloreM = action.notes.match(/chlore?\s*(?:libre)?\s*:?\s*([\d.]+)/i)
+    const chloreM = action.notes.match(RX_CHLORE)
     if (chloreM) base.m_chlore = chloreM[1]
-    const tacM = action.notes.match(/TAC\s*:?\s*([\d.]+)/i)
+    const tacM = action.notes.match(RX_TAC)
     if (tacM) base.m_tac = tacM[1]
-    const dureteM = action.notes.match(/dur[eé]t[eé]\s*:?\s*([\d.]+)/i)
+    const dureteM = action.notes.match(RX_DURETE)
     if (dureteM) base.m_durete = dureteM[1]
-    const selM = action.notes.match(/sel\s*:?\s*([\d.]+)/i)
+    const selM = action.notes.match(RX_SEL)
     if (selM) base.m_sel = selM[1]
-    const stabilisantM = action.notes.match(/(?:stabilisant|acide cyanurique|cya)\s*:?\s*([\d.]+)/i)
+    const stabilisantM = action.notes.match(RX_STABILISANT)
     if (stabilisantM) base.m_stabilisant = stabilisantM[1]
-    const ccM = action.notes.match(/combin[ée]?\s*:?\s*([\d.]+)/i)
+    const ccM = action.notes.match(RX_CC)
     if (ccM) base.m_cc = ccM[1]
-    const tempM = action.notes.match(/temp[eé]rature?\s*:?\s*([\d.]+)|T°?\s*:?\s*([\d.]+)/i)
-    if (tempM) base.m_temp = tempM[1] ?? tempM[2]
+    const tempM = action.notes.match(RX_TEMP)
+    if (tempM) base.m_temp = tempM[1]
   }
   return base
 }
@@ -554,7 +562,8 @@ function getAppareilFields(
   const tacField: AppareilField = { key: 'm_tac', label: t('param_tac'), placeholder: '120', step: '5', hint: idealHint(t, tacIdeal.ideal, concUnit), unit: concUnit }
   const dureteField: AppareilField = { key: 'm_durete', label: t('param_durete'), placeholder: '250', step: '10', hint: idealHint(t, dureteIdeal, dureteUnit), unit: dureteUnit }
   const ccField: AppareilField = { key: 'm_cc', label: t('param_cc'), placeholder: '0.1', step: '0.1', hint: idealHint(t, ccIdeal.ideal, concUnit), unit: concUnit }
-  const tempField: AppareilField = { key: 'm_temp', label: t('param_temperature'), placeholder: '25', step: '0.5', hint: idealHint(t, tempIdeal, `°${tempUnit}`), unit: `°${tempUnit}` }
+  const tempPlaceholder = tempUnit === 'F' ? String(Math.round(celsiusToFahrenheit(25))) : '25'
+  const tempField: AppareilField = { key: 'm_temp', label: t('param_temperature'), placeholder: tempPlaceholder, step: '0.5', hint: idealHint(t, tempIdeal, `°${tempUnit}`), unit: `°${tempUnit}` }
 
   if (sanitizer === 'brome') {
     return [

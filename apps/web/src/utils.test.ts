@@ -178,6 +178,29 @@ describe('extractMeasuredParams — sel/stabilisant/cc', () => {
   })
 })
 
+describe('extractMeasuredParams — regex data-loss regression (bug: greedy trailing-period capture + temperature hijack)', () => {
+  it('extracts the real température value, not a hijacked value from an earlier "...t: N" pattern', () => {
+    // stabilisant contains a "t" immediately before ": 65." — a permissive temperature
+    // regex can match there before ever reaching the real "température: 82" further along.
+    const notes = 'chlore: 1.5. TAC: 120. dureté: 250. sel: 3200. stabilisant: 65. combiné: 0.1. température: 82. Eau claire. Niveau OK'
+    const actions = [makeAction({ action_type: 'Mesure', notes })]
+    const p = extractMeasuredParams(actions)
+    expect(p.temp).toBe(82)
+    expect(p.stabilisant).toBe(65)
+  })
+
+  it('extracts exact values (no swallowed trailing period) for every field in a fully-filled notes string', () => {
+    const notes = 'chlore: 1.5. TAC: 120. dureté: 250. sel: 3200. stabilisant: 65. combiné: 0.1. température: 82. Eau claire. Niveau OK'
+    const actions = [makeAction({ action_type: 'Mesure', notes })]
+    const p = extractMeasuredParams(actions)
+    expect(p.chlore).toBe(1.5)
+    expect(p.tac).toBe(120)
+    expect(p.durete).toBe(250)
+    expect(p.salt).toBe(3200)
+    expect(p.cc).toBe(0.1)
+  })
+})
+
 describe('installationParamsToRanges — salt/cya/cc', () => {
   it('maps salt→sel, cya→stabilisant, cc→cc', () => {
     const params: InstallationWaterParams = {

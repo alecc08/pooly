@@ -88,6 +88,23 @@ export const BANDELETTE_OK_RANGES = {
 /** Action types that carry water-quality measurements. */
 const MEASURE_ACTION_TYPES = ['Mesure de pH', 'Mesure']
 
+// ── Measurement-parsing regexes ─────────────────────────────────────────────
+// Single source of truth for parsing the `key: value` measurement fields that
+// toPayload (ActionForm.tsx) writes into `notes`. (\d+(?:\.\d+)?) — not [\d.]+ —
+// so a value immediately followed by a sentence period (as toPayload always
+// produces, e.g. "chlore: 1.5. TAC: ...") captures cleanly without swallowing
+// the trailing dot. RX_TEMP requires a literal ° for its shorthand branch (not
+// an optional one) so it can't hijack the "t" in "stabilisant: 65".
+const NUM = String.raw`(\d+(?:\.\d+)?)`
+export const RX_CHLORE = new RegExp(String.raw`chlore?\s*(?:libre)?\s*:?\s*${NUM}`, 'i')
+export const RX_TAC = new RegExp(String.raw`TAC\s*:?\s*${NUM}`, 'i')
+export const RX_DURETE = new RegExp(String.raw`dur[eé]t[eé]\s*(?:totale?)?\s*:?\s*${NUM}`, 'i')
+export const RX_BROME = new RegExp(String.raw`brome\s*(?:total)?\s*:?\s*${NUM}`, 'i')
+export const RX_SEL = new RegExp(String.raw`(?:sel|salt)\s*:?\s*${NUM}`, 'i')
+export const RX_STABILISANT = new RegExp(String.raw`(?:stabilisant|acide cyanurique|cya)\s*:?\s*${NUM}`, 'i')
+export const RX_CC = new RegExp(String.raw`combin[ée]?\s*:?\s*${NUM}`, 'i')
+export const RX_TEMP = new RegExp(String.raw`(?:temp[eé]rature?|\bT°)\s*:?\s*${NUM}`, 'i')
+
 /** Extracts the most recent pH, chlore libre and TAC values from actions. */
 export function extractWaterParams(actions: Action[]): WaterParams {
   const sorted = [...actions].sort((a, b) => b.date.localeCompare(a.date))
@@ -108,12 +125,12 @@ export function extractWaterParams(actions: Action[]): WaterParams {
     }
     // Chlore libre: parse from notes (e.g. "chlore libre: 1.5")
     if (chlore === null && action.notes) {
-      const m = action.notes.match(/chlore?\s*(?:libre)?\s*:?\s*([\d.]+)/i)
+      const m = action.notes.match(RX_CHLORE)
       if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) chlore = v }
     }
     // TAC: parse from notes (e.g. "TAC: 120")
     if (tac === null && action.notes) {
-      const m = action.notes.match(/TAC\s*:?\s*([\d.]+)/i)
+      const m = action.notes.match(RX_TAC)
       if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) tac = v }
     }
     if (ph !== null && chlore !== null && tac !== null) break
@@ -251,49 +268,43 @@ export function extractMeasuredParams(actions: Action[]): MeasuredParams {
     }
     // Chlore libre
     if (chlore === null && action.notes) {
-      const m = action.notes.match(/chlore?\s*(?:libre)?\s*:?\s*([\d.]+)/i)
+      const m = action.notes.match(RX_CHLORE)
       if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { chlore = v; contributed = true } }
     }
     // TAC
     if (tac === null && action.notes) {
-      const m = action.notes.match(/TAC\s*:?\s*([\d.]+)/i)
+      const m = action.notes.match(RX_TAC)
       if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { tac = v; contributed = true } }
     }
     // Température
     if (temp === null && action.notes) {
-      const m = action.notes.match(/temp[eé]rature?\s*:?\s*([\d.]+)|T°?\s*:?\s*([\d.]+)/i)
-      if (m) {
-        const v = parseFloat(m[1] ?? m[2])
-        if (!isNaN(v)) { temp = v; contributed = true }
-      }
+      const m = action.notes.match(RX_TEMP)
+      if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { temp = v; contributed = true } }
     }
     // Brome total
     if (brome === null && action.notes) {
-      const m = action.notes.match(/brome\s*(?:total)?\s*:?\s*([\d.]+)/i)
+      const m = action.notes.match(RX_BROME)
       if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { brome = v; contributed = true } }
     }
     // Dureté totale
     if (durete === null && action.notes) {
-      const m = action.notes.match(/dur[eé]t[eé]\s*(?:totale?)?\s*:?\s*([\d.]+)/i)
+      const m = action.notes.match(RX_DURETE)
       if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { durete = v; contributed = true } }
     }
     // Sel (ppm)
     if (salt === null && action.notes) {
-      const m = action.notes.match(/sel\s*:?\s*([\d.]+)|salt\s*:?\s*([\d.]+)/i)
-      if (m) {
-        const v = parseFloat(m[1] ?? m[2])
-        if (!isNaN(v)) { salt = v; contributed = true }
-      }
+      const m = action.notes.match(RX_SEL)
+      if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { salt = v; contributed = true } }
     }
     // Stabilisant / acide cyanurique (CYA)
     if (stabilisant === null && action.notes) {
-      const m = action.notes.match(/(?:stabilisant|acide cyanurique|cya)\s*:?\s*([\d.]+)/i)
+      const m = action.notes.match(RX_STABILISANT)
       if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { stabilisant = v; contributed = true } }
     }
     // Chlore combiné (CC) — deliberately does not contain "chlore" as a substring,
     // so it never interacts with the free-chlore regex above.
     if (cc === null && action.notes) {
-      const m = action.notes.match(/combin[ée]?\s*:?\s*([\d.]+)/i)
+      const m = action.notes.match(RX_CC)
       if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { cc = v; contributed = true } }
     }
 
@@ -552,7 +563,7 @@ export function getChloreHistory(actions: Action[], limit = 7): ChlorePoint[] {
   const result: ChlorePoint[] = []
   for (const a of [...actions].sort((x, y) => x.date.localeCompare(y.date))) {
     if (!MEASURE_ACTION_TYPES.includes(a.action_type)) continue
-    const m = a.notes.match(/chlore?\s*(?:libre)?\s*:?\s*([\d.]+)/i)
+    const m = a.notes.match(RX_CHLORE)
     if (m) {
       const v = parseFloat(m[1])
       if (!isNaN(v)) result.push({ date: a.date, chlore: v })

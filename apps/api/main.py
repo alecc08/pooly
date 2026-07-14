@@ -87,6 +87,7 @@ def _apply_range_overrides(target: Optional[Dict[Tuple[str, str], Dict]] = None)
     overrides (type, sanitizer, param) combos that already exist in the dict — never
     invents new param keys for a combo that doesn't have them."""
     params = WATER_PARAMS if target is None else target
+    applied: List[str] = []
     for (inst_type, sanitizer), params_for_combo in params.items():
         for param, ranges in params_for_combo.items():
             for band in ("ideal", "acceptable"):
@@ -96,7 +97,16 @@ def _apply_range_overrides(target: Optional[Dict[Tuple[str, str], Dict]] = None)
                 max_env = os.getenv(f"{prefix}_MAX")
                 new_lo = float(min_env) if min_env is not None else lo
                 new_hi = float(max_env) if max_env is not None else hi
+                if min_env is not None or max_env is not None:
+                    applied.append(f"{prefix}=({new_lo}, {new_hi})")
                 ranges[band] = (new_lo, new_hi)
+    if target is None and applied:
+        # Routed through uvicorn's own logger (not the root logger, which uvicorn
+        # never configures) so this is guaranteed to reach `docker logs` at the
+        # default log level, right alongside uvicorn's own startup lines.
+        logging.getLogger("uvicorn.error").info(
+            "Water param range overrides applied: %s", ", ".join(applied)
+        )
 
 
 _apply_range_overrides()
