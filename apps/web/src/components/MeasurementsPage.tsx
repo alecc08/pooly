@@ -339,7 +339,7 @@ export default function MeasurementsPage({ actions }: Props) {
       </div>
 
       {/* ── Zone 2: Charts ───────────────────────────────────────────────── */}
-      <div className="mesures-charts">
+      <div className="measurements-charts">
 
         {/* pH chart */}
         <div style={{ ...card, padding: 16 }}>
@@ -376,7 +376,7 @@ export default function MeasurementsPage({ actions }: Props) {
           </p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table className="mesures-table">
+            <table className="measurements-table">
               <thead>
                 <tr>
                   {[t('table_date'), t('param_ph'), t('param_chlorine'), t('param_tac'), t('param_temp_label'), t('measurements_status')].map(col => (
