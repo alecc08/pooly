@@ -4,10 +4,11 @@
 
 # Pooly
 
-**🇫🇷 Journal d'entretien pour piscines et spas — self-hosted**
-**🇬🇧 Pool & spa maintenance tracker — self-hosted**
+**Pool & spa maintenance tracker — self-hosted**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-38bdf8?style=flat-square)](https://github.com/aurel-f/pooly/releases)
+*(the app itself supports English and French via an in-app language toggle — this documentation is English-only)*
+
+[![Version](https://img.shields.io/badge/version-1.0.0-38bdf8?style=flat-square)](https://github.com/alecc08/pooly/releases)
 [![Licence](https://img.shields.io/badge/licence-MIT-10b981?style=flat-square)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-compose-0ea5e9?style=flat-square&logo=docker&logoColor=white)](docker-compose.yml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -17,161 +18,27 @@
 
 ---
 
-## 🇫🇷 Français
+## 🙏 About this fork
 
-### Table des matières
-- [Présentation](#-présentation)
-- [Fonctionnalités](#-fonctionnalités)
-- [Screenshots](#-screenshots)
-- [Installation rapide](#-installation-rapide)
-- [Configuration](#-configuration)
-- [Stack technique](#-stack-technique)
-- [Contribuer](#-contribuer)
-- [Licence](#-licence)
+Pooly was created by [aurel-f](https://github.com/aurel-f) — go check out the
+[original repository](https://github.com/aurel-f/pooly). This fork exists to move a bit
+faster and rewrite the documentation in English; the underlying app and its features trace
+directly back to aurel-f's work.
+
+If you like this project, please star and contribute to the **original repo** — that's
+where it all started, and that's the best way to support the person who built it.
 
 ---
 
-### 🌊 Présentation
-
-Pooly est une application web **self-hosted** pour suivre l'entretien de vos piscines et spas. Enregistrez vos mesures, traitements et entretiens depuis un dashboard clair — vos données restent chez vous.
-
-Conçu pour les propriétaires qui veulent garder le contrôle sans complexité : une commande Docker et c'est lancé.
-
----
-
-### ✨ Fonctionnalités
-
-- **Dashboard complet** — KPIs, paramètres en temps réel, indicateur visuel de l'état de l'eau
-- **Saisie par bandelette AquaChek** — nuancier interactif pour pH, TAC, Brome et Dureté
-- **Saisie par appareil numérique** — inputs décimaux avec validation des plages
-- **Multi-installation** — gérez plusieurs piscines et spas avec des plages de référence adaptées
-- **Piscine & Spa** — brome ou chlore, plages idéales différenciées
-- **Historique complet** — timeline groupée par mois, filtres par type, recherche full-text
-- **Page Mesures** — suivi de l'évolution des paramètres dans le temps
-- **Mode sombre** — thème clair, sombre ou automatique (préférence système)
-- **PWA** — installable sur mobile, bottom navigation, bottom sheet modal
-- **Self-hosted & privé** — aucun cloud tiers, aucun tracking, vos données restent chez vous
-
----
-
-### 📸 Screenshots
-
-<div align="center">
-
-| Journal — Mode clair | Journal — Mode sombre |
-|---|---|
-| ![Dashboard clair](docs/screenshots/dashboard-light.png) | ![Dashboard sombre](docs/screenshots/dashboard-dark.png) |
-
-| Mesures | Historique |
-|---|---|
-| ![Mesures](docs/screenshots/mesures-light.png) | ![Historique](docs/screenshots/historique-light.png) |
-
-| Nouvelle entrée — Entretien | Nouvelle entrée — Bandelette AquaChek |
-|---|---|
-| ![Modal entretien](docs/screenshots/modal-entretien.png) | ![Modal bandelette](docs/screenshots/modal-bandelette.png) |
-
-</div>
-
----
-
-### 🚀 Installation rapide
-
-**Prérequis** : Docker et Docker Compose installés sur votre machine.
-
-```bash
-# 1. Clonez le dépôt
-git clone https://github.com/aurel-f/pooly.git
-cd pooly
-
-# 2. Configurez l'environnement
-cp .env.example .env
-nano .env  # Définissez vos mots de passe et secrets
-
-# 3. Lancez Pooly
-docker compose up -d
-
-# 4. Ouvrez dans votre navigateur
-open http://localhost:8090
-```
-
-L'application est accessible sur `http://localhost:8090`. Créez votre compte à la première connexion.
-
----
-
-### ⚙️ Configuration
-
-Copiez `.env.example` en `.env` et ajustez les valeurs :
-
-| Variable | Description | Défaut |
-|---|---|---|
-| `POSTGRES_PASSWORD` | Mot de passe PostgreSQL | — |
-| `SESSION_SECRET` | Clé secrète pour les sessions | — |
-| `APP_BASE_URL` | URL publique de l'app | `http://localhost:8090` |
-| `ALLOWED_ORIGINS` | Origines CORS autorisées | `http://localhost:8090` |
-| `DEBUG` | Mode debug (logs reset links) | `false` |
-
-> ⚠️ **Ne jamais committer votre fichier `.env`**. Il est déjà dans le `.gitignore`.
-
----
-
-### 🛠 Stack technique
-
-| Couche | Technologie |
-|---|---|
-| Frontend | React 19, Vite, Tailwind CSS |
-| Backend | FastAPI, SQLModel, Python 3.12 |
-| Base de données | PostgreSQL 16 |
-| Auth | Sessions cookie (httpOnly, same_site=strict) |
-| Déploiement | Docker Compose |
-| Typographie | Sora + IBM Plex Mono |
-
----
-
-### 🤝 Contribuer
-
-Les contributions sont les bienvenues ! Voici comment participer :
-
-```bash
-# Forkez le repo, puis :
-git clone https://github.com/aurel-f/pooly.git
-cd pooly
-git checkout -b feature/ma-fonctionnalite
-
-# Faites vos modifications, puis :
-git commit -m "feat: description de la fonctionnalité"
-git push origin feature/ma-fonctionnalite
-# Ouvrez une Pull Request
-```
-
-**Types de contributions appréciées :**
-- 🐛 Corrections de bugs
-- ✨ Nouvelles fonctionnalités
-- 🌍 Traductions
-- 📸 Screenshots et démos
-- 📖 Améliorations de la documentation
-
-Consultez les [issues ouvertes](https://github.com/aurel-f/pooly/issues) pour voir ce sur quoi travailler.
-
----
-
-### 📄 Licence
-
-Distribué sous licence **MIT**. Voir [LICENSE](LICENSE) pour plus d'informations.
-
----
-
----
-
-## 🇬🇧 English
-
-### Table of contents
+## Table of contents
 - [Overview](#-overview)
 - [Features](#-features)
-- [Screenshots](#-screenshots-1)
+- [Screenshots](#-screenshots)
 - [Quick start](#-quick-start)
-- [Configuration](#-configuration-1)
+- [Configuration](#-configuration)
 - [Tech stack](#-tech-stack)
 - [Contributing](#-contributing)
+- [Support](#-support)
 - [License](#-license)
 
 ---
@@ -201,7 +68,21 @@ Designed for owners who want full control without complexity: one Docker command
 
 ### 📸 Screenshots
 
-*See screenshots in the French section above.*
+<div align="center">
+
+| Journal — Light mode | Journal — Dark mode |
+|---|---|
+| ![Dashboard light](docs/screenshots/dashboard-light.png) | ![Dashboard dark](docs/screenshots/dashboard-dark.png) |
+
+| Measurements | History |
+|---|---|
+| ![Measurements](docs/screenshots/mesures-light.png) | ![History](docs/screenshots/historique-light.png) |
+
+| New entry — Maintenance | New entry — AquaChek strip |
+|---|---|
+| ![Maintenance modal](docs/screenshots/modal-entretien.png) | ![Strip modal](docs/screenshots/modal-bandelette.png) |
+
+</div>
 
 ---
 
@@ -211,7 +92,7 @@ Designed for owners who want full control without complexity: one Docker command
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/aurel-f/pooly.git
+git clone https://github.com/alecc08/pooly.git
 cd pooly
 
 # 2. Set up environment
@@ -264,7 +145,7 @@ Contributions are welcome! Here's how to get involved:
 
 ```bash
 # Fork the repo, then:
-git clone https://github.com/aurel-f/pooly.git
+git clone https://github.com/alecc08/pooly.git
 cd pooly
 git checkout -b feature/my-feature
 
@@ -281,7 +162,15 @@ git push origin feature/my-feature
 - 📸 Screenshots and demos
 - 📖 Documentation improvements
 
-Check the [open issues](https://github.com/aurel-f/pooly/issues) to find something to work on.
+Check the [open issues](https://github.com/alecc08/pooly/issues) to find something to work on.
+
+---
+
+### ☕ Support
+
+If Pooly is useful to you, consider buying me a coffee:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T61NJXQS)
 
 ---
 
@@ -294,3 +183,4 @@ Distributed under the **MIT License**. See [LICENSE](LICENSE) for more informati
 <div align="center">
   <sub>Made with ♥ · Self-hosted · Open source</sub>
 </div>
+</content>
