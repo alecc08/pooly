@@ -276,7 +276,7 @@ app = FastAPI(title="Pooly API", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(
     RateLimitExceeded,
-    lambda req, exc: JSONResponse({"detail": "Trop de tentatives, réessayez plus tard."}, status_code=429),
+    lambda req, exc: JSONResponse({"detail": "Too many attempts, please try again later."}, status_code=429),
 )
 
 APP_BASE_URL = os.getenv("APP_BASE_URL", "http://localhost:8090")
@@ -422,7 +422,7 @@ def _resolve_installation(
     if installation_id is not None:
         inst = session.get(Installation, installation_id)
         if not inst or inst.user_id != user.id:
-            raise HTTPException(status_code=403, detail="Installation introuvable")
+            raise HTTPException(status_code=403, detail="Installation not found")
         return installation_id
     default = _get_default_installation(user.id, session)
     return default.id if default else None
@@ -442,7 +442,7 @@ def health():
 def login(payload: LoginIn, request: Request, session: Session = Depends(get_session)):
     user = session.exec(select(User).where(User.email == payload.email)).first()
     if not user or not _verify_password(payload.password, user.password_hash):
-        raise AuthError("Email ou mot de passe invalide")
+        raise AuthError("Invalid email or password")
     request.session["user_id"] = user.id
     return {"user": UserOut(id=user.id, email=user.email, first_name=user.first_name, created_at=user.created_at)}
 
@@ -455,7 +455,7 @@ def logout(request: Request):
 
 def _validate_password_strength(password: str) -> None:
     if len(password) < 8 or not any(c.isupper() for c in password) or not any(c.isdigit() for c in password):
-        raise HTTPException(status_code=422, detail="Le mot de passe doit contenir au moins 8 caractères, une majuscule et un chiffre")
+        raise HTTPException(status_code=422, detail="Password must contain at least 8 characters, one uppercase letter, and one digit")
 
 
 @app.post("/auth/register")
@@ -463,7 +463,7 @@ def _validate_password_strength(password: str) -> None:
 def register(payload: RegisterIn, request: Request, session: Session = Depends(get_session)):
     _validate_password_strength(payload.password)
     if session.exec(select(User).where(User.email == payload.email)).first():
-        raise HTTPException(status_code=409, detail="Email déjà utilisé")
+        raise HTTPException(status_code=409, detail="Email already in use")
     user = User(
         email=payload.email,
         first_name=payload.first_name.strip(),
@@ -505,12 +505,12 @@ def reset_password(payload: ResetPasswordIn, session: Session = Depends(get_sess
         select(PasswordResetToken).where(PasswordResetToken.token == payload.token)
     ).first()
     if not reset or reset.used:
-        raise HTTPException(status_code=400, detail="Token invalide ou expiré")
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
     exp = reset.expires_at
     if exp.tzinfo is None:
         exp = exp.replace(tzinfo=timezone.utc)
     if exp < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="Token invalide ou expiré")
+        raise HTTPException(status_code=400, detail="Invalid or expired token")
     user = session.get(User, reset.user_id)
     if not user:
         raise HTTPException(status_code=404)
@@ -539,9 +539,9 @@ def update_me(
         user.first_name = payload.first_name.strip()
     if payload.new_password:
         if not payload.current_password:
-            raise HTTPException(status_code=400, detail="Mot de passe actuel requis")
+            raise HTTPException(status_code=400, detail="Current password required")
         if not _verify_password(payload.current_password, user.password_hash):
-            raise HTTPException(status_code=400, detail="Mot de passe actuel incorrect")
+            raise HTTPException(status_code=400, detail="Current password is incorrect")
         _validate_password_strength(payload.new_password)
         user.password_hash = _hash_password(payload.new_password)
     session.add(user)
@@ -602,7 +602,7 @@ def update_installation(
 ):
     installation = session.get(Installation, installation_id)
     if not installation or installation.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Installation introuvable")
+        raise HTTPException(status_code=404, detail="Installation not found")
     if payload.name is not None:
         installation.name = payload.name
     if payload.type is not None:
@@ -635,12 +635,12 @@ def delete_installation(
 ):
     installation = session.get(Installation, installation_id)
     if not installation or installation.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Installation introuvable")
+        raise HTTPException(status_code=404, detail="Installation not found")
     count = len(session.exec(
         select(Installation).where(Installation.user_id == user.id)
     ).all())
     if count <= 1:
-        raise HTTPException(status_code=400, detail="Vous devez conserver au moins une installation.")
+        raise HTTPException(status_code=400, detail="You must keep at least one installation.")
     # Cascade delete of attached actions
     for action in session.exec(select(Action).where(Action.installation_id == installation_id)).all():
         session.delete(action)
@@ -656,7 +656,7 @@ def get_installation_params(
 ):
     installation = session.get(Installation, installation_id)
     if not installation or installation.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Installation introuvable")
+        raise HTTPException(status_code=404, detail="Installation not found")
     params = WATER_PARAMS.get((installation.type, installation.sanitizer), {})
     return params
 
@@ -676,7 +676,7 @@ def list_actions(
     if installation_id is not None:
         installation = session.get(Installation, installation_id)
         if not installation or installation.user_id != user.id:
-            raise HTTPException(status_code=403, detail="Installation introuvable")
+            raise HTTPException(status_code=403, detail="Installation not found")
         return session.exec(
             select(Action)
             .where(Action.installation_id == installation_id, Action.date >= cutoff)
@@ -726,7 +726,7 @@ def update_action(
 ):
     action = session.get(Action, action_id)
     if not action or action.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Action introuvable")
+        raise HTTPException(status_code=404, detail="Action not found")
     action.date = payload.date
     action.action_type = payload.action_type
     action.product_id = payload.product_id
@@ -780,6 +780,6 @@ def delete_action(
 ):
     action = session.get(Action, action_id)
     if not action or action.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Action introuvable")
+        raise HTTPException(status_code=404, detail="Action not found")
     session.delete(action)
     session.commit()
