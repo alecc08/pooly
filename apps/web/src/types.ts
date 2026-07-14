@@ -1,4 +1,4 @@
-import type { TempUnit, SaltUnit, ConcUnit, DureteUnit } from './units'
+import type { TempUnit, SaltUnit, ConcUnit, HardnessUnit } from './units'
 
 export type Product = {
   id: number
@@ -38,7 +38,7 @@ export type Installation = {
   temp_unit?: TempUnit
   salt_unit?: SaltUnit
   conc_unit?: ConcUnit
-  durete_unit?: DureteUnit
+  durete_unit?: HardnessUnit
   created_at: string
 }
 

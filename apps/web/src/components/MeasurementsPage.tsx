@@ -4,11 +4,11 @@ import {
   PARAM_RANGES,
   getWaterStatus,
   getPhStatus,
-  getChloreStatus,
+  getChlorineStatus,
   getTacStatus,
   getTempStatus,
   getPhHistory,
-  getChloreHistory,
+  getChlorineHistory,
   getFilteredMeasureActions,
   getPhTrend,
   getDaysSince,
@@ -102,9 +102,9 @@ function BarChart({ bars, empty, notEnough }: BarChartProps) {
 
 // ── Status badge ───────────────────────────────────────────────────────────
 
-function StatusBadge({ ph, chlore, tac }: { ph: number | null; chlore: number | null; tac: number | null }) {
+function StatusBadge({ ph, chlorine, tac }: { ph: number | null; chlorine: number | null; tac: number | null }) {
   const { t } = useT()
-  const { status, hasData } = getWaterStatus({ ph, chlore, tac })
+  const { status, hasData } = getWaterStatus({ ph, chlorine, tac })
   if (!hasData) return <span style={{ color: 'var(--text-muted)', fontFamily: '"IBM Plex Mono", monospace', fontSize: 10 }}>—</span>
   const cfg = {
     clear:  { label: t('status_normal'),     color: 'var(--status-ok-text)',     bg: 'var(--status-ok-bg)'     },
@@ -158,7 +158,7 @@ const kpiSub: React.CSSProperties = {
 
 type Props = { actions: Action[] }
 
-export default function MesuresPage({ actions }: Props) {
+export default function MeasurementsPage({ actions }: Props) {
   const { t, locale } = useT()
   const { active } = useInstallation()
   const [period, setPeriod] = useState<Period>(1)
@@ -173,7 +173,7 @@ export default function MesuresPage({ actions }: Props) {
   const today = new Date()
   const yearMonth = today.toISOString().slice(0, 7)
 
-  // KPI 1: mesures ce mois
+  // KPI 1: measurements this month
   const measuresThisMonth = useMemo(() =>
     actions.filter(a => {
       const isMeasure = a.action_type === 'Mesure' || a.action_type === 'Mesure de pH'
@@ -181,10 +181,10 @@ export default function MesuresPage({ actions }: Props) {
     }).length
   , [actions, yearMonth])
 
-  // KPI 2: tendance pH ce mois
+  // KPI 2: pH trend this month
   const phTrend = useMemo(() => getPhTrend(actions, yearMonth), [actions, yearMonth])
 
-  // KPI 3: dernier relevé
+  // KPI 3: last reading
   const lastMeasure = useMemo(() => {
     const ms = actions
       .filter(a => a.action_type === 'Mesure' || a.action_type === 'Mesure de pH')
@@ -211,19 +211,19 @@ export default function MesuresPage({ actions }: Props) {
     })
   }, [filtered])
 
-  // Chlore chart bars (last 7)
+  // Chlorine chart bars (last 7)
   const clBars = useMemo(() => {
-    const pts = getChloreHistory(filtered, 7)
+    const pts = getChlorineHistory(filtered, 7)
     const CL_MAX = 5
     return pts.map(p => {
-      const ratio = Math.max(0, Math.min(1, p.chlore / CL_MAX))
+      const ratio = Math.max(0, Math.min(1, p.chlorine / CL_MAX))
       const h = Math.max(Math.round(ratio * CHART_H), 4)
-      const [iMin, iMax] = PARAM_RANGES.chlore.ideal
-      const [aMin, aMax] = PARAM_RANGES.chlore.acceptable
-      const colorClass = (p.chlore >= iMin && p.chlore <= iMax) ? 'bar-ok'
-        : (p.chlore >= aMin && p.chlore <= aMax) ? 'bar-warn'
+      const [iMin, iMax] = PARAM_RANGES.chlorine.ideal
+      const [aMin, aMax] = PARAM_RANGES.chlorine.acceptable
+      const colorClass = (p.chlorine >= iMin && p.chlorine <= iMax) ? 'bar-ok'
+        : (p.chlorine >= aMin && p.chlorine <= aMax) ? 'bar-warn'
         : 'bar-danger'
-      return { date: p.date, value: h, colorClass, label: p.chlore.toFixed(1) }
+      return { date: p.date, value: h, colorClass, label: p.chlorine.toFixed(1) }
     })
   }, [filtered])
 
@@ -232,9 +232,9 @@ export default function MesuresPage({ actions }: Props) {
     filtered
       .map(a => {
         const p = extractMeasuredParams([a])
-        return { action: a, ph: p.ph, chlore: p.chlore, tac: p.tac, temp: p.temp }
+        return { action: a, ph: p.ph, chlorine: p.chlorine, tac: p.tac, temp: p.temp }
       })
-      .filter(r => r.ph !== null || r.chlore !== null || r.tac !== null || r.temp !== null)
+      .filter(r => r.ph !== null || r.chlorine !== null || r.tac !== null || r.temp !== null)
   , [filtered])
 
   // ── Trend sub-text ────────────────────────────────────────────────────────
@@ -261,7 +261,7 @@ export default function MesuresPage({ actions }: Props) {
 
   return (
     <div>
-      {/* En-tête */}
+      {/* Header */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
           {t('page_mesures_title')}
@@ -271,7 +271,7 @@ export default function MesuresPage({ actions }: Props) {
         </div>
       </div>
 
-      {/* ── Zone 1 : KPIs ───────────────────────────────────────────────── */}
+      {/* ── Zone 1: KPIs ─────────────────────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
 
         {/* KPI 1 */}
@@ -294,7 +294,7 @@ export default function MesuresPage({ actions }: Props) {
           {trendNode()}
         </div>
 
-        {/* KPI 3 — Dernier relevé */}
+        {/* KPI 3 — Last reading */}
         <div style={{ ...card, padding: '12px 14px' }}>
           <div style={kpiLabel}>{t('mesures_dernier_releve')}</div>
           {lastMeasure ? (
@@ -311,7 +311,7 @@ export default function MesuresPage({ actions }: Props) {
         </div>
       </div>
 
-      {/* ── Filtres de période ───────────────────────────────────────────── */}
+      {/* ── Period filters ──────────────────────────────────────────────── */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {PERIODS.map(p => {
           const active = p.value === period
@@ -338,10 +338,10 @@ export default function MesuresPage({ actions }: Props) {
         })}
       </div>
 
-      {/* ── Zone 2 : Graphiques ─────────────────────────────────────────── */}
+      {/* ── Zone 2: Charts ───────────────────────────────────────────────── */}
       <div className="mesures-charts">
 
-        {/* Graphique pH */}
+        {/* pH chart */}
         <div style={{ ...card, padding: 16 }}>
           <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
             {t('graph_evolution_ph')}
@@ -349,7 +349,7 @@ export default function MesuresPage({ actions }: Props) {
           <BarChart bars={phBars} empty={t('mesures_aucune_mesure_ph')} notEnough={t('graph_pas_assez_donnees')} />
         </div>
 
-        {/* Graphique Chlore */}
+        {/* Chlorine chart */}
         <div style={{ ...card, padding: 16 }}>
           <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
             {t('graph_evolution_chlore')}
@@ -358,9 +358,9 @@ export default function MesuresPage({ actions }: Props) {
         </div>
       </div>
 
-      {/* ── Zone 3 : Tableau ────────────────────────────────────────────── */}
+      {/* ── Zone 3: Table ────────────────────────────────────────────────── */}
       <div style={{ ...card, padding: 16, marginTop: 14 }}>
-        {/* En-tête tableau */}
+        {/* Table header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
             {t('mesures_tous_releves')}
@@ -392,7 +392,7 @@ export default function MesuresPage({ actions }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {tableRows.map(({ action, ph, chlore, tac, temp }) => (
+                {tableRows.map(({ action, ph, chlorine, tac, temp }) => (
                   <tr key={action.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td style={{ padding: '9px 8px 9px 0', fontFamily: '"Sora", sans-serif', fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
                       {formatShort(action.date)}
@@ -401,7 +401,7 @@ export default function MesuresPage({ actions }: Props) {
                       {cellValue(ph, getPhStatus, v => v.toFixed(1))}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      {cellValue(chlore, getChloreStatus, v => `${v.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`)}
+                      {cellValue(chlorine, getChlorineStatus, v => `${v.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`)}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
                       {cellValue(tac, getTacStatus, v => `${Math.round(v)} ${active?.conc_unit ?? 'mg/L'}`)}
@@ -410,7 +410,7 @@ export default function MesuresPage({ actions }: Props) {
                       {cellValue(temp, getTempStatus, v => `${v.toFixed(1)} °${active?.temp_unit ?? 'C'}`)}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      <StatusBadge ph={ph} chlore={chlore} tac={tac} />
+                      <StatusBadge ph={ph} chlorine={chlorine} tac={tac} />
                     </td>
                   </tr>
                 ))}

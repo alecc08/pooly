@@ -4,7 +4,7 @@ import type { Action, Product } from '../types'
 import {
   getWaterStatus,
   getPhStatus,
-  getChloreStatus,
+  getChlorineStatus,
   getTacStatus,
   getTempStatus,
   extractMeasuredParams,
@@ -86,8 +86,8 @@ function ParamPills({ action }: { action: Action }) {
   if (p.ph !== null) {
     pills.push({ label: `pH ${p.ph.toFixed(1)}`, status: getPhStatus(p.ph) })
   }
-  if (p.chlore !== null) {
-    pills.push({ label: `Cl ${p.chlore.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`, status: getChloreStatus(p.chlore) })
+  if (p.chlorine !== null) {
+    pills.push({ label: `Cl ${p.chlorine.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`, status: getChlorineStatus(p.chlorine) })
   }
   if (p.tac !== null) {
     pills.push({ label: `TAC ${Math.round(p.tac)} ${active?.conc_unit ?? 'mg/L'}`, status: getTacStatus(p.tac) })
@@ -131,11 +131,11 @@ function EntryCard({ action, products, onEdit, onDelete }: {
     entretien:  { label: t('historique_entretien_badge'),  color: 'var(--badge-blue-text)',   bg: 'var(--badge-blue-bg)'   },
   }
 
-  // Status badge (mesure) or type pill (traitement/entretien)
+  // Status badge (measurement) or type pill (treatment/maintenance)
   let badge: React.ReactNode = null
   if (cat === 'mesure') {
     const p = extractMeasuredParams([action])
-    const { status, hasData } = getWaterStatus({ ph: p.ph, chlore: p.chlore, tac: p.tac })
+    const { status, hasData } = getWaterStatus({ ph: p.ph, chlorine: p.chlorine, tac: p.tac })
     if (hasData) {
       const c = STATUS_CFG[status]
       badge = <Pill label={c.label} color={c.color} bg={c.bg} />
@@ -186,7 +186,7 @@ function EntryCard({ action, products, onEdit, onDelete }: {
 
       {/* Body */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Ligne 1: titre + badge */}
+        {/* Line 1: title + badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           <span style={{
             fontFamily: '"Sora", sans-serif',
@@ -197,7 +197,7 @@ function EntryCard({ action, products, onEdit, onDelete }: {
           {badge}
         </div>
 
-        {/* Ligne 2: note */}
+        {/* Line 2: note */}
         {noteText ? (
           <div style={{
             fontFamily: '"Sora", sans-serif',
@@ -209,7 +209,7 @@ function EntryCard({ action, products, onEdit, onDelete }: {
           </div>
         ) : null}
 
-        {/* Ligne 3: pills paramètres (mesures uniquement) */}
+        {/* Line 3: param pills (measurements only) */}
         {cat === 'mesure' && <ParamPills action={action} />}
       </div>
 
@@ -255,7 +255,7 @@ type Props = {
   onDelete?: (action: Action) => void
 }
 
-export default function HistoriquePage({ actions, products, onEdit, onDelete }: Props) {
+export default function HistoryPage({ actions, products, onEdit, onDelete }: Props) {
   const { t, locale } = useT()
   const [filter, setFilter] = useState<FilterType>('all')
   const [search, setSearch] = useState('')
@@ -296,7 +296,7 @@ export default function HistoriquePage({ actions, products, onEdit, onDelete }: 
 
   return (
     <div>
-      {/* En-tête */}
+      {/* Header */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
           {t('page_historique_title')}
@@ -308,7 +308,7 @@ export default function HistoriquePage({ actions, products, onEdit, onDelete }: 
 
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
-        {/* Filtres type */}
+        {/* Type filters */}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {FILTER_BTNS.map(btn => {
             const active = btn.value === filter
@@ -332,7 +332,7 @@ export default function HistoriquePage({ actions, products, onEdit, onDelete }: 
           })}
         </div>
 
-        {/* Recherche */}
+        {/* Search */}
         <input
           type="text"
           value={search}
@@ -363,7 +363,7 @@ export default function HistoriquePage({ actions, products, onEdit, onDelete }: 
       ) : (
         grouped.map(({ ym, list }) => (
           <div key={ym} style={{ marginBottom: 20 }}>
-            {/* Séparateur mois */}
+            {/* Month separator */}
             <div style={{
               fontFamily: '"IBM Plex Mono", monospace',
               fontSize: 10, textTransform: 'uppercase',

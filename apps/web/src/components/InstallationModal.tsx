@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useInstallation } from '../context/InstallationContext'
 import { useT } from '../context/LocaleContext'
-import type { TempUnit, SaltUnit, ConcUnit, DureteUnit } from '../units'
+import type { TempUnit, SaltUnit, ConcUnit, HardnessUnit } from '../units'
 
 type Props = {
   open: boolean
@@ -23,7 +23,7 @@ export default function InstallationModal({ open, onClose }: Props) {
   const [tempUnit, setTempUnit] = useState<TempUnit>('C')
   const [saltUnit, setSaltUnit] = useState<SaltUnit>('ppm')
   const [concUnit, setConcUnit] = useState<ConcUnit>('mg/L')
-  const [dureteUnit, setDureteUnit] = useState<DureteUnit>('ppm')
+  const [dureteUnit, setDureteUnit] = useState<HardnessUnit>('ppm')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

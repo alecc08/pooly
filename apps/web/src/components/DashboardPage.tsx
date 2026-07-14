@@ -15,9 +15,9 @@ function getIsDark(theme: Theme): boolean {
 import {
   extractMeasuredParams,
   getPhStatus,
-  getChloreStatus,
-  getBromeStatus,
-  getSelStatus,
+  getChlorineStatus,
+  getBromineStatus,
+  getSaltStatus,
   getTacStatus,
   getTempStatus,
   getPhHistory,
@@ -153,7 +153,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
 
   return (
     <div>
-      {/* En-tête */}
+      {/* Header */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
           {t('page_journal_title')}
@@ -165,7 +165,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
 
       {/* KPI grid */}
       <div className="kpi-grid">
-        {/* Actions ce mois */}
+        {/* Actions this month */}
         <div style={kpiCardStyle}>
           <div className="kpi-label" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
             {t('kpi_actions_mois')}
@@ -178,7 +178,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
           </div>
         </div>
 
-        {/* Dernière action */}
+        {/* Last action */}
         <div style={kpiCardStyle}>
           <div className="kpi-label" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
             {t('kpi_derniere_action')}
@@ -191,7 +191,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
           </div>
         </div>
 
-        {/* Prochaine mesure */}
+        {/* Next measurement */}
         <div style={kpiCardStyle}>
           <div className="kpi-label" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
             {t('kpi_prochaine_mesure')}
@@ -204,7 +204,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
           </div>
         </div>
 
-        {/* Traitements ce mois */}
+        {/* Treatments this month */}
         <div style={kpiCardStyle}>
           <div className="kpi-label" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
             {t('kpi_traitements_mois')}
@@ -218,7 +218,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
         </div>
       </div>
 
-      {/* Bandeau paramètres */}
+      {/* Params banner */}
       <div className="params-banner" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 0', display: 'flex', marginBottom: 14 }}>
         <ParamBlock
           label={t('param_ph')}
@@ -230,9 +230,9 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
         {sanitizer === 'brome' ? (
           <ParamBlock
             label={t('param_brome')}
-            value={params.brome !== null ? params.brome.toFixed(1) : '—'}
+            value={params.bromine !== null ? params.bromine.toFixed(1) : '—'}
             unit={active?.conc_unit ?? 'mg/L'}
-            status={params.brome !== null ? getBromeStatus(params.brome, ranges ?? undefined) : null}
+            status={params.bromine !== null ? getBromineStatus(params.bromine, ranges ?? undefined) : null}
             showDivider={true}
           />
         ) : sanitizer === 'sel' ? (
@@ -241,23 +241,23 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
               label={t('param_sel')}
               value={params.salt !== null ? params.salt.toFixed(0) : '—'}
               unit={active?.salt_unit ?? 'ppm'}
-              status={params.salt !== null ? getSelStatus(params.salt, ranges ?? undefined) : null}
+              status={params.salt !== null ? getSaltStatus(params.salt, ranges ?? undefined) : null}
               showDivider={true}
             />
             <ParamBlock
               label={t('param_chlore')}
-              value={params.chlore !== null ? params.chlore.toFixed(1) : '—'}
+              value={params.chlorine !== null ? params.chlorine.toFixed(1) : '—'}
               unit={active?.conc_unit ?? 'mg/L'}
-              status={params.chlore !== null ? getChloreStatus(params.chlore, ranges ?? undefined) : null}
+              status={params.chlorine !== null ? getChlorineStatus(params.chlorine, ranges ?? undefined) : null}
               showDivider={true}
             />
           </>
         ) : (
           <ParamBlock
             label={t('param_chlore')}
-            value={params.chlore !== null ? params.chlore.toFixed(1) : '—'}
+            value={params.chlorine !== null ? params.chlorine.toFixed(1) : '—'}
             unit={active?.conc_unit ?? 'mg/L'}
-            status={params.chlore !== null ? getChloreStatus(params.chlore, ranges ?? undefined) : null}
+            status={params.chlorine !== null ? getChlorineStatus(params.chlorine, ranges ?? undefined) : null}
             showDivider={true}
           />
         )}
@@ -291,11 +291,11 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
         </div>
       </div>
 
-      {/* Layout 2 colonnes */}
+      {/* 2-column layout */}
       <div className="dashboard-columns">
-        {/* Colonne gauche */}
+        {/* Left column */}
         <div>
-          {/* Carte Historique récent */}
+          {/* Recent history card */}
           <div style={sectionCardStyle}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
@@ -376,7 +376,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
             )}
           </div>
 
-          {/* Carte Évolution pH */}
+          {/* pH trend card */}
           <div style={sectionCardStyle}>
             <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
               {t('graph_evolution_ph')}
@@ -412,14 +412,14 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
           </div>
         </div>
 
-        {/* Colonne droite */}
+        {/* Right column */}
         <div>
           {/* WaterStatusCard */}
           <div style={{ marginBottom: 14 }}>
             <WaterStatusCard actions={actions} />
           </div>
 
-          {/* Carte À faire */}
+          {/* To-do card */}
           <div style={sectionCardStyle}>
             <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
               {t('todo_title')}
@@ -469,7 +469,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
         </div>
       </div>
 
-      {/* Sauvegardes */}
+      {/* Backups */}
       {(onExport || onImport) && (
         <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginRight: 4 }}>
@@ -602,9 +602,9 @@ function ActionParamPills({ action }: { action: Action }) {
     const s = getPhStatus(p.ph)
     pills.push({ label: `pH ${p.ph.toFixed(1)}`, ...styleMap[s] })
   }
-  if (p.chlore !== null) {
-    const s = getChloreStatus(p.chlore)
-    pills.push({ label: `Cl ${p.chlore.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`, ...styleMap[s] })
+  if (p.chlorine !== null) {
+    const s = getChlorineStatus(p.chlorine)
+    pills.push({ label: `Cl ${p.chlorine.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`, ...styleMap[s] })
   }
   if (p.tac !== null) {
     const s = getTacStatus(p.tac)

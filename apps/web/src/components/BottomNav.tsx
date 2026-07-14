@@ -1,6 +1,6 @@
 import { useT } from '../context/LocaleContext'
 
-type Page = 'journal' | 'mesures' | 'historique'
+type Page = 'log' | 'measurements' | 'history'
 
 type Props = {
   page: Page
@@ -13,8 +13,8 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
   return (
     <nav className="bottom-nav">
       <button
-        className={`bn-item${page === 'journal' ? ' active' : ''}`}
-        onClick={() => onNavigate('journal')}
+        className={`bn-item${page === 'log' ? ' active' : ''}`}
+        onClick={() => onNavigate('log')}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -24,8 +24,8 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
       </button>
 
       <button
-        className={`bn-item${page === 'mesures' ? ' active' : ''}`}
-        onClick={() => onNavigate('mesures')}
+        className={`bn-item${page === 'measurements' ? ' active' : ''}`}
+        onClick={() => onNavigate('measurements')}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
@@ -72,8 +72,8 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
       </button>
 
       <button
-        className={`bn-item${page === 'historique' ? ' active' : ''}`}
-        onClick={() => onNavigate('historique')}
+        className={`bn-item${page === 'history' ? ' active' : ''}`}
+        onClick={() => onNavigate('history')}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="10" />

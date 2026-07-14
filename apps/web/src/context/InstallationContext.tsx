@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import type { Installation, InstallationWaterParams } from '../types'
 import { installationParamsToRanges, type DynamicRanges } from '../utils'
-import type { TempUnit, SaltUnit, ConcUnit, DureteUnit } from '../units'
+import type { TempUnit, SaltUnit, ConcUnit, HardnessUnit } from '../units'
 
 type InstallationCtx = {
   installations: Installation[]
@@ -18,7 +18,7 @@ type InstallationCtx = {
     temp_unit?: TempUnit
     salt_unit?: SaltUnit
     conc_unit?: ConcUnit
-    durete_unit?: DureteUnit
+    durete_unit?: HardnessUnit
   }) => Promise<Installation>
   deleteInstallation: (id: number) => Promise<void>
 }
@@ -94,7 +94,7 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
     temp_unit?: TempUnit
     salt_unit?: SaltUnit
     conc_unit?: ConcUnit
-    durete_unit?: DureteUnit
+    durete_unit?: HardnessUnit
   }): Promise<Installation> => {
     const res = await fetch('/api/installations', {
       method: 'POST',

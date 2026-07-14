@@ -8,8 +8,8 @@ import Topbar from './components/Topbar'
 import ActionForm from './components/ActionForm'
 import ProfileDialog from './components/ProfileDialog'
 import DashboardPage from './components/DashboardPage'
-import MesuresPage from './components/MesuresPage'
-import HistoriquePage from './components/HistoriquePage'
+import MeasurementsPage from './components/MeasurementsPage'
+import HistoryPage from './components/HistoryPage'
 import LoginPage from './components/LoginPage'
 import InstallationModal from './components/InstallationModal'
 import InstallBanner from './components/InstallBanner'
@@ -20,13 +20,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-type Page = 'journal' | 'mesures' | 'historique'
+type Page = 'log' | 'measurements' | 'history'
 
 function getPageFromHash(): Page {
   const hash = window.location.hash.replace(/^#\/?/, '')
-  if (hash === 'mesures') return 'mesures'
-  if (hash === 'historique') return 'historique'
-  return 'journal'
+  if (hash === 'measurements') return 'measurements'
+  if (hash === 'history') return 'history'
+  return 'log'
 }
 
 // ── Authenticated main app (inside InstallationProvider) ───────────────────
@@ -60,7 +60,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
   }, [])
 
   const navigate = (p: Page) => {
-    window.location.hash = p === 'journal' ? '' : p
+    window.location.hash = p === 'log' ? '' : p
     setPage(p)
   }
 
@@ -196,10 +196,10 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
       />
 
       <main className="main-content">
-        {page === 'mesures'
-          ? <MesuresPage actions={actions} />
-          : page === 'historique'
-          ? <HistoriquePage actions={actions} products={products} onEdit={setEditingAction} onDelete={setDeletingAction} />
+        {page === 'measurements'
+          ? <MeasurementsPage actions={actions} />
+          : page === 'history'
+          ? <HistoryPage actions={actions} products={products} onEdit={setEditingAction} onDelete={setDeletingAction} />
           : <DashboardPage actions={actions} products={products} onEdit={setEditingAction} onDelete={setDeletingAction} onExport={handleExport} onImport={handleImport} />
         }
       </main>
