@@ -76,17 +76,17 @@ Designed for owners who want full control without complexity: one Docker command
 
 <div align="center">
 
-| Journal — Light mode | Journal — Dark mode |
+| Dashboard — Light mode | Dashboard — Dark mode |
 |---|---|
 | ![Dashboard light](docs/screenshots/dashboard-light.png) | ![Dashboard dark](docs/screenshots/dashboard-dark.png) |
 
 | Measurements | History |
 |---|---|
-| ![Measurements](docs/screenshots/mesures-light.png) | ![History](docs/screenshots/historique-light.png) |
+| ![Measurements](docs/screenshots/measurements-light.png) | ![History](docs/screenshots/history-light.png) |
 
 | New entry — Maintenance | New entry — AquaChek strip |
 |---|---|
-| ![Maintenance modal](docs/screenshots/modal-entretien.png) | ![Strip modal](docs/screenshots/modal-bandelette.png) |
+| ![Maintenance modal](docs/screenshots/modal-entry.png) | ![Strip modal](docs/screenshots/modal-strip.png) |
 
 </div>
 
