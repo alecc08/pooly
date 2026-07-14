@@ -17,6 +17,7 @@ import {
 import { useT } from '../context/LocaleContext'
 import { useInstallation } from '../context/InstallationContext'
 import type { Locale } from '../i18n/translations'
+import type { DynamicRanges } from '../utils'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -102,9 +103,9 @@ function BarChart({ bars, empty, notEnough }: BarChartProps) {
 
 // ── Status badge ───────────────────────────────────────────────────────────
 
-function StatusBadge({ ph, chlorine, tac }: { ph: number | null; chlorine: number | null; tac: number | null }) {
+function StatusBadge({ ph, chlorine, tac, ranges }: { ph: number | null; chlorine: number | null; tac: number | null; ranges?: DynamicRanges }) {
   const { t } = useT()
-  const { status, hasData } = getWaterStatus({ ph, chlorine, tac })
+  const { status, hasData } = getWaterStatus({ ph, chlorine, tac }, ranges)
   if (!hasData) return <span style={{ color: 'var(--text-muted)', fontFamily: '"IBM Plex Mono", monospace', fontSize: 10 }}>—</span>
   const cfg = {
     clear:  { label: t('status_normal'),     color: 'var(--status-ok-text)',     bg: 'var(--status-ok-bg)'     },
@@ -160,7 +161,7 @@ type Props = { actions: Action[] }
 
 export default function MeasurementsPage({ actions }: Props) {
   const { t, locale } = useT()
-  const { active } = useInstallation()
+  const { active, ranges } = useInstallation()
   const [period, setPeriod] = useState<Period>(1)
 
   const PERIODS: { label: string; value: Period }[] = [
@@ -199,33 +200,35 @@ export default function MeasurementsPage({ actions }: Props) {
   const phBars = useMemo(() => {
     const pts = getPhHistory(filtered, 7)
     const PH_MIN = 6.0, PH_MAX = 9.0
+    const { ideal, acceptable } = ranges?.ph ?? PARAM_RANGES.ph
     return pts.map(p => {
       const ratio = Math.max(0, Math.min(1, (p.ph - PH_MIN) / (PH_MAX - PH_MIN)))
       const h = Math.max(Math.round(ratio * CHART_H), 4)
-      const [iMin, iMax] = PARAM_RANGES.ph.ideal
-      const [aMin, aMax] = PARAM_RANGES.ph.acceptable
+      const [iMin, iMax] = ideal
+      const [aMin, aMax] = acceptable
       const colorClass = (p.ph >= iMin && p.ph <= iMax) ? 'bar-ok'
         : (p.ph >= aMin && p.ph <= aMax) ? 'bar-warn'
         : 'bar-danger'
       return { date: p.date, value: h, colorClass, label: p.ph.toFixed(1) }
     })
-  }, [filtered])
+  }, [filtered, ranges])
 
   // Chlorine chart bars (last 7)
   const clBars = useMemo(() => {
     const pts = getChlorineHistory(filtered, 7)
-    const CL_MAX = 5
+    const { ideal, acceptable } = ranges?.chlorine ?? PARAM_RANGES.chlorine
+    const CL_MAX = Math.max(5, acceptable[1])
     return pts.map(p => {
       const ratio = Math.max(0, Math.min(1, p.chlorine / CL_MAX))
       const h = Math.max(Math.round(ratio * CHART_H), 4)
-      const [iMin, iMax] = PARAM_RANGES.chlorine.ideal
-      const [aMin, aMax] = PARAM_RANGES.chlorine.acceptable
+      const [iMin, iMax] = ideal
+      const [aMin, aMax] = acceptable
       const colorClass = (p.chlorine >= iMin && p.chlorine <= iMax) ? 'bar-ok'
         : (p.chlorine >= aMin && p.chlorine <= aMax) ? 'bar-warn'
         : 'bar-danger'
       return { date: p.date, value: h, colorClass, label: p.chlorine.toFixed(1) }
     })
-  }, [filtered])
+  }, [filtered, ranges])
 
   // Table rows: one per measure action with at least one param, newest first
   const tableRows = useMemo(() =>
@@ -398,19 +401,19 @@ export default function MeasurementsPage({ actions }: Props) {
                       {formatShort(action.date)}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      {cellValue(ph, getPhStatus, v => v.toFixed(1))}
+                      {cellValue(ph, v => getPhStatus(v, ranges ?? undefined), v => v.toFixed(1))}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      {cellValue(chlorine, getChlorineStatus, v => `${v.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`)}
+                      {cellValue(chlorine, v => getChlorineStatus(v, ranges ?? undefined), v => `${v.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`)}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      {cellValue(tac, getTacStatus, v => `${Math.round(v)} ${active?.conc_unit ?? 'mg/L'}`)}
+                      {cellValue(tac, v => getTacStatus(v, ranges ?? undefined), v => `${Math.round(v)} ${active?.conc_unit ?? 'mg/L'}`)}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      {cellValue(temp, getTempStatus, v => `${v.toFixed(1)} °${active?.temp_unit ?? 'C'}`)}
+                      {cellValue(temp, v => getTempStatus(v, ranges ?? undefined), v => `${v.toFixed(1)} °${active?.temp_unit ?? 'C'}`)}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      <StatusBadge ph={ph} chlorine={chlorine} tac={tac} />
+                      <StatusBadge ph={ph} chlorine={chlorine} tac={tac} ranges={ranges ?? undefined} />
                     </td>
                   </tr>
                 ))}

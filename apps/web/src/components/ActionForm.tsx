@@ -316,6 +316,18 @@ const BAND_CHLORINE_BASE: BandParamBase = {
   ],
 }
 
+// Salt pools are kept at a meaningfully higher CYA (60-80 ppm) than a manually-dosed
+// chlorine pool, so the same AquaChek strip readings map to different zones: 3-5 ppm
+// reads as low/borderline on a low-CYA pool but is the actual target here.
+const BAND_CHLORINE_SALT_BASE: BandParamBase = {
+  ...BAND_CHLORINE_BASE,
+  zoneDefs: [
+    { flex: 3, kind: 'low' },
+    { flex: 2, kind: 'ideal' },
+    { flex: 1, kind: 'vhigh' },
+  ],
+}
+
 const BAND_HARDNESS_BASE: BandParamBase = {
   key: 'm_hardness', labelKey: 'param_hardness',
   summaryFmt: v => `Hardness ${v} ppm`,
@@ -334,7 +346,7 @@ const BAND_HARDNESS_BASE: BandParamBase = {
 }
 
 function getBandParams(sanitizer: 'bromine' | 'chlorine' | 'salt', t: (key: TranslationKey) => string): BandParam[] {
-  const sanitizerBase = sanitizer === 'bromine' ? BAND_BROMINE_BASE : BAND_CHLORINE_BASE
+  const sanitizerBase = sanitizer === 'bromine' ? BAND_BROMINE_BASE : sanitizer === 'salt' ? BAND_CHLORINE_SALT_BASE : BAND_CHLORINE_BASE
   return [BAND_PH_BASE, BAND_TAC_BASE, sanitizerBase, BAND_HARDNESS_BASE].map(b => buildBandParam(b, t))
 }
 

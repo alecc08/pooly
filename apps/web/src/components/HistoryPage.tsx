@@ -79,21 +79,21 @@ function Pill({ label, color, bg }: { label: string; color: string; bg: string }
 }
 
 function ParamPills({ action }: { action: Action }) {
-  const { active } = useInstallation()
+  const { active, ranges } = useInstallation()
   const p = extractMeasuredParams([action])
   const pills: { label: string; status: 'normal' | 'warn' | 'bad' }[] = []
 
   if (p.ph !== null) {
-    pills.push({ label: `pH ${p.ph.toFixed(1)}`, status: getPhStatus(p.ph) })
+    pills.push({ label: `pH ${p.ph.toFixed(1)}`, status: getPhStatus(p.ph, ranges ?? undefined) })
   }
   if (p.chlorine !== null) {
-    pills.push({ label: `Cl ${p.chlorine.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`, status: getChlorineStatus(p.chlorine) })
+    pills.push({ label: `Cl ${p.chlorine.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`, status: getChlorineStatus(p.chlorine, ranges ?? undefined) })
   }
   if (p.tac !== null) {
-    pills.push({ label: `TAC ${Math.round(p.tac)} ${active?.conc_unit ?? 'mg/L'}`, status: getTacStatus(p.tac) })
+    pills.push({ label: `TAC ${Math.round(p.tac)} ${active?.conc_unit ?? 'mg/L'}`, status: getTacStatus(p.tac, ranges ?? undefined) })
   }
   if (p.temp !== null) {
-    pills.push({ label: `${p.temp.toFixed(1)} °${active?.temp_unit ?? 'C'}`, status: getTempStatus(p.temp) })
+    pills.push({ label: `${p.temp.toFixed(1)} °${active?.temp_unit ?? 'C'}`, status: getTempStatus(p.temp, ranges ?? undefined) })
   }
 
   if (pills.length === 0) return null
@@ -115,6 +115,7 @@ function EntryCard({ action, products, onEdit, onDelete }: {
   onDelete?: (action: Action) => void
 }) {
   const { t } = useT()
+  const { ranges } = useInstallation()
   const [hovered, setHovered] = useState(false)
   const cat = getCategory(action)
   const title = getTitle(action, products, t)
@@ -135,7 +136,7 @@ function EntryCard({ action, products, onEdit, onDelete }: {
   let badge: React.ReactNode = null
   if (cat === 'measurement') {
     const p = extractMeasuredParams([action])
-    const { status, hasData } = getWaterStatus({ ph: p.ph, chlorine: p.chlorine, tac: p.tac })
+    const { status, hasData } = getWaterStatus({ ph: p.ph, chlorine: p.chlorine, tac: p.tac }, ranges ?? undefined)
     if (hasData) {
       const c = STATUS_CFG[status]
       badge = <Pill label={c.label} color={c.color} bg={c.bg} />

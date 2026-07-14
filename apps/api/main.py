@@ -56,11 +56,16 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
         "temp":   {"ideal": (36, 40),   "acceptable": (30, 42)},
         "hardness": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
+    # CYA and free-chlorine targets follow PoolMath/Trouble Free Pool guidance for
+    # salt water generator (SWG) pools: SWG cells run more efficiently -- and lose
+    # less chlorine to sunlight -- at a higher CYA (60-80 ppm) than a manually-dosed
+    # pool, which in turn means free chlorine needs to sit meaningfully higher than
+    # the traditional 1-3 ppm CDC-style band to stay effective at that CYA level.
     ("pool", "salt"): {
         "ph":     {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
         "salt":   {"ideal": (2700, 3400), "acceptable": (2500, 4500)},
         "cya":    {"ideal": (60, 80),     "acceptable": (30, 100)},
-        "cl":     {"ideal": (1.0, 3.0),   "acceptable": (0.5, 4.0)},
+        "cl":     {"ideal": (3.0, 5.0),   "acceptable": (2.0, 6.0)},
         "cc":     {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
         "tac":    {"ideal": (80, 180),    "acceptable": (60, 200)},
         "temp":   {"ideal": (24, 28),     "acceptable": (15, 35)},

@@ -590,7 +590,7 @@ function ActionTypeBadge({ actionType }: { actionType: string }) {
 }
 
 function ActionParamPills({ action }: { action: Action }) {
-  const { active } = useInstallation()
+  const { active, ranges } = useInstallation()
   const p = extractMeasuredParams([action])
   const pills: Array<{ label: string; color: string; bg: string }> = []
   const styleMap = {
@@ -599,19 +599,19 @@ function ActionParamPills({ action }: { action: Action }) {
     bad:    { color: 'var(--status-danger-text)', bg: 'var(--status-danger-bg)' },
   }
   if (p.ph !== null) {
-    const s = getPhStatus(p.ph)
+    const s = getPhStatus(p.ph, ranges ?? undefined)
     pills.push({ label: `pH ${p.ph.toFixed(1)}`, ...styleMap[s] })
   }
   if (p.chlorine !== null) {
-    const s = getChlorineStatus(p.chlorine)
+    const s = getChlorineStatus(p.chlorine, ranges ?? undefined)
     pills.push({ label: `Cl ${p.chlorine.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`, ...styleMap[s] })
   }
   if (p.tac !== null) {
-    const s = getTacStatus(p.tac)
+    const s = getTacStatus(p.tac, ranges ?? undefined)
     pills.push({ label: `TAC ${Math.round(p.tac)} ${active?.conc_unit ?? 'mg/L'}`, ...styleMap[s] })
   }
   if (p.temp !== null) {
-    const s = getTempStatus(p.temp)
+    const s = getTempStatus(p.temp, ranges ?? undefined)
     pills.push({ label: `T° ${p.temp.toFixed(1)} °${active?.temp_unit ?? 'C'}`, ...styleMap[s] })
   }
   if (pills.length === 0) {
