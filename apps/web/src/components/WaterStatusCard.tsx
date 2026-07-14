@@ -1,6 +1,7 @@
 import type { Action } from '../types'
 import { extractWaterParams, getWaterStatus } from '../utils'
 import { useInstallation } from '../context/InstallationContext'
+import { useT } from '../context/LocaleContext'
 import { useTheme, type Theme } from '../hooks/useTheme'
 
 type Props = {
@@ -215,22 +216,17 @@ function SpaGreenSvg({ opacity }: SvgProps) {
 
 // ── Config ─────────────────────────────────────────────────────────────────
 
-const POOL_CONFIG = {
-  clear:  { label: 'Eau claire',  indicator: '● Normal',        color: 'var(--status-ok-text)'     },
-  cloudy: { label: 'Eau trouble', indicator: '● À surveiller',  color: 'var(--status-warn-text)'   },
-  green:  { label: 'Eau verte',   indicator: '● Hors norme',    color: 'var(--status-danger-text)' },
-}
-
-const SPA_CONFIG = {
-  clear:  { label: 'Eau claire',  indicator: '● Normal',        color: 'var(--status-ok-text)'     },
-  cloudy: { label: 'Eau trouble', indicator: '● À surveiller',  color: 'var(--status-warn-text)'   },
-  green:  { label: 'Eau verte',   indicator: '● Hors norme',    color: 'var(--status-danger-text)' },
-}
+const STATUS_CONFIG = {
+  clear:  { labelKey: 'eau_claire',  statusKey: 'status_normal',     color: 'var(--status-ok-text)'     },
+  cloudy: { labelKey: 'eau_trouble', statusKey: 'status_surveiller', color: 'var(--status-warn-text)'   },
+  green:  { labelKey: 'eau_verte',   statusKey: 'status_hors_norme', color: 'var(--status-danger-text)' },
+} as const
 
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function WaterStatusCard({ actions }: Props) {
   const { active, ranges } = useInstallation()
+  const { t } = useT()
   const { theme } = useTheme()
   const params = extractWaterParams(actions)
   const { status, hasData } = getWaterStatus(params, ranges ?? undefined)
@@ -239,9 +235,10 @@ export default function WaterStatusCard({ actions }: Props) {
   const svgOpacity = hasData ? 1 : 0.4
   const isSpa = active?.type === 'spa'
 
-  const label     = isSpa ? SPA_CONFIG[status].label     : POOL_CONFIG[status].label
-  const indicator = isSpa ? SPA_CONFIG[status].indicator : POOL_CONFIG[status].indicator
-  const color     = isSpa ? SPA_CONFIG[status].color     : POOL_CONFIG[status].color
+  const cfg = STATUS_CONFIG[status]
+  const label     = t(cfg.labelKey)
+  const indicator = `● ${t(cfg.statusKey)}`
+  const color     = cfg.color
 
   return (
     <div

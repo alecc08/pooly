@@ -2,11 +2,16 @@ export type Locale = 'fr' | 'en'
 
 export const translations = {
   fr: {
+    // Commun
+    common_fermer: 'Fermer',
+
     // Navigation
     nav_journal: 'Journal',
     nav_mesures: 'Mesures',
     nav_historique: 'Historique',
     nav_nouvelle_entree: '+ Nouvelle entrée',
+    nav_nouveau: 'Nouveau',
+    nav_nouvelle_entree_aria: 'Nouvelle entrée',
     nav_mon_profil: 'Mon profil',
     nav_deconnexion: 'Déconnexion',
     nav_ajouter_installation: '+ Ajouter une installation',
@@ -50,6 +55,7 @@ export const translations = {
     // Tableau historique
     table_date: 'Date',
     table_type: 'Type',
+    table_detail: 'Détail',
     table_parametres: 'Paramètres',
     table_notes: 'Notes',
     table_historique_recent: 'Historique récent',
@@ -227,11 +233,16 @@ export const translations = {
   },
 
   en: {
+    // Commun
+    common_fermer: 'Close',
+
     // Navigation
     nav_journal: 'Dashboard',
     nav_mesures: 'Measurements',
     nav_historique: 'History',
     nav_nouvelle_entree: '+ New entry',
+    nav_nouveau: 'New',
+    nav_nouvelle_entree_aria: 'New entry',
     nav_mon_profil: 'My profile',
     nav_deconnexion: 'Log out',
     nav_ajouter_installation: '+ Add installation',
@@ -262,6 +273,7 @@ export const translations = {
     param_ph: 'pH',
     param_brome: 'Total bromine',
     param_chlore: 'Free chlorine',
+    param_sel: 'Salt',
     param_tac: 'Alkalinity',
     param_temperature: 'Temperature',
     param_mesure_du: 'Measured on',
@@ -274,6 +286,7 @@ export const translations = {
     // Tableau historique
     table_date: 'Date',
     table_type: 'Type',
+    table_detail: 'Detail',
     table_parametres: 'Parameters',
     table_notes: 'Notes',
     table_historique_recent: 'Recent history',
@@ -361,6 +374,13 @@ export const translations = {
     modal_install_desinfectant: 'Sanitizer',
     modal_install_brome: 'Bromine',
     modal_install_chlore: 'Chlorine',
+    modal_install_sel: 'Salt',
+    modal_install_capacite: 'Capacity (optional)',
+    modal_install_unites: 'Measurement units',
+    unit_temperature: 'Temperature',
+    unit_sel: 'Salt',
+    unit_concentration: 'Concentration',
+    unit_durete: 'Hardness',
     modal_install_nom_requis: 'Name is required.',
     modal_install_creation: 'Creating…',
     modal_install_creer: 'Create installation',

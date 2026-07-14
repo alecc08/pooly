@@ -1,3 +1,5 @@
+import { useT } from '../context/LocaleContext'
+
 type Page = 'journal' | 'mesures' | 'historique'
 
 type Props = {
@@ -7,6 +9,7 @@ type Props = {
 }
 
 export default function BottomNav({ page, onNavigate, onAdd }: Props) {
+  const { t } = useT()
   return (
     <nav className="bottom-nav">
       <button
@@ -17,7 +20,7 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
           <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
-        Journal
+        {t('nav_journal')}
       </button>
 
       <button
@@ -27,12 +30,12 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
         </svg>
-        Mesures
+        {t('nav_mesures')}
       </button>
 
       <button
         onClick={onAdd}
-        aria-label="Nouvelle entrée"
+        aria-label={t('nav_nouvelle_entree_aria')}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -65,7 +68,7 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
           fontWeight: 600,
           color: '#38bdf8',
           fontFamily: 'Sora, sans-serif',
-        }}>Nouveau</span>
+        }}>{t('nav_nouveau')}</span>
       </button>
 
       <button
@@ -76,7 +79,7 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
-        Historique
+        {t('nav_historique')}
       </button>
     </nav>
   )

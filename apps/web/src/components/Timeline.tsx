@@ -1,5 +1,6 @@
 import type { Action, Product } from '../types'
 import ActionEntry from './ActionEntry'
+import { useT } from '../context/LocaleContext'
 
 type Props = {
   actions: Action[]
@@ -8,14 +9,15 @@ type Props = {
 }
 
 export default function Timeline({ actions, products, onEdit }: Props) {
+  const { t } = useT()
   return (
     <table className="history-table">
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Type</th>
-          <th>Détail</th>
-          <th>Notes</th>
+          <th>{t('table_date')}</th>
+          <th>{t('table_type')}</th>
+          <th>{t('table_detail')}</th>
+          <th>{t('table_notes')}</th>
           <th style={{ width: 36 }}></th>
         </tr>
       </thead>
