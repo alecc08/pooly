@@ -10,12 +10,13 @@ os.environ.setdefault("SESSION_SECRET", "test-secret")
 os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
 os.environ.setdefault("ADMIN_PASSWORD", "admin123")
 
-from main import app, _hash_password  # noqa: E402
+from main import app, limiter, _hash_password  # noqa: E402
 from models import User  # noqa: E402
 
 
 @pytest.fixture(name="client")
 def client_fixture():
+    limiter.reset()
     test_engine = create_engine(
         "sqlite://",
         connect_args={"check_same_thread": False},

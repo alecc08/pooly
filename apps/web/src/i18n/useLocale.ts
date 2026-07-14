@@ -19,7 +19,8 @@ export function useLocale() {
   }, [])
 
   const t = useCallback((key: TranslationKey): string => {
-    return (translations[locale][key] as string) ?? (translations['fr'][key] as string) ?? key
+    const dict = translations[locale] as Record<TranslationKey, string | undefined>
+    return dict[key] ?? (translations['fr'][key] as string) ?? key
   }, [locale])
 
   return { locale, setLocale, t }

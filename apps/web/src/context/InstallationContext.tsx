@@ -8,7 +8,7 @@ type InstallationCtx = {
   ranges: DynamicRanges | null
   setActive: (id: number) => void
   refresh: () => Promise<void>
-  addInstallation: (data: { name: string; type: 'piscine' | 'spa'; sanitizer: 'brome' | 'chlore' }) => Promise<Installation>
+  addInstallation: (data: { name: string; type: 'piscine' | 'spa'; sanitizer: 'brome' | 'chlore' | 'sel'; volume?: number; volume_unit?: 'L' | 'gal' }) => Promise<Installation>
 }
 
 const InstallationContext = createContext<InstallationCtx | null>(null)
@@ -73,7 +73,7 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
     await fetchInstallations()
   }, [fetchInstallations])
 
-  const addInstallation = useCallback(async (data: { name: string; type: 'piscine' | 'spa'; sanitizer: 'brome' | 'chlore' }): Promise<Installation> => {
+  const addInstallation = useCallback(async (data: { name: string; type: 'piscine' | 'spa'; sanitizer: 'brome' | 'chlore' | 'sel'; volume?: number; volume_unit?: 'L' | 'gal' }): Promise<Installation> => {
     const res = await fetch('/api/installations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

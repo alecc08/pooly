@@ -177,11 +177,18 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
         {installations.length > 0 && (
           <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
             {installations.length === 1 ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                <span style={{ fontSize: 14 }}>{active?.type === 'spa' ? '🛁' : '🏊'}</span>
-                <span style={{ fontFamily: 'Sora, sans-serif', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.65)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {active?.name ?? '…'}
-                </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ fontSize: 14 }}>{active?.type === 'spa' ? '🛁' : '🏊'}</span>
+                  <span style={{ fontFamily: 'Sora, sans-serif', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.65)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {active?.name ?? '…'}
+                  </span>
+                </div>
+                {active?.volume != null && (
+                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: 'rgba(255,255,255,0.35)', marginLeft: 21 }}>
+                    {active.volume.toLocaleString('fr-FR')} {active.volume_unit ?? 'L'}
+                  </span>
+                )}
               </div>
             ) : (
               <select

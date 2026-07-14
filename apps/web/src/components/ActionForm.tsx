@@ -16,6 +16,9 @@ import {
   getChloreStatus,
   getTacStatus,
   getDureteStatus,
+  getSelStatus,
+  getStabilisantStatus,
+  getCcStatus,
 } from '../utils'
 import { useInstallation } from '../context/InstallationContext'
 import { useT } from '../context/LocaleContext'
@@ -64,6 +67,9 @@ type ActionRow = {
   m_chlore: string
   m_tac: string
   m_durete: string
+  m_sel: string
+  m_stabilisant: string
+  m_cc: string
 }
 
 function makeRow(actionTypes: string[]): ActionRow {
@@ -78,6 +84,9 @@ function makeRow(actionTypes: string[]): ActionRow {
     m_chlore: '',
     m_tac: '',
     m_durete: '',
+    m_sel: '',
+    m_stabilisant: '',
+    m_cc: '',
   }
 }
 
@@ -94,6 +103,9 @@ function rowFromAction(action: Action, products: Product[]): ActionRow {
     m_chlore: '',
     m_tac: '',
     m_durete: '',
+    m_sel: '',
+    m_stabilisant: '',
+    m_cc: '',
   }
   if (action.action_type === 'Mesure' || action.action_type === 'Mesure de pH') {
     base.action_type = 'Mesure'
@@ -106,6 +118,12 @@ function rowFromAction(action: Action, products: Product[]): ActionRow {
     if (tacM) base.m_tac = tacM[1]
     const dureteM = action.notes.match(/dur[eé]t[eé]\s*:?\s*([\d.]+)/i)
     if (dureteM) base.m_durete = dureteM[1]
+    const selM = action.notes.match(/sel\s*:?\s*([\d.]+)/i)
+    if (selM) base.m_sel = selM[1]
+    const stabilisantM = action.notes.match(/(?:stabilisant|acide cyanurique|cya)\s*:?\s*([\d.]+)/i)
+    if (stabilisantM) base.m_stabilisant = stabilisantM[1]
+    const ccM = action.notes.match(/combin[ée]?\s*:?\s*([\d.]+)/i)
+    if (ccM) base.m_cc = ccM[1]
   }
   return base
 }
@@ -229,7 +247,8 @@ const BAND_DURETE: BandParam = {
   ],
 }
 
-function getBandParams(sanitizer: 'brome' | 'chlore'): BandParam[] {
+function getBandParams(sanitizer: 'brome' | 'chlore' | 'sel'): BandParam[] {
+  if (sanitizer === 'sel') return [BAND_PH, BAND_TAC, BAND_DURETE]
   return [BAND_PH, BAND_TAC, sanitizer === 'brome' ? BAND_BROME : BAND_CHLORE, BAND_DURETE]
 }
 
@@ -263,7 +282,7 @@ function pillStyle(kind: ZoneKind): { color: string; bg: string } {
 type BandeletteProps = {
   row: ActionRow
   onChange: (key: string, updates: Partial<ActionRow>) => void
-  sanitizer: 'brome' | 'chlore'
+  sanitizer: 'brome' | 'chlore' | 'sel'
 }
 
 function BandeletteMode({ row, onChange, sanitizer }: BandeletteProps) {
@@ -401,7 +420,7 @@ function BandeletteMode({ row, onChange, sanitizer }: BandeletteProps) {
 // ── Appareil numérique mode ────────────────────────────────────────────────
 
 type AppareilField = {
-  key: keyof Pick<ActionRow, 'm_ph' | 'm_brome' | 'm_chlore' | 'm_tac' | 'm_durete'>
+  key: keyof Pick<ActionRow, 'm_ph' | 'm_brome' | 'm_chlore' | 'm_tac' | 'm_durete' | 'm_sel' | 'm_stabilisant' | 'm_cc'>
   label: string
   placeholder: string
   step: string
@@ -421,6 +440,16 @@ const APPAREIL_FIELDS_CHLORE: AppareilField[] = [
   { key: 'm_chlore', label: 'Chlore libre', placeholder: '1.5', step: '0.5', hint: 'Idéal : 1 – 3 mg/L',    unit: 'mg/L' },
   { key: 'm_tac',    label: 'TAC',          placeholder: '120', step: '5',   hint: 'Idéal : 80 – 180 mg/L', unit: 'mg/L' },
   { key: 'm_durete', label: 'Dureté totale',placeholder: '250', step: '10',  hint: 'Idéal : 100 – 500 ppm', unit: 'ppm' },
+  { key: 'm_cc',     label: 'Chlore combiné (CC)', placeholder: '0.1', step: '0.1', hint: 'Idéal : 0 – 0.2 mg/L', unit: 'mg/L' },
+]
+
+const APPAREIL_FIELDS_SEL: AppareilField[] = [
+  { key: 'm_ph',          label: 'pH',                  placeholder: '7.2',  step: '0.1', hint: 'Idéal : 7.2 – 7.6' },
+  { key: 'm_sel',         label: 'Sel',                 placeholder: '3000', step: '50',  hint: 'Idéal : 2700 – 3400 ppm', unit: 'ppm' },
+  { key: 'm_tac',         label: 'TAC',                 placeholder: '120',  step: '5',   hint: 'Idéal : 80 – 180 mg/L',   unit: 'mg/L' },
+  { key: 'm_durete',      label: 'Dureté totale',       placeholder: '250',  step: '10',  hint: 'Idéal : 100 – 500 ppm',   unit: 'ppm' },
+  { key: 'm_stabilisant', label: 'Stabilisant (CYA)',   placeholder: '70',   step: '5',   hint: 'Idéal : 60 – 80 ppm',     unit: 'ppm' },
+  { key: 'm_cc',          label: 'Chlore combiné (CC)', placeholder: '0.1',  step: '0.1', hint: 'Idéal : 0 – 0.2 mg/L',    unit: 'mg/L' },
 ]
 
 type FieldStatus = 'normal' | 'warn' | 'bad' | null
@@ -435,6 +464,9 @@ function getAppareilStatus(key: AppareilField['key'], value: string): FieldStatu
     m_chlore: getChloreStatus,
     m_tac: getTacStatus,
     m_durete: getDureteStatus,
+    m_sel: getSelStatus,
+    m_stabilisant: getStabilisantStatus,
+    m_cc: getCcStatus,
   }[key]
   return fn(n)
 }
@@ -446,12 +478,12 @@ const STATUS_BORDER: Record<NonNullable<FieldStatus>, string> = {
 type AppareilProps = {
   row: ActionRow
   onChange: (key: string, updates: Partial<ActionRow>) => void
-  sanitizer: 'brome' | 'chlore'
+  sanitizer: 'brome' | 'chlore' | 'sel'
 }
 
 function AppareilMode({ row, onChange, sanitizer }: AppareilProps) {
   const { t } = useT()
-  const APPAREIL_FIELDS = sanitizer === 'brome' ? APPAREIL_FIELDS_BROME : APPAREIL_FIELDS_CHLORE
+  const APPAREIL_FIELDS = sanitizer === 'brome' ? APPAREIL_FIELDS_BROME : sanitizer === 'sel' ? APPAREIL_FIELDS_SEL : APPAREIL_FIELDS_CHLORE
   const [touched, setTouched] = useState<Partial<Record<AppareilField['key'], boolean>>>({})
   const touch = (k: AppareilField['key']) => setTouched(prev => ({ ...prev, [k]: true }))
 
@@ -502,7 +534,7 @@ function AppareilMode({ row, onChange, sanitizer }: AppareilProps) {
 type MeasureSectionProps = {
   row: ActionRow
   onChange: (key: string, updates: Partial<ActionRow>) => void
-  sanitizer: 'brome' | 'chlore'
+  sanitizer: 'brome' | 'chlore' | 'sel'
 }
 
 function MeasureSection({ row, onChange, sanitizer }: MeasureSectionProps) {
@@ -560,7 +592,7 @@ type RowItemProps = {
   canRemove: boolean
   products: Product[]
   actionTypes: string[]
-  sanitizer: 'brome' | 'chlore'
+  sanitizer: 'brome' | 'chlore' | 'sel'
 }
 
 function ActionRowItem({ row, onChange, onRemove, canRemove, actionTypes, sanitizer }: RowItemProps) {
@@ -577,6 +609,7 @@ function ActionRowItem({ row, onChange, onRemove, canRemove, actionTypes, saniti
             action_type: v,
             product_name: null, qty: '', unit: UNITS[0],
             m_ph: '', m_brome: '', m_chlore: '', m_tac: '', m_durete: '',
+            m_sel: '', m_stabilisant: '', m_cc: '',
           })}
         >
           <SelectTrigger style={{ flex: 1 }}><SelectValue /></SelectTrigger>
@@ -657,6 +690,9 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
         .replace(/chlore?\s*(?:libre)?\s*:\s*[\d.]+\.?\s*/gi, '')
         .replace(/TAC\s*:\s*[\d.]+\.?\s*/gi, '')
         .replace(/dur[eé]t[eé]\s*(?:totale?)?\s*:\s*[\d.]+\.?\s*/gi, '')
+        .replace(/sel\s*:\s*[\d.]+\.?\s*/gi, '')
+        .replace(/stabilisant\s*:\s*[\d.]+\.?\s*/gi, '')
+        .replace(/combin[ée]?\s*:\s*[\d.]+\.?\s*/gi, '')
         .replace(/^[\s.]+/, '')
         .trim()
     }
@@ -700,6 +736,9 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
       if (row.m_chlore) parts.push(`chlore: ${row.m_chlore}`)
       if (row.m_tac)    parts.push(`TAC: ${row.m_tac}`)
       if (row.m_durete) parts.push(`dureté: ${row.m_durete}`)
+      if (row.m_sel)    parts.push(`sel: ${row.m_sel}`)
+      if (row.m_stabilisant) parts.push(`stabilisant: ${row.m_stabilisant}`)
+      if (row.m_cc)     parts.push(`combiné: ${row.m_cc}`)
       const fullNotes = [parts.join('. '), notes].filter(Boolean).join('. ')
       return { date, action_type: 'Mesure', product_id: null, installation_id: active?.id ?? null, qty: row.m_ph, unit: '', notes: fullNotes }
     }
@@ -714,7 +753,10 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
     e.preventDefault()
     for (const row of rows) {
       if (row.action_type === 'Mesure') {
-        if (!row.m_ph && !row.m_brome && !row.m_chlore && !row.m_tac && !row.m_durete) {
+        if (
+          !row.m_ph && !row.m_brome && !row.m_chlore && !row.m_tac && !row.m_durete &&
+          !row.m_sel && !row.m_stabilisant && !row.m_cc
+        ) {
           setMeasureError(true)
           return
         }

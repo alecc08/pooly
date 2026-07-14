@@ -73,3 +73,134 @@ def test_delete_action_not_found(client: TestClient):
     login(client)
     r = client.delete("/actions/999")
     assert r.status_code == 404
+
+
+# ── Installations / sanitizer ───────────────────────────────────────────────
+
+def test_create_installation_sel_sanitizer(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={"name": "Piscine sel", "type": "piscine", "sanitizer": "sel"},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["sanitizer"] == "sel"
+    assert data["type"] == "piscine"
+    assert data["name"] == "Piscine sel"
+
+
+def test_patch_installation_sanitizer_to_sel(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={"name": "Ma piscine", "type": "piscine", "sanitizer": "chlore"},
+    )
+    installation_id = r.json()["id"]
+    patch_r = client.patch(
+        f"/installations/{installation_id}",
+        json={"sanitizer": "sel"},
+    )
+    assert patch_r.status_code == 200
+    assert patch_r.json()["sanitizer"] == "sel"
+
+
+def test_get_installation_params_piscine_sel(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={"name": "Piscine sel", "type": "piscine", "sanitizer": "sel"},
+    )
+    installation_id = r.json()["id"]
+    params_r = client.get(f"/installations/{installation_id}/params")
+    assert params_r.status_code == 200
+    params = params_r.json()
+    assert params["salt"]["ideal"] == [2700, 3400]
+    assert params["cya"]["ideal"] == [60, 80]
+    assert "cc" in params
+
+
+def test_get_installation_params_spa_sel(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={"name": "Spa sel", "type": "spa", "sanitizer": "sel"},
+    )
+    installation_id = r.json()["id"]
+    params_r = client.get(f"/installations/{installation_id}/params")
+    assert params_r.status_code == 200
+    params = params_r.json()
+    assert params["temp"]["ideal"] == [36, 40]
+    assert params["salt"]["ideal"] == [2500, 3200]
+    assert params["cya"]["ideal"] == [30, 50]
+
+
+def test_get_installation_params_chlore_includes_cc(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={"name": "Piscine chlore", "type": "piscine", "sanitizer": "chlore"},
+    )
+    installation_id = r.json()["id"]
+    params_r = client.get(f"/installations/{installation_id}/params")
+    assert "cc" in params_r.json()
+
+
+def test_get_installation_params_brome_excludes_cc(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={"name": "Piscine brome", "type": "piscine", "sanitizer": "brome"},
+    )
+    installation_id = r.json()["id"]
+    params_r = client.get(f"/installations/{installation_id}/params")
+    params = params_r.json()
+    assert "cc" not in params
+    assert "cya" not in params
+
+
+def test_get_installation_params_unknown_sanitizer_returns_empty(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={"name": "Mystere", "type": "piscine", "sanitizer": "inconnu"},
+    )
+    installation_id = r.json()["id"]
+    params_r = client.get(f"/installations/{installation_id}/params")
+    assert params_r.status_code == 200
+    assert params_r.json() == {}
+
+
+def test_create_installation_with_volume(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={"name": "Ma piscine", "volume": 45000, "volume_unit": "L"},
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["volume"] == 45000
+    assert data["volume_unit"] == "L"
+
+
+def test_create_installation_without_volume_defaults_null(client: TestClient):
+    login(client)
+    r = client.post("/installations", json={"name": "Ma piscine"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["volume"] is None
+    assert data["volume_unit"] == "L"
+
+
+def test_patch_installation_volume(client: TestClient):
+    login(client)
+    r = client.post("/installations", json={"name": "Ma piscine"})
+    installation_id = r.json()["id"]
+    patch_r = client.patch(
+        f"/installations/{installation_id}",
+        json={"volume": 60000, "volume_unit": "gal"},
+    )
+    assert patch_r.status_code == 200
+    data = patch_r.json()
+    assert data["volume"] == 60000
+    assert data["volume_unit"] == "gal"

@@ -35,6 +35,7 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
     ("piscine", "chlore"): {
         "ph":   {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
         "cl":   {"ideal": (1.0, 3.0), "acceptable": (0.5, 4.0)},
+        "cc":   {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
         "tac":  {"ideal": (80, 180),  "acceptable": (60, 200)},
         "temp": {"ideal": (24, 28),   "acceptable": (15, 35)},
     },
@@ -47,8 +48,27 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
     ("spa", "chlore"): {
         "ph":   {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
         "cl":   {"ideal": (3.0, 5.0), "acceptable": (2.0, 6.0)},
+        "cc":   {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
         "tac":  {"ideal": (80, 180),  "acceptable": (60, 200)},
         "temp": {"ideal": (36, 40),   "acceptable": (30, 42)},
+    },
+    ("piscine", "sel"): {
+        "ph":   {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
+        "salt": {"ideal": (2700, 3400), "acceptable": (2500, 4500)},
+        "cya":  {"ideal": (60, 80),     "acceptable": (30, 100)},
+        "cc":   {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
+        "tac":  {"ideal": (80, 180),    "acceptable": (60, 200)},
+        "temp": {"ideal": (24, 28),     "acceptable": (15, 35)},
+    },
+    # Salt spas are far less standardized than salt pools; this band is an
+    # approximation pending better field data.
+    ("spa", "sel"): {
+        "ph":   {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
+        "salt": {"ideal": (2500, 3200), "acceptable": (2000, 4000)},
+        "cya":  {"ideal": (30, 50),     "acceptable": (0, 80)},
+        "cc":   {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
+        "tac":  {"ideal": (80, 180),    "acceptable": (60, 200)},
+        "temp": {"ideal": (36, 40),     "acceptable": (30, 42)},
     },
 }
 
@@ -94,6 +114,14 @@ def _ensure_first_name_column(session: Session) -> None:
     if engine.dialect.name != "postgresql":
         return
     session.exec(text("ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS first_name VARCHAR NOT NULL DEFAULT ''"))
+    session.commit()
+
+
+def _ensure_volume_columns(session: Session) -> None:
+    if engine.dialect.name != "postgresql":
+        return
+    session.exec(text("ALTER TABLE installation ADD COLUMN IF NOT EXISTS volume DOUBLE PRECISION"))
+    session.exec(text("ALTER TABLE installation ADD COLUMN IF NOT EXISTS volume_unit VARCHAR NOT NULL DEFAULT 'L'"))
     session.commit()
 
 
@@ -177,6 +205,7 @@ async def lifespan(app: FastAPI):
     with Session(engine) as session:
         _ensure_user_id_column(session)
         _ensure_first_name_column(session)
+        _ensure_volume_columns(session)
         insert_seeds(session)
         _ensure_admin_user(session)
         _migrate_installations(session)
@@ -254,12 +283,16 @@ class InstallationIn(BaseModel):
     name: str = "Ma piscine"
     type: str = "piscine"
     sanitizer: str = "brome"
+    volume: Optional[float] = None
+    volume_unit: str = "L"
 
 
 class InstallationPatchIn(BaseModel):
     name: Optional[str] = None
     type: Optional[str] = None
     sanitizer: Optional[str] = None
+    volume: Optional[float] = None
+    volume_unit: Optional[str] = None
 
 
 class InstallationOut(BaseModel):
@@ -267,6 +300,8 @@ class InstallationOut(BaseModel):
     name: str
     type: str
     sanitizer: str
+    volume: Optional[float] = None
+    volume_unit: str = "L"
     created_at: datetime
 
 
@@ -475,6 +510,8 @@ def create_installation(
         name=payload.name,
         type=payload.type,
         sanitizer=payload.sanitizer,
+        volume=payload.volume,
+        volume_unit=payload.volume_unit,
     )
     session.add(installation)
     session.commit()
@@ -498,6 +535,10 @@ def update_installation(
         installation.type = payload.type
     if payload.sanitizer is not None:
         installation.sanitizer = payload.sanitizer
+    if payload.volume is not None:
+        installation.volume = payload.volume
+    if payload.volume_unit is not None:
+        installation.volume_unit = payload.volume_unit
     session.add(installation)
     session.commit()
     session.refresh(installation)

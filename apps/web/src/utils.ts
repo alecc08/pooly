@@ -4,6 +4,8 @@ import type { Action, InstallationWaterParams } from './types'
 
 export type WaterStatus = 'clear' | 'cloudy' | 'green'
 
+// Sel, stabilisant (CYA), CC and dureté are tracked/displayed but deliberately
+// excluded from the clear/cloudy/green heuristic below (same precedent as durete).
 export type WaterParams = {
   ph: number | null
   chlore: number | null
@@ -20,9 +22,12 @@ export type DynamicRanges = {
   brome?: { ideal: [number, number]; acceptable: [number, number] }
   tac?: { ideal: [number, number]; acceptable: [number, number] }
   temp?: { ideal: [number, number]; acceptable: [number, number] }
+  sel?: { ideal: [number, number]; acceptable: [number, number] }
+  stabilisant?: { ideal: [number, number]; acceptable: [number, number] }
+  cc?: { ideal: [number, number]; acceptable: [number, number] }
 }
 
-/** Convert API InstallationWaterParams to DynamicRanges (cl→chlore, br→brome). */
+/** Convert API InstallationWaterParams to DynamicRanges (cl→chlore, br→brome, salt→sel, cya→stabilisant). */
 export function installationParamsToRanges(params: InstallationWaterParams): DynamicRanges {
   return {
     ph: params.ph,
@@ -30,17 +35,23 @@ export function installationParamsToRanges(params: InstallationWaterParams): Dyn
     temp: params.temp,
     chlore: params.cl,
     brome: params.br,
+    sel: params.salt,
+    stabilisant: params.cya,
+    cc: params.cc,
   }
 }
 
 /** Centralised reference ranges. Use these everywhere — never duplicate. */
 export const PARAM_RANGES = {
-  ph:     { ideal: [7.0, 7.6] as [number, number], acceptable: [6.8, 7.8] as [number, number] },
-  chlore: { ideal: [0.5, 3.0] as [number, number], acceptable: [0.3, 4.0] as [number, number] },
-  tac:    { ideal: [80, 180]  as [number, number], acceptable: [60, 200]  as [number, number] },
-  temp:   { ideal: [24, 28]   as [number, number], acceptable: [15, 35]   as [number, number] },
-  brome:  { ideal: [2, 5]     as [number, number], acceptable: [1, 10]    as [number, number] },
-  durete: { ideal: [100, 500] as [number, number], acceptable: [50, 1000] as [number, number] },
+  ph:          { ideal: [7.0, 7.6]     as [number, number], acceptable: [6.8, 7.8]     as [number, number] },
+  chlore:      { ideal: [0.5, 3.0]     as [number, number], acceptable: [0.3, 4.0]     as [number, number] },
+  tac:         { ideal: [80, 180]      as [number, number], acceptable: [60, 200]      as [number, number] },
+  temp:        { ideal: [24, 28]       as [number, number], acceptable: [15, 35]       as [number, number] },
+  brome:       { ideal: [2, 5]         as [number, number], acceptable: [1, 10]        as [number, number] },
+  durete:      { ideal: [100, 500]     as [number, number], acceptable: [50, 1000]     as [number, number] },
+  sel:         { ideal: [2700, 3400]   as [number, number], acceptable: [2500, 4500]   as [number, number] },
+  stabilisant: { ideal: [60, 80]       as [number, number], acceptable: [30, 100]      as [number, number] },
+  cc:          { ideal: [0, 0.2]       as [number, number], acceptable: [0, 0.5]       as [number, number] },
 }
 
 /**
@@ -162,6 +173,9 @@ export type MeasuredParams = {
   temp: number | null
   brome: number | null
   durete: number | null
+  salt: number | null
+  stabilisant: number | null
+  cc: number | null
   date: string | null
 }
 
@@ -191,6 +205,9 @@ export function extractMeasuredParams(actions: Action[]): MeasuredParams {
   let temp: number | null = null
   let brome: number | null = null
   let durete: number | null = null
+  let salt: number | null = null
+  let stabilisant: number | null = null
+  let cc: number | null = null
   let date: string | null = null
 
   for (const action of sorted) {
@@ -234,13 +251,35 @@ export function extractMeasuredParams(actions: Action[]): MeasuredParams {
       const m = action.notes.match(/dur[eé]t[eé]\s*(?:totale?)?\s*:?\s*([\d.]+)/i)
       if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { durete = v; contributed = true } }
     }
+    // Sel (ppm)
+    if (salt === null && action.notes) {
+      const m = action.notes.match(/sel\s*:?\s*([\d.]+)|salt\s*:?\s*([\d.]+)/i)
+      if (m) {
+        const v = parseFloat(m[1] ?? m[2])
+        if (!isNaN(v)) { salt = v; contributed = true }
+      }
+    }
+    // Stabilisant / acide cyanurique (CYA)
+    if (stabilisant === null && action.notes) {
+      const m = action.notes.match(/(?:stabilisant|acide cyanurique|cya)\s*:?\s*([\d.]+)/i)
+      if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { stabilisant = v; contributed = true } }
+    }
+    // Chlore combiné (CC) — deliberately does not contain "chlore" as a substring,
+    // so it never interacts with the free-chlore regex above.
+    if (cc === null && action.notes) {
+      const m = action.notes.match(/combin[ée]?\s*:?\s*([\d.]+)/i)
+      if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) { cc = v; contributed = true } }
+    }
 
     if (contributed && date === null) date = action.date
 
-    if (ph !== null && chlore !== null && tac !== null && temp !== null && brome !== null && durete !== null) break
+    if (
+      ph !== null && chlore !== null && tac !== null && temp !== null &&
+      brome !== null && durete !== null && salt !== null && stabilisant !== null && cc !== null
+    ) break
   }
 
-  return { ph, chlore, tac, temp, brome, durete, date }
+  return { ph, chlore, tac, temp, brome, durete, salt, stabilisant, cc, date }
 }
 
 function inRange(v: number, [min, max]: [number, number]): boolean {
@@ -291,6 +330,30 @@ export function getBromeStatus(v: number, ranges?: DynamicRanges): ParamStatus {
 export function getDureteStatus(v: number): ParamStatus {
   if (inRange(v, PARAM_RANGES.durete.ideal)) return 'normal'
   if (inRange(v, PARAM_RANGES.durete.acceptable)) return 'warn'
+  return 'bad'
+}
+
+/** Sel: normal=2700–3400 ppm, warn=2500–4500 ppm, bad=outside */
+export function getSelStatus(v: number, ranges?: DynamicRanges): ParamStatus {
+  const r = ranges?.sel ?? PARAM_RANGES.sel
+  if (inRange(v, r.ideal)) return 'normal'
+  if (inRange(v, r.acceptable)) return 'warn'
+  return 'bad'
+}
+
+/** Stabilisant (CYA): normal=60–80 ppm, warn=30–100 ppm, bad=outside */
+export function getStabilisantStatus(v: number, ranges?: DynamicRanges): ParamStatus {
+  const r = ranges?.stabilisant ?? PARAM_RANGES.stabilisant
+  if (inRange(v, r.ideal)) return 'normal'
+  if (inRange(v, r.acceptable)) return 'warn'
+  return 'bad'
+}
+
+/** Chlore combiné (CC): normal=0–0.2 mg/L, warn=0–0.5 mg/L, bad=outside */
+export function getCcStatus(v: number, ranges?: DynamicRanges): ParamStatus {
+  const r = ranges?.cc ?? PARAM_RANGES.cc
+  if (inRange(v, r.ideal)) return 'normal'
+  if (inRange(v, r.acceptable)) return 'warn'
   return 'bad'
 }
 

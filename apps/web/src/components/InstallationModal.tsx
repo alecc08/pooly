@@ -16,7 +16,9 @@ export default function InstallationModal({ open, onClose }: Props) {
   const { addInstallation } = useInstallation()
   const [name, setName] = useState('')
   const [type, setType] = useState<'piscine' | 'spa'>('piscine')
-  const [sanitizer, setSanitizer] = useState<'brome' | 'chlore'>('chlore')
+  const [sanitizer, setSanitizer] = useState<'brome' | 'chlore' | 'sel'>('chlore')
+  const [volume, setVolume] = useState('')
+  const [volumeUnit, setVolumeUnit] = useState<'L' | 'gal'>('L')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,10 +28,18 @@ export default function InstallationModal({ open, onClose }: Props) {
     setLoading(true)
     setError(null)
     try {
-      await addInstallation({ name: name.trim(), type, sanitizer })
+      const parsedVolume = volume.trim() ? parseFloat(volume) : undefined
+      await addInstallation({
+        name: name.trim(),
+        type,
+        sanitizer,
+        ...(parsedVolume !== undefined && !isNaN(parsedVolume) ? { volume: parsedVolume, volume_unit: volumeUnit } : {}),
+      })
       setName('')
       setType('piscine')
       setSanitizer('chlore')
+      setVolume('')
+      setVolumeUnit('L')
       onClose()
     } catch (err) {
       setError((err as Error).message)
@@ -100,7 +110,7 @@ export default function InstallationModal({ open, onClose }: Props) {
           <div style={{ display: 'grid', gap: 8 }}>
             <Label>{t('modal_install_desinfectant')}</Label>
             <div style={{ display: 'flex', gap: 8 }}>
-              {([['chlore', t('modal_install_chlore')], ['brome', t('modal_install_brome')]] as const).map(([s, label]) => (
+              {([['chlore', t('modal_install_chlore')], ['brome', t('modal_install_brome')], ['sel', t('modal_install_sel')]] as const).map(([s, label]) => (
                 <button
                   key={s}
                   type="button"
@@ -113,6 +123,40 @@ export default function InstallationModal({ open, onClose }: Props) {
                   }}
                 >
                   {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Capacité */}
+          <div style={{ display: 'grid', gap: 8 }}>
+            <Label htmlFor="inst-volume">Capacité (optionnel)</Label>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Input
+                id="inst-volume"
+                type="number"
+                min="0"
+                step="any"
+                value={volume}
+                onChange={e => setVolume(e.target.value)}
+                placeholder="45000"
+                style={{ flex: 1 }}
+              />
+              {(['L', 'gal'] as const).map(u => (
+                <button
+                  key={u}
+                  type="button"
+                  onClick={() => setVolumeUnit(u)}
+                  style={{
+                    ...pillBase,
+                    flex: 'none',
+                    minWidth: 56,
+                    borderColor: volumeUnit === u ? 'rgba(56,189,248,0.35)' : 'var(--border)',
+                    background: volumeUnit === u ? 'rgba(56,189,248,0.1)' : 'var(--bg-surface-2)',
+                    color: volumeUnit === u ? '#38bdf8' : 'var(--text-secondary)',
+                  }}
+                >
+                  {u}
                 </button>
               ))}
             </div>

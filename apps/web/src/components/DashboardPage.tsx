@@ -17,6 +17,7 @@ import {
   getPhStatus,
   getChloreStatus,
   getBromeStatus,
+  getSelStatus,
   getTacStatus,
   getTempStatus,
   getPhHistory,
@@ -230,6 +231,14 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
             value={params.brome !== null ? params.brome.toFixed(1) : '—'}
             unit="mg/L"
             status={params.brome !== null ? getBromeStatus(params.brome, ranges ?? undefined) : null}
+            showDivider={true}
+          />
+        ) : sanitizer === 'sel' ? (
+          <ParamBlock
+            label={t('param_sel')}
+            value={params.salt !== null ? params.salt.toFixed(0) : '—'}
+            unit="ppm"
+            status={params.salt !== null ? getSelStatus(params.salt, ranges ?? undefined) : null}
             showDivider={true}
           />
         ) : (
