@@ -15,6 +15,9 @@ export const translations = {
     nav_mon_profil: 'Mon profil',
     nav_deconnexion: 'Déconnexion',
     nav_ajouter_installation: '+ Ajouter une installation',
+    installation_supprimer: "Supprimer l'installation",
+    installation_confirmer_suppression: 'Supprimer « {name} » ? Cette action est irréversible et supprimera aussi son historique.',
+    installation_erreur_suppression: "Erreur lors de la suppression de l'installation",
 
     // Dashboard
     page_journal_title: 'Journal',
@@ -326,6 +329,9 @@ export const translations = {
     nav_mon_profil: 'My profile',
     nav_deconnexion: 'Log out',
     nav_ajouter_installation: '+ Add installation',
+    installation_supprimer: 'Delete installation',
+    installation_confirmer_suppression: 'Delete "{name}"? This cannot be undone and will also delete its history.',
+    installation_erreur_suppression: 'Error deleting installation',
 
     // Dashboard
     page_journal_title: 'Dashboard',

@@ -312,3 +312,43 @@ def test_patch_installation_units(client: TestClient):
     assert data["salt_unit"] == "g/L"
     assert data["conc_unit"] == "ppm"
     assert data["durete_unit"] == "°f"
+
+
+def test_delete_installation(client: TestClient):
+    login(client)
+    client.post("/installations", json={"name": "Ma piscine"})
+    r = client.post("/installations", json={"name": "Spa du jardin", "type": "spa"})
+    installation_id = r.json()["id"]
+    delete_r = client.delete(f"/installations/{installation_id}")
+    assert delete_r.status_code == 204
+    list_r = client.get("/installations")
+    assert installation_id not in [i["id"] for i in list_r.json()]
+
+
+def test_delete_installation_removes_its_actions(client: TestClient):
+    login(client)
+    client.post("/installations", json={"name": "Ma piscine"})
+    r = client.post("/installations", json={"name": "Spa du jardin", "type": "spa"})
+    installation_id = r.json()["id"]
+    action_r = client.post(
+        "/actions",
+        json={"date": TODAY, "action_type": "Mesure", "installation_id": installation_id},
+    )
+    action_id = action_r.json()["id"]
+    client.delete(f"/installations/{installation_id}")
+    actions_r = client.get("/actions")
+    assert action_id not in [a["id"] for a in actions_r.json()]
+
+
+def test_delete_last_installation_rejected(client: TestClient):
+    login(client)
+    r = client.post("/installations", json={"name": "Ma piscine"})
+    installation_id = r.json()["id"]
+    delete_r = client.delete(f"/installations/{installation_id}")
+    assert delete_r.status_code == 400
+
+
+def test_delete_installation_not_found(client: TestClient):
+    login(client)
+    r = client.delete("/installations/999")
+    assert r.status_code == 404

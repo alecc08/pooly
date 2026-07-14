@@ -123,7 +123,7 @@ type Props = {
 }
 
 export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, page = 'journal', onNavigate, user, theme = 'auto', setTheme }: Props) {
-  const { installations, active, setActive } = useInstallation()
+  const { installations, active, setActive, deleteInstallation } = useInstallation()
   const { t, locale, setLocale } = useT()
 
   const installationLabel = active?.type === 'spa'
@@ -131,6 +131,16 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
     : active?.type === 'piscine'
     ? t('ma_piscine')
     : t('mon_installation')
+
+  const handleDeleteInstallation = async () => {
+    if (!active) return
+    if (!window.confirm(t('installation_confirmer_suppression').replace('{name}', active.name))) return
+    try {
+      await deleteInstallation(active.id)
+    } catch {
+      alert(t('installation_erreur_suppression'))
+    }
+  }
 
   return (
     <>
@@ -191,22 +201,41 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
                 )}
               </div>
             ) : (
-              <select
-                value={active?.id ?? ''}
-                onChange={e => setActive(Number(e.target.value))}
-                style={{
-                  width: '100%', padding: '5px 8px', borderRadius: 6,
-                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)',
-                  color: 'rgba(255,255,255,0.75)', fontFamily: 'Sora, sans-serif', fontSize: 12,
-                  cursor: 'pointer', outline: 'none',
-                }}
-              >
-                {installations.map(i => (
-                  <option key={i.id} value={i.id} style={{ background: '#0f1a28' }}>
-                    {i.type === 'spa' ? '🛁' : '🏊'} {i.name}
-                  </option>
-                ))}
-              </select>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <select
+                  value={active?.id ?? ''}
+                  onChange={e => setActive(Number(e.target.value))}
+                  style={{
+                    flex: 1, width: '100%', padding: '5px 8px', borderRadius: 6,
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)',
+                    color: 'rgba(255,255,255,0.75)', fontFamily: 'Sora, sans-serif', fontSize: 12,
+                    cursor: 'pointer', outline: 'none',
+                  }}
+                >
+                  {installations.map(i => (
+                    <option key={i.id} value={i.id} style={{ background: '#0f1a28' }}>
+                      {i.type === 'spa' ? '🛁' : '🏊'} {i.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleDeleteInstallation}
+                  aria-label={t('installation_supprimer')}
+                  title={t('installation_supprimer')}
+                  style={{
+                    flexShrink: 0, width: 26, height: 26, borderRadius: 6,
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)',
+                    color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                  </svg>
+                </button>
+              </div>
             )}
             {onAddInstallation && (
               <button

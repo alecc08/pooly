@@ -20,6 +20,7 @@ type InstallationCtx = {
     conc_unit?: ConcUnit
     durete_unit?: DureteUnit
   }) => Promise<Installation>
+  deleteInstallation: (id: number) => Promise<void>
 }
 
 const InstallationContext = createContext<InstallationCtx | null>(null)
@@ -108,8 +109,24 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
     return inst
   }, [])
 
+  const deleteInstallation = useCallback(async (id: number) => {
+    const res = await fetch(`/api/installations/${id}`, {
+      method: 'DELETE',
+      credentials: 'same-origin',
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      throw new Error(data?.detail ?? 'Erreur lors de la suppression')
+    }
+    setInstallations(prev => prev.filter(i => i.id !== id))
+    if (activeId === id) {
+      localStorage.removeItem('pooly_active_installation')
+      setActiveId(null)
+    }
+  }, [activeId])
+
   return (
-    <InstallationContext.Provider value={{ installations, active, ranges, setActive, refresh, addInstallation }}>
+    <InstallationContext.Provider value={{ installations, active, ranges, setActive, refresh, addInstallation, deleteInstallation }}>
       {children}
     </InstallationContext.Provider>
   )
