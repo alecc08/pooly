@@ -11,8 +11,8 @@ type InstallationCtx = {
   refresh: () => Promise<void>
   addInstallation: (data: {
     name: string
-    type: 'piscine' | 'spa'
-    sanitizer: 'brome' | 'chlore' | 'sel'
+    type: 'pool' | 'spa'
+    sanitizer: 'bromine' | 'chlorine' | 'salt'
     volume?: number
     volume_unit?: 'L' | 'gal'
     temp_unit?: TempUnit
@@ -87,8 +87,8 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
 
   const addInstallation = useCallback(async (data: {
     name: string
-    type: 'piscine' | 'spa'
-    sanitizer: 'brome' | 'chlore' | 'sel'
+    type: 'pool' | 'spa'
+    sanitizer: 'bromine' | 'chlorine' | 'salt'
     volume?: number
     volume_unit?: 'L' | 'gal'
     temp_unit?: TempUnit

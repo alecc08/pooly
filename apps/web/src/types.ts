@@ -31,8 +31,8 @@ export type Installation = {
   id: number
   user_id: number
   name: string
-  type: 'piscine' | 'spa'
-  sanitizer: 'brome' | 'chlore' | 'sel'
+  type: 'pool' | 'spa'
+  sanitizer: 'bromine' | 'chlorine' | 'salt'
   volume?: number | null
   volume_unit?: 'L' | 'gal'
   temp_unit?: TempUnit

@@ -16,8 +16,8 @@ export default function InstallationModal({ open, onClose }: Props) {
   const { t } = useT()
   const { addInstallation } = useInstallation()
   const [name, setName] = useState('')
-  const [type, setType] = useState<'piscine' | 'spa'>('piscine')
-  const [sanitizer, setSanitizer] = useState<'brome' | 'chlore' | 'sel'>('chlore')
+  const [type, setType] = useState<'pool' | 'spa'>('pool')
+  const [sanitizer, setSanitizer] = useState<'bromine' | 'chlorine' | 'salt'>('chlorine')
   const [volume, setVolume] = useState('')
   const [volumeUnit, setVolumeUnit] = useState<'L' | 'gal'>('L')
   const [tempUnit, setTempUnit] = useState<TempUnit>('C')
@@ -45,8 +45,8 @@ export default function InstallationModal({ open, onClose }: Props) {
         ...(parsedVolume !== undefined && !isNaN(parsedVolume) ? { volume: parsedVolume, volume_unit: volumeUnit } : {}),
       })
       setName('')
-      setType('piscine')
-      setSanitizer('chlore')
+      setType('pool')
+      setSanitizer('chlorine')
       setVolume('')
       setVolumeUnit('L')
       setTempUnit('C')
@@ -115,7 +115,7 @@ export default function InstallationModal({ open, onClose }: Props) {
           <div style={{ display: 'grid', gap: 8 }}>
             <Label>{t('modal_install_type')}</Label>
             <div style={{ display: 'flex', gap: 10 }}>
-              {([['piscine', '🏊', t('modal_install_piscine')], ['spa', '🛁', t('modal_install_spa')]] as const).map(([tp, icon, label]) => (
+              {([['pool', '🏊', t('modal_install_piscine')], ['spa', '🛁', t('modal_install_spa')]] as const).map(([tp, icon, label]) => (
                 <button
                   key={tp}
                   type="button"
@@ -138,7 +138,7 @@ export default function InstallationModal({ open, onClose }: Props) {
           <div style={{ display: 'grid', gap: 8 }}>
             <Label>{t('modal_install_desinfectant')}</Label>
             <div style={{ display: 'flex', gap: 8 }}>
-              {([['chlore', t('modal_install_chlore')], ['brome', t('modal_install_brome')], ['sel', t('modal_install_sel')]] as const).map(([s, label]) => (
+              {([['chlorine', t('modal_install_chlore')], ['bromine', t('modal_install_brome')], ['salt', t('modal_install_sel')]] as const).map(([s, label]) => (
                 <button
                   key={s}
                   type="button"

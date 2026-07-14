@@ -176,7 +176,7 @@ export default function MeasurementsPage({ actions }: Props) {
   // KPI 1: measurements this month
   const measuresThisMonth = useMemo(() =>
     actions.filter(a => {
-      const isMeasure = a.action_type === 'Mesure' || a.action_type === 'Mesure de pH'
+      const isMeasure = a.action_type === 'Measurement' || a.action_type === 'pH Measurement'
       return isMeasure && a.date.startsWith(yearMonth)
     }).length
   , [actions, yearMonth])
@@ -187,7 +187,7 @@ export default function MeasurementsPage({ actions }: Props) {
   // KPI 3: last reading
   const lastMeasure = useMemo(() => {
     const ms = actions
-      .filter(a => a.action_type === 'Mesure' || a.action_type === 'Mesure de pH')
+      .filter(a => a.action_type === 'Measurement' || a.action_type === 'pH Measurement')
       .sort((a, b) => b.date.localeCompare(a.date))
     return ms[0] ?? null
   }, [actions])

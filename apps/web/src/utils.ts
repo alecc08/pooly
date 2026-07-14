@@ -86,7 +86,7 @@ export const STRIP_OK_RANGES = {
 }
 
 /** Action types that carry water-quality measurements. */
-const MEASURE_ACTION_TYPES = ['Mesure de pH', 'Mesure']
+const MEASURE_ACTION_TYPES = ['pH Measurement', 'Measurement']
 
 // ── Measurement-parsing regexes ─────────────────────────────────────────────
 // Single source of truth for parsing the `key: value` measurement fields that
@@ -441,17 +441,17 @@ export function getNextMeasureInDays(actions: Action[]): number | null {
 
 /**
  * Treatment counts for a given year-month string (YYYY-MM).
- * maintenance = Nettoyage cartouche / filtre skimmer / Calibrage pH
- * additions   = Ajout de produit
+ * maintenance = Cartridge cleaning / skimmer filter / pH calibration
+ * additions   = Add product
  */
 export function getTreatmentsThisMonth(
   actions: Action[],
   yearMonth: string,
 ): { total: number; maintenance: number; additions: number } {
-  const MAINTENANCE_TYPES = ['Nettoyage cartouche', 'Nettoyage filtre skimmer', 'Calibrage pH']
+  const MAINTENANCE_TYPES = ['Cartridge cleaning', 'Skimmer filter cleaning', 'pH calibration']
   const monthActions = actions.filter(a => a.date.startsWith(yearMonth))
   const maintenance = monthActions.filter(a => MAINTENANCE_TYPES.includes(a.action_type)).length
-  const additions = monthActions.filter(a => a.action_type === 'Ajout de produit').length
+  const additions = monthActions.filter(a => a.action_type === 'Add product').length
   return { total: monthActions.length, maintenance, additions }
 }
 
@@ -481,7 +481,7 @@ export function getTodoItems(actions: Action[], params: MeasuredParams, t: (key:
   }
 
   // Filter maintenance: warn after 14 days
-  const filterTypes = ['Nettoyage cartouche', 'Nettoyage filtre skimmer', 'Contre-lavage']
+  const filterTypes = ['Cartridge cleaning', 'Skimmer filter cleaning', 'Backwash']
   const lastFilter = [...actions]
     .filter(a => filterTypes.includes(a.action_type))
     .sort((a, b) => b.date.localeCompare(a.date))[0]

@@ -35,14 +35,14 @@ function formatDate(dateStr: string): string {
 
 function getCategory(action: Action): Category {
   const t = action.action_type
-  if (t === 'Mesure' || t === 'Mesure de pH') return 'mesure'
-  if (t === 'Ajout de produit') return 'traitement'
+  if (t === 'Measurement' || t === 'pH Measurement') return 'mesure'
+  if (t === 'Add product') return 'traitement'
   return 'entretien'
 }
 
 function getTitle(action: Action, products: Product[], t: (key: TranslationKey) => string): string {
-  if (action.action_type === 'Mesure' || action.action_type === 'Mesure de pH') return t('action_type_mesure')
-  if (action.action_type === 'Ajout de produit') {
+  if (action.action_type === 'Measurement' || action.action_type === 'pH Measurement') return t('action_type_mesure')
+  if (action.action_type === 'Add product') {
     const p = products.find(p => p.id === action.product_id)
     if (p) return translateLabel(t, PRODUCT_LABELS, p.name)
     return t('action_type_ajout_produit')

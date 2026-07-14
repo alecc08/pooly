@@ -7,7 +7,7 @@ import { useT } from '../context/LocaleContext'
 import type { Locale } from '../i18n/translations'
 import BottomNav from './BottomNav'
 
-type Page = 'journal' | 'mesures' | 'historique'
+type Page = 'log' | 'measurements' | 'history'
 
 function getIsDark(theme: Theme): boolean {
   if (theme === 'dark') return true
@@ -122,13 +122,13 @@ type Props = {
   setTheme?: (t: Theme) => void
 }
 
-export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, page = 'journal', onNavigate, user, theme = 'auto', setTheme }: Props) {
+export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, page = 'log', onNavigate, user, theme = 'auto', setTheme }: Props) {
   const { installations, active, setActive, deleteInstallation } = useInstallation()
   const { t, locale, setLocale } = useT()
 
   const installationLabel = active?.type === 'spa'
     ? t('mon_spa')
-    : active?.type === 'piscine'
+    : active?.type === 'pool'
     ? t('ma_piscine')
     : t('mon_installation')
 
@@ -254,8 +254,8 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
 
         <nav className="sidebar-nav">
           <button
-            className={`sidebar-nav-item${page === 'journal' ? ' active' : ''}`}
-            onClick={() => onNavigate?.('journal')}
+            className={`sidebar-nav-item${page === 'log' ? ' active' : ''}`}
+            onClick={() => onNavigate?.('log')}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -265,8 +265,8 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
           </button>
 
           <button
-            className={`sidebar-nav-item${page === 'mesures' ? ' active' : ''}`}
-            onClick={() => onNavigate?.('mesures')}
+            className={`sidebar-nav-item${page === 'measurements' ? ' active' : ''}`}
+            onClick={() => onNavigate?.('measurements')}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
@@ -275,8 +275,8 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
           </button>
 
           <button
-            className={`sidebar-nav-item${page === 'historique' ? ' active' : ''}`}
-            onClick={() => onNavigate?.('historique')}
+            className={`sidebar-nav-item${page === 'history' ? ' active' : ''}`}
+            onClick={() => onNavigate?.('history')}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10" />

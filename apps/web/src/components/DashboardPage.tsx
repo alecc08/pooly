@@ -64,7 +64,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
   const { theme } = useTheme()
   const { t, locale } = useT()
   const isDark = getIsDark(theme)
-  const sanitizer = active?.sanitizer ?? 'chlore'
+  const sanitizer = active?.sanitizer ?? 'chlorine'
   const [showAll, setShowAll] = useState(false)
 
   const today = new Date()
@@ -227,7 +227,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
           status={params.ph !== null ? getPhStatus(params.ph, ranges ?? undefined) : null}
           showDivider={false}
         />
-        {sanitizer === 'brome' ? (
+        {sanitizer === 'bromine' ? (
           <ParamBlock
             label={t('param_brome')}
             value={params.bromine !== null ? params.bromine.toFixed(1) : '—'}
@@ -235,7 +235,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
             status={params.bromine !== null ? getBromineStatus(params.bromine, ranges ?? undefined) : null}
             showDivider={true}
           />
-        ) : sanitizer === 'sel' ? (
+        ) : sanitizer === 'salt' ? (
           <>
             <ParamBlock
               label={t('param_sel')}
@@ -566,13 +566,13 @@ function StatusBadge({ status }: { status: ParamStatus }) {
 function ActionTypeBadge({ actionType }: { actionType: string }) {
   const { t } = useT()
   let color = 'var(--text-muted)', bg = 'var(--bg-surface-2)'
-  if (actionType === 'Mesure' || actionType === 'Mesure de pH') {
+  if (actionType === 'Measurement' || actionType === 'pH Measurement') {
     color = 'var(--badge-orange-text)'; bg = 'var(--badge-orange-bg)'
-  } else if (actionType === 'Ajout de produit') {
+  } else if (actionType === 'Add product') {
     color = 'var(--badge-purple-text)'; bg = 'var(--badge-purple-bg)'
   } else if (
-    actionType === 'Nettoyage cartouche' || actionType === 'Nettoyage filtre skimmer' ||
-    actionType === 'Contre-lavage' || actionType === 'Calibrage pH'
+    actionType === 'Cartridge cleaning' || actionType === 'Skimmer filter cleaning' ||
+    actionType === 'Backwash' || actionType === 'pH calibration'
   ) {
     color = 'var(--badge-blue-text)'; bg = 'var(--badge-blue-bg)'
   }

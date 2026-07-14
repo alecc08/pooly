@@ -30,9 +30,9 @@ function daysAgo(n: number): string {
 const makeInstallation = (overrides: Partial<Installation> = {}): Installation => ({
   id: 1,
   user_id: 1,
-  name: 'Ma piscine',
-  type: 'piscine',
-  sanitizer: 'chlore',
+  name: 'My pool',
+  type: 'pool',
+  sanitizer: 'chlorine',
   created_at: '2026-01-01T00:00:00',
   ...overrides,
 })
@@ -146,7 +146,7 @@ describe('getCombinedChlorineStatus', () => {
 
 describe('extractMeasuredParams — sel/stabilisant/cc', () => {
   it('parses sel, stabilisant, combiné from notes', () => {
-    const actions = [makeAction({ action_type: 'Mesure', notes: 'sel: 3200. stabilisant: 65. combiné: 0.3' })]
+    const actions = [makeAction({ action_type: 'Measurement', notes: 'sel: 3200. stabilisant: 65. combiné: 0.3' })]
     const p = extractMeasuredParams(actions)
     expect(p.salt).toBe(3200)
     expect(p.stabilizer).toBe(65)
@@ -154,7 +154,7 @@ describe('extractMeasuredParams — sel/stabilisant/cc', () => {
   })
 
   it('is case-insensitive', () => {
-    const actions = [makeAction({ action_type: 'Mesure', notes: 'SEL: 2900. STABILISANT: 55. COMBINÉ: 0.1' })]
+    const actions = [makeAction({ action_type: 'Measurement', notes: 'SEL: 2900. STABILISANT: 55. COMBINÉ: 0.1' })]
     const p = extractMeasuredParams(actions)
     expect(p.salt).toBe(2900)
     expect(p.stabilizer).toBe(55)
@@ -162,19 +162,19 @@ describe('extractMeasuredParams — sel/stabilisant/cc', () => {
   })
 
   it('parses English "salt" fallback for sel', () => {
-    const actions = [makeAction({ action_type: 'Mesure', notes: 'salt: 3100' })]
+    const actions = [makeAction({ action_type: 'Measurement', notes: 'salt: 3100' })]
     const p = extractMeasuredParams(actions)
     expect(p.salt).toBe(3100)
   })
 
   it('does not false-positive on unrelated text mentioning "sel"', () => {
-    const actions = [makeAction({ action_type: 'Mesure', notes: 'Ajout de sel dans le bassin' })]
+    const actions = [makeAction({ action_type: 'Measurement', notes: 'Ajout de sel dans le bassin' })]
     const p = extractMeasuredParams(actions)
     expect(p.salt).toBeNull()
   })
 
   it('parses chlore and combiné independently without collision', () => {
-    const actions = [makeAction({ action_type: 'Mesure', notes: 'chlore: 1.5. combiné: 0.3' })]
+    const actions = [makeAction({ action_type: 'Measurement', notes: 'chlore: 1.5. combiné: 0.3' })]
     const p = extractMeasuredParams(actions)
     expect(p.chlorine).toBe(1.5)
     expect(p.cc).toBe(0.3)
@@ -186,7 +186,7 @@ describe('extractMeasuredParams — regex data-loss regression (bug: greedy trai
     // stabilisant contains a "t" immediately before ": 65." — a permissive temperature
     // regex can match there before ever reaching the real "température: 82" further along.
     const notes = 'chlore: 1.5. TAC: 120. dureté: 250. sel: 3200. stabilisant: 65. combiné: 0.1. température: 82. Eau claire. Niveau OK'
-    const actions = [makeAction({ action_type: 'Mesure', notes })]
+    const actions = [makeAction({ action_type: 'Measurement', notes })]
     const p = extractMeasuredParams(actions)
     expect(p.temp).toBe(82)
     expect(p.stabilizer).toBe(65)
@@ -194,7 +194,7 @@ describe('extractMeasuredParams — regex data-loss regression (bug: greedy trai
 
   it('extracts exact values (no swallowed trailing period) for every field in a fully-filled notes string', () => {
     const notes = 'chlore: 1.5. TAC: 120. dureté: 250. sel: 3200. stabilisant: 65. combiné: 0.1. température: 82. Eau claire. Niveau OK'
-    const actions = [makeAction({ action_type: 'Mesure', notes })]
+    const actions = [makeAction({ action_type: 'Measurement', notes })]
     const p = extractMeasuredParams(actions)
     expect(p.chlorine).toBe(1.5)
     expect(p.tac).toBe(120)
@@ -342,7 +342,7 @@ describe('getTodoItems', () => {
   })
 
   it('flags pH as overdue past the 7-day cycle', () => {
-    const actions = [makeAction({ action_type: 'Mesure', qty: '7.2', date: daysAgo(10) })]
+    const actions = [makeAction({ action_type: 'Measurement', qty: '7.2', date: daysAgo(10) })]
     const items = getTodoItems(actions, emptyParams, t)
     const ph = items.find(i => i.id === 'ph-measure')
     expect(ph!.delay).toBe('En retard (3 j)')
@@ -350,7 +350,7 @@ describe('getTodoItems', () => {
   })
 
   it('shows an upcoming pH measurement within the 5-day warn window', () => {
-    const actions = [makeAction({ action_type: 'Mesure', qty: '7.2', date: daysAgo(3) })]
+    const actions = [makeAction({ action_type: 'Measurement', qty: '7.2', date: daysAgo(3) })]
     const items = getTodoItems(actions, emptyParams, t)
     const ph = items.find(i => i.id === 'ph-measure')
     expect(ph!.delay).toBe('Dans 4 j')
@@ -358,7 +358,7 @@ describe('getTodoItems', () => {
   })
 
   it('does not flag pH when well within the cycle (more than 5 days left)', () => {
-    const actions = [makeAction({ action_type: 'Mesure', qty: '7.2', date: daysAgo(1) })]
+    const actions = [makeAction({ action_type: 'Measurement', qty: '7.2', date: daysAgo(1) })]
     const items = getTodoItems(actions, emptyParams, t)
     expect(items.find(i => i.id === 'ph-measure')).toBeUndefined()
   })
@@ -370,14 +370,14 @@ describe('getTodoItems', () => {
   })
 
   it('flags filter maintenance as overdue past 14 days', () => {
-    const actions = [makeAction({ action_type: 'Nettoyage cartouche', date: daysAgo(20) })]
+    const actions = [makeAction({ action_type: 'Cartridge cleaning', date: daysAgo(20) })]
     const items = getTodoItems(actions, emptyParams, t)
     const filter = items.find(i => i.id === 'filter-maintenance')
     expect(filter!.delay).toBe('En retard (20 j)')
   })
 
   it('does not flag filter maintenance when recently done', () => {
-    const actions = [makeAction({ action_type: 'Nettoyage cartouche', date: daysAgo(2) })]
+    const actions = [makeAction({ action_type: 'Cartridge cleaning', date: daysAgo(2) })]
     const items = getTodoItems(actions, emptyParams, t)
     expect(items.find(i => i.id === 'filter-maintenance')).toBeUndefined()
   })

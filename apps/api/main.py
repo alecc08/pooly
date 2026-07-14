@@ -26,14 +26,14 @@ limiter = Limiter(key_func=get_remote_address)
 # ── Reference ranges per installation type ─────────────────────────────────
 
 WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
-    ("piscine", "brome"): {
+    ("pool", "bromine"): {
         "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
         "br":     {"ideal": (2.0, 5.0), "acceptable": (1.0, 10.0)},
         "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
         "temp":   {"ideal": (24, 28),   "acceptable": (15, 35)},
         "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
-    ("piscine", "chlore"): {
+    ("pool", "chlorine"): {
         "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
         "cl":     {"ideal": (1.0, 3.0), "acceptable": (0.5, 4.0)},
         "cc":     {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
@@ -41,14 +41,14 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
         "temp":   {"ideal": (24, 28),   "acceptable": (15, 35)},
         "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
-    ("spa", "brome"): {
+    ("spa", "bromine"): {
         "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
         "br":     {"ideal": (3.0, 6.0), "acceptable": (2.0, 10.0)},
         "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
         "temp":   {"ideal": (36, 40),   "acceptable": (30, 42)},
         "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
-    ("spa", "chlore"): {
+    ("spa", "chlorine"): {
         "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
         "cl":     {"ideal": (3.0, 5.0), "acceptable": (2.0, 6.0)},
         "cc":     {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
@@ -56,7 +56,7 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
         "temp":   {"ideal": (36, 40),   "acceptable": (30, 42)},
         "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
-    ("piscine", "sel"): {
+    ("pool", "salt"): {
         "ph":     {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
         "salt":   {"ideal": (2700, 3400), "acceptable": (2500, 4500)},
         "cya":    {"ideal": (60, 80),     "acceptable": (30, 100)},
@@ -68,7 +68,7 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
     },
     # Salt spas are far less standardized than salt pools; this band is an
     # approximation pending better field data.
-    ("spa", "sel"): {
+    ("spa", "salt"): {
         "ph":     {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
         "salt":   {"ideal": (2500, 3200), "acceptable": (2000, 4000)},
         "cya":    {"ideal": (30, 50),     "acceptable": (0, 80)},
@@ -213,7 +213,7 @@ def _migrate_installations(session: Session) -> None:
                 INSERT INTO installation
                     (user_id, name, type, sanitizer, volume_unit, temp_unit, salt_unit, conc_unit, durete_unit, created_at)
                 VALUES
-                    (:uid, 'Ma piscine', 'piscine', 'brome', 'L', 'C', 'ppm', 'mg/L', 'ppm', NOW())
+                    (:uid, 'My pool', 'pool', 'bromine', 'L', 'C', 'ppm', 'mg/L', 'ppm', NOW())
             """).bindparams(uid=uid)
         )
     if users_without:
@@ -338,9 +338,9 @@ class UpdateProfileIn(BaseModel):
 
 
 class InstallationIn(BaseModel):
-    name: str = "Ma piscine"
-    type: str = "piscine"
-    sanitizer: str = "brome"
+    name: str = "My pool"
+    type: str = "pool"
+    sanitizer: str = "bromine"
     volume: Optional[float] = None
     volume_unit: str = "L"
     temp_unit: str = "C"

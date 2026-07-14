@@ -39,76 +39,76 @@ import type { TranslationKey } from '../i18n/translations'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
-const ACTION_TYPES_PISCINE = [
-  'Nettoyage cartouche',
-  'Nettoyage filtre skimmer',
-  'Mesure',
-  'Calibrage pH',
-  'Ajout de produit',
+const ACTION_TYPES_POOL = [
+  'Cartridge cleaning',
+  'Skimmer filter cleaning',
+  'Measurement',
+  'pH calibration',
+  'Add product',
 ]
 const ACTION_TYPES_SPA = [
-  'Nettoyage cartouche',
+  'Cartridge cleaning',
   'Purge',
-  'Changement d\'eau',
-  'Mesure',
-  'Calibrage pH',
-  'Ajout de produit',
+  'Water change',
+  'Measurement',
+  'pH calibration',
+  'Add product',
 ]
 
 /** DB-stored/matched raw action-type strings never change — only the rendered label does. */
 export const ACTION_TYPE_LABELS: Record<string, TranslationKey> = {
-  'Nettoyage cartouche': 'action_type_nettoyage_cartouche',
-  'Nettoyage filtre skimmer': 'action_type_nettoyage_filtre_skimmer',
-  'Contre-lavage': 'action_type_contre_lavage',
-  'Mesure': 'action_type_mesure',
-  'Calibrage pH': 'action_type_calibrage_ph',
-  'Ajout de produit': 'action_type_ajout_produit',
+  'Cartridge cleaning': 'action_type_nettoyage_cartouche',
+  'Skimmer filter cleaning': 'action_type_nettoyage_filtre_skimmer',
+  'Backwash': 'action_type_contre_lavage',
+  'Measurement': 'action_type_mesure',
+  'pH calibration': 'action_type_calibrage_ph',
+  'Add product': 'action_type_ajout_produit',
   'Purge': 'action_type_purge',
-  'Changement d\'eau': 'action_type_changement_eau',
+  'Water change': 'action_type_changement_eau',
 }
 
 const UNITS = ['g', 'ml', 'pastille', 'L']
 const PRODUCT_OPTIONS = [
-  'Chlore', 'Brome', 'pH -', 'pH +', 'Sel',
-  'Floculant', 'Anti-algue', 'Chlore-choc', 'Brome-choc',
+  'Chlorine', 'Bromine', 'pH -', 'pH +', 'Salt',
+  'Flocculant', 'Algaecide', 'Chlorine shock', 'Bromine shock',
 ]
 
 /** DB-stored/matched raw product names never change — only the rendered label does. */
 export const PRODUCT_LABELS: Record<string, TranslationKey> = {
-  'Chlore': 'modal_install_chlore',
-  'Brome': 'modal_install_brome',
+  'Chlorine': 'modal_install_chlore',
+  'Bromine': 'modal_install_brome',
   'pH -': 'product_ph_moins',
   'pH +': 'product_ph_plus',
-  'Sel': 'modal_install_sel',
-  'Floculant': 'product_floculant',
-  'Anti-algue': 'product_anti_algue',
-  'Chlore-choc': 'product_chlore_choc',
-  'Brome-choc': 'product_brome_choc',
+  'Salt': 'modal_install_sel',
+  'Flocculant': 'product_floculant',
+  'Algaecide': 'product_anti_algue',
+  'Chlorine shock': 'product_chlore_choc',
+  'Bromine shock': 'product_brome_choc',
 }
 
-const QUICK_TAGS_PISCINE = [
-  'Eau claire', 'Niveau OK', 'Skimmer propre', 'Panier vidé',
-  'Robot passé', 'Backwash fait', 'Aspirateur passé', 'Épuisette passée',
+const QUICK_TAGS_POOL = [
+  'Clear water', 'Level OK', 'Skimmer clean', 'Basket emptied',
+  'Robot run', 'Backwash done', 'Vacuumed', 'Skimmed',
 ]
 const QUICK_TAGS_SPA = [
-  'Eau claire', 'Niveau OK', 'Filtres propres', 'Panier vidé',
-  'Couvercle remis', 'Purge faite', 'Nettoyage coque', 'Épuisette passée',
+  'Clear water', 'Level OK', 'Filters clean', 'Basket emptied',
+  'Cover replaced', 'Purge done', 'Shell cleaning', 'Skimmed',
 ]
 
 /** DB-stored/matched raw quick-tag strings (stored in notes free-text) never change — only the rendered label does. */
 export const QUICK_TAG_LABELS: Record<string, TranslationKey> = {
-  'Eau claire': 'eau_claire',
-  'Niveau OK': 'tag_niveau_ok',
-  'Skimmer propre': 'tag_skimmer_propre',
-  'Panier vidé': 'tag_panier_vide',
-  'Robot passé': 'tag_robot_passe',
-  'Backwash fait': 'tag_backwash_fait',
-  'Aspirateur passé': 'tag_aspirateur_passe',
-  'Épuisette passée': 'tag_epuisette_passee',
-  'Filtres propres': 'tag_filtres_propres',
-  'Couvercle remis': 'tag_couvercle_remis',
-  'Purge faite': 'tag_purge_faite',
-  'Nettoyage coque': 'tag_nettoyage_coque',
+  'Clear water': 'eau_claire',
+  'Level OK': 'tag_niveau_ok',
+  'Skimmer clean': 'tag_skimmer_propre',
+  'Basket emptied': 'tag_panier_vide',
+  'Robot run': 'tag_robot_passe',
+  'Backwash done': 'tag_backwash_fait',
+  'Vacuumed': 'tag_aspirateur_passe',
+  'Skimmed': 'tag_epuisette_passee',
+  'Filters clean': 'tag_filtres_propres',
+  'Cover replaced': 'tag_couvercle_remis',
+  'Purge done': 'tag_purge_faite',
+  'Shell cleaning': 'tag_nettoyage_coque',
 }
 
 // ── ActionRow type ─────────────────────────────────────────────────────────
@@ -167,8 +167,8 @@ function rowFromAction(action: Action, products: Product[]): ActionRow {
     m_cc: '',
     m_temp: '',
   }
-  if (action.action_type === 'Mesure' || action.action_type === 'Mesure de pH') {
-    base.action_type = 'Mesure'
+  if (action.action_type === 'Measurement' || action.action_type === 'pH Measurement') {
+    base.action_type = 'Measurement'
     base.m_ph = action.qty
     const bromeM = action.notes.match(RX_BROME)
     if (bromeM) base.m_bromine = bromeM[1]
@@ -333,8 +333,8 @@ const BAND_HARDNESS_BASE: BandParamBase = {
   ],
 }
 
-function getBandParams(sanitizer: 'brome' | 'chlore' | 'sel', t: (key: TranslationKey) => string): BandParam[] {
-  const sanitizerBase = sanitizer === 'brome' ? BAND_BROMINE_BASE : BAND_CHLORINE_BASE
+function getBandParams(sanitizer: 'bromine' | 'chlorine' | 'salt', t: (key: TranslationKey) => string): BandParam[] {
+  const sanitizerBase = sanitizer === 'bromine' ? BAND_BROMINE_BASE : BAND_CHLORINE_BASE
   return [BAND_PH_BASE, BAND_TAC_BASE, sanitizerBase, BAND_HARDNESS_BASE].map(b => buildBandParam(b, t))
 }
 
@@ -368,7 +368,7 @@ function pillStyle(kind: ZoneKind): { color: string; bg: string } {
 type BandeletteProps = {
   row: ActionRow
   onChange: (key: string, updates: Partial<ActionRow>) => void
-  sanitizer: 'brome' | 'chlore' | 'sel'
+  sanitizer: 'bromine' | 'chlorine' | 'salt'
 }
 
 function BandeletteMode({ row, onChange, sanitizer }: BandeletteProps) {
@@ -528,7 +528,7 @@ function idealHint(t: (key: TranslationKey) => string, ideal: [number, number], 
  * hint text and the live border-color validation never contradict each other.
  */
 function getAppareilFields(
-  sanitizer: 'brome' | 'chlore' | 'sel',
+  sanitizer: 'bromine' | 'chlorine' | 'salt',
   t: (key: TranslationKey) => string,
   installation?: Installation | null,
   ranges?: DynamicRanges,
@@ -565,7 +565,7 @@ function getAppareilFields(
   const tempPlaceholder = tempUnit === 'F' ? String(Math.round(celsiusToFahrenheit(25))) : '25'
   const tempField: AppareilField = { key: 'm_temp', label: t('param_temperature'), placeholder: tempPlaceholder, step: '0.5', hint: idealHint(t, tempIdeal, `°${tempUnit}`), unit: `°${tempUnit}` }
 
-  if (sanitizer === 'brome') {
+  if (sanitizer === 'bromine') {
     return [
       phField,
       { key: 'm_bromine', label: t('param_brome'), placeholder: '3.0', step: '0.5', hint: idealHint(t, bromineIdeal.ideal, concUnit), unit: concUnit },
@@ -574,7 +574,7 @@ function getAppareilFields(
       tempField,
     ]
   }
-  if (sanitizer === 'sel') {
+  if (sanitizer === 'salt') {
     return [
       phField,
       { key: 'm_salt', label: t('param_sel'), placeholder: '3000', step: '50', hint: idealHint(t, saltIdeal, saltUnit), unit: saltUnit },
@@ -623,7 +623,7 @@ const STATUS_BORDER: Record<NonNullable<FieldStatus>, string> = {
 type AppareilProps = {
   row: ActionRow
   onChange: (key: string, updates: Partial<ActionRow>) => void
-  sanitizer: 'brome' | 'chlore' | 'sel'
+  sanitizer: 'bromine' | 'chlorine' | 'salt'
 }
 
 function AppareilMode({ row, onChange, sanitizer }: AppareilProps) {
@@ -680,7 +680,7 @@ function AppareilMode({ row, onChange, sanitizer }: AppareilProps) {
 type MeasureSectionProps = {
   row: ActionRow
   onChange: (key: string, updates: Partial<ActionRow>) => void
-  sanitizer: 'brome' | 'chlore' | 'sel'
+  sanitizer: 'bromine' | 'chlorine' | 'salt'
 }
 
 function MeasureSection({ row, onChange, sanitizer }: MeasureSectionProps) {
@@ -738,13 +738,13 @@ type RowItemProps = {
   canRemove: boolean
   products: Product[]
   actionTypes: string[]
-  sanitizer: 'brome' | 'chlore' | 'sel'
+  sanitizer: 'bromine' | 'chlorine' | 'salt'
 }
 
 function ActionRowItem({ row, onChange, onRemove, canRemove, actionTypes, sanitizer }: RowItemProps) {
   const { t } = useT()
-  const showProduct = row.action_type === 'Ajout de produit'
-  const showMeasure = row.action_type === 'Mesure'
+  const showProduct = row.action_type === 'Add product'
+  const showMeasure = row.action_type === 'Measurement'
 
   return (
     <div style={{ border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', background: 'var(--bg-surface-2)', display: 'grid', gap: 10 }}>
@@ -782,7 +782,7 @@ function ActionRowItem({ row, onChange, onRemove, canRemove, actionTypes, saniti
             value={row.product_name ?? 'none'}
             onValueChange={v => {
               const next = v === 'none' ? null : v
-              onChange(row.key, { product_name: next, unit: next === 'Brome' ? 'pastille' : row.unit === 'pastille' ? UNITS[0] : row.unit })
+              onChange(row.key, { product_name: next, unit: next === 'Bromine' ? 'pastille' : row.unit === 'pastille' ? UNITS[0] : row.unit })
             }}
           >
             <SelectTrigger><SelectValue placeholder={t('modal_produit_placeholder')} /></SelectTrigger>
@@ -817,10 +817,10 @@ type Props = {
 export default function ActionForm({ onAdd, products: _products, onClose, editAction, onEdit }: Props) {
   const { t } = useT()
   const { active } = useInstallation()
-  const sanitizer = active?.sanitizer ?? 'chlore'
-  const installationType = active?.type ?? 'piscine'
-  const actionTypes = installationType === 'spa' ? ACTION_TYPES_SPA : ACTION_TYPES_PISCINE
-  const quickTags = installationType === 'spa' ? QUICK_TAGS_SPA : QUICK_TAGS_PISCINE
+  const sanitizer = active?.sanitizer ?? 'chlorine'
+  const installationType = active?.type ?? 'pool'
+  const actionTypes = installationType === 'spa' ? ACTION_TYPES_SPA : ACTION_TYPES_POOL
+  const quickTags = installationType === 'spa' ? QUICK_TAGS_SPA : QUICK_TAGS_POOL
 
   const isEditMode = !!editAction
   const today = new Date().toISOString().slice(0, 10)
@@ -831,7 +831,7 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
   )
   const [notes, setNotes] = useState(() => {
     if (!editAction) return ''
-    if (editAction.action_type === 'Mesure' || editAction.action_type === 'Mesure de pH') {
+    if (editAction.action_type === 'Measurement' || editAction.action_type === 'pH Measurement') {
       return editAction.notes
         .replace(/brome\s*(?:total)?\s*:\s*[\d.]+\.?\s*/gi, '')
         .replace(/chlore?\s*(?:libre)?\s*:\s*[\d.]+\.?\s*/gi, '')
@@ -860,7 +860,7 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
   const removeRow = (key: string) => setRows(prev => prev.filter(r => r.key !== key))
 
   const updateNotesWithTags = (selected: string[]) => {
-    const allTags = [...QUICK_TAGS_PISCINE, ...QUICK_TAGS_SPA]
+    const allTags = [...QUICK_TAGS_POOL, ...QUICK_TAGS_SPA]
     let remaining = notes
     allTags.forEach(tag => {
       const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -878,7 +878,7 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
   }
 
   const toPayload = (row: ActionRow) => {
-    if (row.action_type === 'Mesure') {
+    if (row.action_type === 'Measurement') {
       const parts: string[] = []
       if (row.m_bromine)  parts.push(`brome: ${row.m_bromine}`)
       if (row.m_chlorine) parts.push(`chlore: ${row.m_chlorine}`)
@@ -889,10 +889,10 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
       if (row.m_cc)     parts.push(`combiné: ${row.m_cc}`)
       if (row.m_temp)   parts.push(`température: ${row.m_temp}`)
       const fullNotes = [parts.join('. '), notes].filter(Boolean).join('. ')
-      return { date, action_type: 'Mesure', product_id: null, installation_id: active?.id ?? null, qty: row.m_ph, unit: '', notes: fullNotes }
+      return { date, action_type: 'Measurement', product_id: null, installation_id: active?.id ?? null, qty: row.m_ph, unit: '', notes: fullNotes }
     }
     const productId =
-      row.action_type === 'Ajout de produit' && row.product_name
+      row.action_type === 'Add product' && row.product_name
         ? _products.find(p => p.name.toLowerCase() === row.product_name!.toLowerCase())?.id ?? null
         : null
     return { date, action_type: row.action_type, product_id: productId, installation_id: active?.id ?? null, qty: row.qty, unit: row.unit, notes }
@@ -901,7 +901,7 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     for (const row of rows) {
-      if (row.action_type === 'Mesure') {
+      if (row.action_type === 'Measurement') {
         if (
           !row.m_ph && !row.m_bromine && !row.m_chlorine && !row.m_tac && !row.m_hardness &&
           !row.m_salt && !row.m_stabilizer && !row.m_cc && !row.m_temp
