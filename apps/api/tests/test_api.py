@@ -1,9 +1,12 @@
 import copy
+from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
 
 from main import WATER_PARAMS, _apply_range_overrides
+
+TODAY = date.today().isoformat()
 
 
 @pytest.fixture
@@ -48,7 +51,7 @@ def test_get_actions_empty(client: TestClient):
 def test_create_action_structured(client: TestClient):
     login(client)
     payload = {
-        "date": "2026-02-24",
+        "date": TODAY,
         "action_type": "Ajout de chlore",
         "product_id": None,
         "qty": "60",
@@ -68,7 +71,7 @@ def test_create_action_structured(client: TestClient):
 
 def test_list_actions_returns_structured(client: TestClient):
     login(client)
-    client.post("/actions", json={"date": "2026-02-24", "action_type": "Test", "notes": "note"})
+    client.post("/actions", json={"date": TODAY, "action_type": "Test", "notes": "note"})
     r = client.get("/actions")
     actions = r.json()
     assert len(actions) == 1
@@ -78,7 +81,7 @@ def test_list_actions_returns_structured(client: TestClient):
 
 def test_delete_action(client: TestClient):
     login(client)
-    r = client.post("/actions", json={"date": "2026-02-24", "action_type": "A supprimer", "notes": ""})
+    r = client.post("/actions", json={"date": TODAY, "action_type": "A supprimer", "notes": ""})
     action_id = r.json()["id"]
     del_r = client.delete(f"/actions/{action_id}")
     assert del_r.status_code == 204

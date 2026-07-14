@@ -202,7 +202,7 @@ function readMode(): MesureMode {
 }
 
 function saveMode(m: MesureMode) {
-  try { localStorage.setItem('pooly_mesure_mode', m) } catch {}
+  try { localStorage.setItem('pooly_mesure_mode', m) } catch { /* ignore */ }
 }
 
 // ── Bandelette data ────────────────────────────────────────────────────────

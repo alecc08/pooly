@@ -14,6 +14,12 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 
+### ☕ Support
+
+If Pooly is useful to you, consider buying me a coffee:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T61NJXQS)
+
 </div>
 
 ---
@@ -163,14 +169,6 @@ git push origin feature/my-feature
 - 📖 Documentation improvements
 
 Check the [open issues](https://github.com/alecc08/pooly/issues) to find something to work on.
-
----
-
-### ☕ Support
-
-If Pooly is useful to you, consider buying me a coffee:
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T61NJXQS)
 
 ---
 
