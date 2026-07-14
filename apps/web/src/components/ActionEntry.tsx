@@ -23,9 +23,9 @@ function formatDetail(action: Action, products: Product[]): string {
 
 function getActionBadgeClass(actionType: string): string {
   const t = actionType.toLowerCase()
-  if (t.includes('nettoyage') || t.includes('filtre') || t.includes('cartouche')) return 'badge-ok'
-  if (t.includes('ph') || t.includes('mesure') || t.includes('calibrage')) return 'badge-warn'
-  if (t.includes('ajout')) return 'badge-ok'
+  if (t.includes('cleaning') || t.includes('filter') || t.includes('cartridge')) return 'badge-ok'
+  if (t.includes('ph') || t.includes('measurement') || t.includes('calibration')) return 'badge-warn'
+  if (t.includes('add')) return 'badge-ok'
   return 'badge-ok'
 }
 

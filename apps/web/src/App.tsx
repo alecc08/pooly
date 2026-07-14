@@ -204,7 +204,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
         }
       </main>
 
-      {/* Dialog — nouvelle saisie */}
+      {/* Dialog — new entry */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="sm:max-w-md" onOpenAutoFocus={e => e.preventDefault()}>
           <DialogHeader>
@@ -216,7 +216,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
         </DialogContent>
       </Dialog>
 
-      {/* Dialog — édition */}
+      {/* Dialog — edit */}
       <Dialog open={!!editingAction} onOpenChange={open => { if (!open) setEditingAction(null) }}>
         <DialogContent className="sm:max-w-md" onOpenAutoFocus={e => e.preventDefault()}>
           <DialogHeader>
@@ -235,7 +235,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
         </DialogContent>
       </Dialog>
 
-      {/* Dialog — confirmation suppression */}
+      {/* Dialog — delete confirmation */}
       <Dialog open={!!deletingAction} onOpenChange={open => { if (!open) setDeletingAction(null) }}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
@@ -269,7 +269,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
         </DialogContent>
       </Dialog>
 
-      {/* Dialog — profil */}
+      {/* Dialog — profile */}
       <Dialog open={showProfile} onOpenChange={setShowProfile}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

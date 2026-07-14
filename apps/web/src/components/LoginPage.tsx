@@ -379,7 +379,7 @@ export default function LoginPage({ onLogin }: Props) {
             </form>
           )}
 
-          {/* ── CRÉATION DE COMPTE ── */}
+          {/* ── ACCOUNT CREATION ── */}
           {view === 'register' && (
             <form onSubmit={handleRegister} style={{ display: 'grid', gap: 14 }}>
               <div>
@@ -425,7 +425,7 @@ export default function LoginPage({ onLogin }: Props) {
             </form>
           )}
 
-          {/* ── MOT DE PASSE OUBLIÉ ── */}
+          {/* ── FORGOT PASSWORD ── */}
           {view === 'forgot' && (
             fSuccess ? (
               <div style={{ display: 'grid', gap: 20 }}>
@@ -455,7 +455,7 @@ export default function LoginPage({ onLogin }: Props) {
             )
           )}
 
-          {/* ── RÉINITIALISATION ── */}
+          {/* ── PASSWORD RESET ── */}
           {view === 'reset' && (
             resetSuccess ? (
               <div style={{ display: 'grid', gap: 20 }}>

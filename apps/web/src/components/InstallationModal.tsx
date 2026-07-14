@@ -134,7 +134,7 @@ export default function InstallationModal({ open, onClose }: Props) {
             </div>
           </div>
 
-          {/* Désinfectant */}
+          {/* Sanitizer */}
           <div style={{ display: 'grid', gap: 8 }}>
             <Label>{t('modal_install_sanitizer')}</Label>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -156,7 +156,7 @@ export default function InstallationModal({ open, onClose }: Props) {
             </div>
           </div>
 
-          {/* Capacité */}
+          {/* Capacity */}
           <div style={{ display: 'grid', gap: 8 }}>
             <Label htmlFor="inst-volume">{t('modal_install_capacity')}</Label>
             <div style={{ display: 'flex', gap: 8 }}>
@@ -190,7 +190,7 @@ export default function InstallationModal({ open, onClose }: Props) {
             </div>
           </div>
 
-          {/* Unités de mesure */}
+          {/* Measurement units */}
           <div style={{ display: 'grid', gap: 8 }}>
             <Label>{t('modal_install_units')}</Label>
             <div style={{ display: 'grid', gap: 6 }}>

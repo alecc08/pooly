@@ -102,7 +102,7 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
       credentials: 'same-origin',
       body: JSON.stringify(data),
     })
-    if (!res.ok) throw new Error('Erreur lors de la création')
+    if (!res.ok) throw new Error('Error creating installation')
     const inst: Installation = await res.json()
     setInstallations(prev => [...prev, inst])
     setActiveId(inst.id)
@@ -116,7 +116,7 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
     })
     if (!res.ok) {
       const data = await res.json().catch(() => null)
-      throw new Error(data?.detail ?? 'Erreur lors de la suppression')
+      throw new Error(data?.detail ?? 'Error deleting installation')
     }
     setInstallations(prev => prev.filter(i => i.id !== id))
     if (activeId === id) {
