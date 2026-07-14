@@ -268,7 +268,7 @@ describe('getWaterStatus', () => {
   })
 })
 
-describe('installationParamsToRanges — unit-aware temp/sel/durete', () => {
+describe('installationParamsToRanges — unit-aware temp/salt/hardness', () => {
   const params: InstallationWaterParams = {
     ph: { ideal: [7.2, 7.6], acceptable: [6.8, 7.8] },
     tac: { ideal: [80, 180], acceptable: [60, 200] },
@@ -297,7 +297,7 @@ describe('installationParamsToRanges — unit-aware temp/sel/durete', () => {
     expect(withoutInstallation.salt).toEqual(params.salt)
   })
 
-  it('synthesizes a durete range client-side, converted per hardness_unit, even though the backend never returns durete', () => {
+  it('synthesizes a hardness range client-side, converted per hardness_unit, even though the backend never returns hardness', () => {
     const ppmRanges = installationParamsToRanges(params, makeInstallation())
     expect(ppmRanges.hardness).toEqual({ ideal: [100, 500], acceptable: [50, 1000] })
 
@@ -309,13 +309,13 @@ describe('installationParamsToRanges — unit-aware temp/sel/durete', () => {
     expect(fRanges.hardness!.ideal).toEqual([10, 50])
   })
 
-  it('prefers a backend-provided durete range over PARAM_RANGES when present, with unit conversion still applied on top', () => {
-    const withDurete: InstallationWaterParams = { ...params, durete: { ideal: [10, 20], acceptable: [5, 30] } }
+  it('prefers a backend-provided hardness range over PARAM_RANGES when present, with unit conversion still applied on top', () => {
+    const withHardness: InstallationWaterParams = { ...params, hardness: { ideal: [10, 20], acceptable: [5, 30] } }
 
-    const ppmRanges = installationParamsToRanges(withDurete, makeInstallation())
+    const ppmRanges = installationParamsToRanges(withHardness, makeInstallation())
     expect(ppmRanges.hardness).toEqual({ ideal: [10, 20], acceptable: [5, 30] })
 
-    const dhRanges = installationParamsToRanges(withDurete, makeInstallation({ hardness_unit: '°dH' }))
+    const dhRanges = installationParamsToRanges(withHardness, makeInstallation({ hardness_unit: '°dH' }))
     expect(dhRanges.hardness!.ideal[0]).toBeCloseTo(ppmToGermanDegrees(10), 5)
     expect(dhRanges.hardness!.ideal[1]).toBeCloseTo(ppmToGermanDegrees(20), 5)
   })

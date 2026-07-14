@@ -137,7 +137,7 @@ def test_get_installation_params_pool_salt(client: TestClient):
     assert params["salt"]["ideal"] == [2700, 3400]
     assert params["cya"]["ideal"] == [60, 80]
     assert params["cl"]["ideal"] == [1.0, 3.0]
-    assert params["durete"]["ideal"] == [100, 500]
+    assert params["hardness"]["ideal"] == [100, 500]
     assert "cc" in params
 
 
@@ -155,7 +155,7 @@ def test_get_installation_params_spa_salt(client: TestClient):
     assert params["salt"]["ideal"] == [2500, 3200]
     assert params["cya"]["ideal"] == [30, 50]
     assert params["cl"]["ideal"] == [3.0, 5.0]
-    assert params["durete"]["ideal"] == [100, 500]
+    assert params["hardness"]["ideal"] == [100, 500]
 
 
 def test_get_installation_params_chlorine_includes_cc(client: TestClient):

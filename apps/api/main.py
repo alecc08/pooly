@@ -31,7 +31,7 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
         "br":     {"ideal": (2.0, 5.0), "acceptable": (1.0, 10.0)},
         "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
         "temp":   {"ideal": (24, 28),   "acceptable": (15, 35)},
-        "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
+        "hardness": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
     ("pool", "chlorine"): {
         "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
@@ -39,14 +39,14 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
         "cc":     {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
         "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
         "temp":   {"ideal": (24, 28),   "acceptable": (15, 35)},
-        "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
+        "hardness": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
     ("spa", "bromine"): {
         "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
         "br":     {"ideal": (3.0, 6.0), "acceptable": (2.0, 10.0)},
         "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
         "temp":   {"ideal": (36, 40),   "acceptable": (30, 42)},
-        "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
+        "hardness": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
     ("spa", "chlorine"): {
         "ph":     {"ideal": (7.2, 7.6), "acceptable": (6.8, 7.8)},
@@ -54,7 +54,7 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
         "cc":     {"ideal": (0, 0.2),   "acceptable": (0, 0.5)},
         "tac":    {"ideal": (80, 180),  "acceptable": (60, 200)},
         "temp":   {"ideal": (36, 40),   "acceptable": (30, 42)},
-        "durete": {"ideal": (100, 500), "acceptable": (50, 1000)},
+        "hardness": {"ideal": (100, 500), "acceptable": (50, 1000)},
     },
     ("pool", "salt"): {
         "ph":     {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
@@ -64,7 +64,7 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
         "cc":     {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
         "tac":    {"ideal": (80, 180),    "acceptable": (60, 200)},
         "temp":   {"ideal": (24, 28),     "acceptable": (15, 35)},
-        "durete": {"ideal": (100, 500),   "acceptable": (50, 1000)},
+        "hardness": {"ideal": (100, 500),   "acceptable": (50, 1000)},
     },
     # Salt spas are far less standardized than salt pools; this band is an
     # approximation pending better field data.
@@ -76,7 +76,7 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
         "cc":     {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
         "tac":    {"ideal": (80, 180),    "acceptable": (60, 200)},
         "temp":   {"ideal": (36, 40),     "acceptable": (30, 42)},
-        "durete": {"ideal": (100, 500),   "acceptable": (50, 1000)},
+        "hardness": {"ideal": (100, 500),   "acceptable": (50, 1000)},
     },
 }
 

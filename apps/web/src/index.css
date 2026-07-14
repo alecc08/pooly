@@ -447,7 +447,7 @@ input[type="checkbox"]:checked::after {
   gap: 14px;
 }
 
-/* ── Mesures table ───────────────────────────────────────── */
+/* ── Measurements table ──────────────────────────────────── */
 .measurements-table {
   width: 100%;
   table-layout: fixed;
@@ -470,7 +470,7 @@ input[type="checkbox"]:checked::after {
 [data-theme="dark"] .bar-warn   { background: rgba(245, 158, 11, 0.3); }
 [data-theme="dark"] .bar-danger { background: rgba(239, 68, 68, 0.3); }
 
-/* ── Mesures charts 2-column layout ─────────────────────── */
+/* ── Measurements charts 2-column layout ─────────────────── */
 .measurements-charts {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -775,7 +775,7 @@ input[type="checkbox"]:checked::after {
     border-bottom: none;
   }
 
-  /* Sel installations have 5 param blocks (odd) once Chlore is added — the lone
+  /* Salt installations have 5 param blocks (odd) once Chlorine is added — the lone
      trailing block would otherwise sit half-width with a stray left border. */
   .params-banner > *:nth-last-child(1):nth-child(5) {
     flex-basis: 100% !important;
