@@ -1,3 +1,5 @@
+import type { TempUnit, SaltUnit, ConcUnit, DureteUnit } from './units'
+
 export type Product = {
   id: number
   name: string
@@ -33,6 +35,10 @@ export type Installation = {
   sanitizer: 'brome' | 'chlore' | 'sel'
   volume?: number | null
   volume_unit?: 'L' | 'gal'
+  temp_unit?: TempUnit
+  salt_unit?: SaltUnit
+  conc_unit?: ConcUnit
+  durete_unit?: DureteUnit
   created_at: string
 }
 

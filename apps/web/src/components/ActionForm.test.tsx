@@ -3,6 +3,8 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import ActionForm from './ActionForm'
 import type { Action, Installation } from '../types'
 import { translations } from '../i18n/translations'
+import { PARAM_RANGES, type DynamicRanges } from '../utils'
+import { convertRange, celsiusToFahrenheit } from '../units'
 
 const products = [{ id: 1, name: 'Chlore', type: 'seed', unit_default: 'g' }]
 
@@ -35,10 +37,10 @@ function makeInstallation(overrides: Partial<Installation> = {}): Installation {
   }
 }
 
-function setActiveInstallation(installation: Installation) {
+function setActiveInstallation(installation: Installation, ranges: DynamicRanges | null = null) {
   mockUseInstallation.mockReturnValue({
     active: installation,
-    ranges: null,
+    ranges,
     installations: [installation],
     setActive: vi.fn(),
     refresh: vi.fn(),
@@ -151,5 +153,66 @@ describe('ActionForm', () => {
     expect(screen.queryByText('Sel')).not.toBeInTheDocument()
     expect(screen.queryByText('Stabilisant (CYA)')).not.toBeInTheDocument()
     expect(screen.queryByText('Chlore combiné (CC)')).not.toBeInTheDocument()
+  })
+
+  describe('température (unit-aware temperature field)', () => {
+    it.each(['brome', 'chlore', 'sel'] as const)('appareil mode renders a Température field for %s installations', (sanitizer) => {
+      setActiveInstallation(makeInstallation({ sanitizer }))
+      const editAction = makeMesureAction()
+      render(<ActionForm products={products} editAction={editAction} onEdit={vi.fn()} />)
+
+      expect(screen.getByText('Température')).toBeInTheDocument()
+    })
+
+    it('shows a Fahrenheit-range hint and correct in-range status for an installation with temp_unit F', () => {
+      const ranges: DynamicRanges = { temp: convertRange(PARAM_RANGES.temp, celsiusToFahrenheit) }
+      setActiveInstallation(makeInstallation({ sanitizer: 'chlore', temp_unit: 'F' }), ranges)
+      const editAction = makeMesureAction()
+      render(<ActionForm products={products} editAction={editAction} onEdit={vi.fn()} />)
+
+      expect(screen.getByText(/Idéal.*°F/)).toBeInTheDocument()
+
+      const input = screen.getByPlaceholderText('25')
+      fireEvent.change(input, { target: { value: '77' } })
+      fireEvent.blur(input)
+
+      // 77°F is within the converted ideal range: must NOT be flagged as out-of-range,
+      // proving the field compares against Fahrenheit-converted ranges, not raw Celsius ones.
+      expect(screen.queryByText('Valeur hors norme')).not.toBeInTheDocument()
+      expect(input.getAttribute('style')).not.toContain('var(--status-danger-text)')
+    })
+
+    it('submitting with the temperature field filled includes it in the payload notes', () => {
+      setActiveInstallation(makeInstallation({ sanitizer: 'chlore' }))
+      const editAction = makeMesureAction()
+      const onEdit = vi.fn()
+      render(<ActionForm products={products} editAction={editAction} onEdit={onEdit} />)
+
+      fireEvent.change(screen.getByPlaceholderText('25'), { target: { value: '26' } })
+      fireEvent.click(screen.getByText('Enregistrer les modifications'))
+
+      expect(onEdit).toHaveBeenCalledTimes(1)
+      const [, payload] = onEdit.mock.calls[0]
+      expect(payload.notes).toContain('température: 26')
+    })
+
+    it('edit mode does not leak an existing température note into the visible Notes textarea', () => {
+      setActiveInstallation(makeInstallation({ sanitizer: 'chlore' }))
+      const editAction = makeMesureAction({ notes: 'température: 26. Eau claire' })
+      render(<ActionForm products={products} editAction={editAction} onEdit={vi.fn()} />)
+
+      const notes = screen.getByLabelText('Notes') as HTMLTextAreaElement
+      expect(notes.value).not.toContain('température')
+      expect(notes.value).toContain('Eau claire')
+    })
+
+    it('bandelette mode renders no temperature swatch panel, for any sanitizer', () => {
+      localStorage.setItem('pooly_mesure_mode', 'bandelette')
+      setActiveInstallation(makeInstallation({ sanitizer: 'sel' }))
+      const editAction = makeMesureAction()
+      render(<ActionForm products={products} editAction={editAction} onEdit={vi.fn()} />)
+
+      expect(screen.queryByText('Température')).not.toBeInTheDocument()
+    })
   })
 })

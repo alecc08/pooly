@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import type { Installation, InstallationWaterParams } from '../types'
 import { installationParamsToRanges, type DynamicRanges } from '../utils'
+import type { TempUnit, SaltUnit, ConcUnit, DureteUnit } from '../units'
 
 type InstallationCtx = {
   installations: Installation[]
@@ -8,7 +9,17 @@ type InstallationCtx = {
   ranges: DynamicRanges | null
   setActive: (id: number) => void
   refresh: () => Promise<void>
-  addInstallation: (data: { name: string; type: 'piscine' | 'spa'; sanitizer: 'brome' | 'chlore' | 'sel'; volume?: number; volume_unit?: 'L' | 'gal' }) => Promise<Installation>
+  addInstallation: (data: {
+    name: string
+    type: 'piscine' | 'spa'
+    sanitizer: 'brome' | 'chlore' | 'sel'
+    volume?: number
+    volume_unit?: 'L' | 'gal'
+    temp_unit?: TempUnit
+    salt_unit?: SaltUnit
+    conc_unit?: ConcUnit
+    durete_unit?: DureteUnit
+  }) => Promise<Installation>
 }
 
 const InstallationContext = createContext<InstallationCtx | null>(null)
@@ -29,12 +40,12 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
 
   const active = installations.find(i => i.id === activeId) ?? installations[0] ?? null
 
-  const fetchParams = useCallback(async (id: number) => {
+  const fetchParams = useCallback(async (id: number, installation: Installation) => {
     try {
       const res = await fetch(`/api/installations/${id}/params`, { credentials: 'same-origin' })
       if (!res.ok) return
       const data: InstallationWaterParams = await res.json()
-      setRanges(installationParamsToRanges(data))
+      setRanges(installationParamsToRanges(data, installation))
     } catch { /* silently ignore */ }
   }, [])
 
@@ -60,9 +71,9 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (active) {
       localStorage.setItem('pooly_active_installation', String(active.id))
-      fetchParams(active.id)
+      fetchParams(active.id, active)
     }
-  }, [active?.id, fetchParams])
+  }, [active, fetchParams])
 
   const setActive = useCallback((id: number) => {
     setActiveId(id)
@@ -73,7 +84,17 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
     await fetchInstallations()
   }, [fetchInstallations])
 
-  const addInstallation = useCallback(async (data: { name: string; type: 'piscine' | 'spa'; sanitizer: 'brome' | 'chlore' | 'sel'; volume?: number; volume_unit?: 'L' | 'gal' }): Promise<Installation> => {
+  const addInstallation = useCallback(async (data: {
+    name: string
+    type: 'piscine' | 'spa'
+    sanitizer: 'brome' | 'chlore' | 'sel'
+    volume?: number
+    volume_unit?: 'L' | 'gal'
+    temp_unit?: TempUnit
+    salt_unit?: SaltUnit
+    conc_unit?: ConcUnit
+    durete_unit?: DureteUnit
+  }): Promise<Installation> => {
     const res = await fetch('/api/installations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

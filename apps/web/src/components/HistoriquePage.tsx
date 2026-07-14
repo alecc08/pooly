@@ -10,6 +10,7 @@ import {
   extractMeasuredParams,
 } from '../utils'
 import { useT } from '../context/LocaleContext'
+import { useInstallation } from '../context/InstallationContext'
 import type { Locale } from '../i18n/translations'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -76,6 +77,7 @@ function Pill({ label, color, bg }: { label: string; color: string; bg: string }
 }
 
 function ParamPills({ action }: { action: Action }) {
+  const { active } = useInstallation()
   const p = extractMeasuredParams([action])
   const pills: { label: string; status: 'normal' | 'warn' | 'bad' }[] = []
 
@@ -83,13 +85,13 @@ function ParamPills({ action }: { action: Action }) {
     pills.push({ label: `pH ${p.ph.toFixed(1)}`, status: getPhStatus(p.ph) })
   }
   if (p.chlore !== null) {
-    pills.push({ label: `Cl ${p.chlore.toFixed(1)} mg/L`, status: getChloreStatus(p.chlore) })
+    pills.push({ label: `Cl ${p.chlore.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`, status: getChloreStatus(p.chlore) })
   }
   if (p.tac !== null) {
-    pills.push({ label: `TAC ${Math.round(p.tac)} mg/L`, status: getTacStatus(p.tac) })
+    pills.push({ label: `TAC ${Math.round(p.tac)} ${active?.conc_unit ?? 'mg/L'}`, status: getTacStatus(p.tac) })
   }
   if (p.temp !== null) {
-    pills.push({ label: `${p.temp.toFixed(1)} °C`, status: getTempStatus(p.temp) })
+    pills.push({ label: `${p.temp.toFixed(1)} °${active?.temp_unit ?? 'C'}`, status: getTempStatus(p.temp) })
   }
 
   if (pills.length === 0) return null

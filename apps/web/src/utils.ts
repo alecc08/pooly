@@ -1,4 +1,5 @@
-import type { Action, InstallationWaterParams } from './types'
+import type { Action, Installation, InstallationWaterParams } from './types'
+import { celsiusToFahrenheit, ppmToGramsPerLiter, ppmToGermanDegrees, ppmToFrenchDegrees, convertRange } from './units'
 
 // ── Water status ──────────────────────────────────────────────────────────────
 
@@ -25,19 +26,36 @@ export type DynamicRanges = {
   sel?: { ideal: [number, number]; acceptable: [number, number] }
   stabilisant?: { ideal: [number, number]; acceptable: [number, number] }
   cc?: { ideal: [number, number]; acceptable: [number, number] }
+  durete?: { ideal: [number, number]; acceptable: [number, number] }
 }
 
-/** Convert API InstallationWaterParams to DynamicRanges (cl→chlore, br→brome, salt→sel, cya→stabilisant). */
-export function installationParamsToRanges(params: InstallationWaterParams): DynamicRanges {
+/**
+ * Convert API InstallationWaterParams to DynamicRanges (cl→chlore, br→brome, salt→sel, cya→stabilisant).
+ * When an installation is provided, temp/sel/durete ranges are converted to the installation's
+ * chosen unit ("store as entered" model — chlore/brome/tac/cc are display-label-only, no math).
+ * durete is synthesized client-side from PARAM_RANGES since the backend never returns it.
+ */
+export function installationParamsToRanges(params: InstallationWaterParams, installation?: Installation): DynamicRanges {
+  const temp = installation?.temp_unit === 'F' ? convertRange(params.temp, celsiusToFahrenheit) : params.temp
+  const sel = installation?.salt_unit === 'g/L' && params.salt ? convertRange(params.salt, ppmToGramsPerLiter) : params.salt
+
+  const dureteUnit = installation?.durete_unit ?? 'ppm'
+  const durete = dureteUnit === '°dH'
+    ? convertRange(PARAM_RANGES.durete, ppmToGermanDegrees)
+    : dureteUnit === '°f'
+      ? convertRange(PARAM_RANGES.durete, ppmToFrenchDegrees)
+      : PARAM_RANGES.durete
+
   return {
     ph: params.ph,
     tac: params.tac,
-    temp: params.temp,
+    temp,
     chlore: params.cl,
     brome: params.br,
-    sel: params.salt,
+    sel,
     stabilisant: params.cya,
     cc: params.cc,
+    durete,
   }
 }
 
@@ -327,9 +345,10 @@ export function getBromeStatus(v: number, ranges?: DynamicRanges): ParamStatus {
 }
 
 /** Dureté totale: normal=100–500 ppm, warn=50–1000 ppm, bad=outside */
-export function getDureteStatus(v: number): ParamStatus {
-  if (inRange(v, PARAM_RANGES.durete.ideal)) return 'normal'
-  if (inRange(v, PARAM_RANGES.durete.acceptable)) return 'warn'
+export function getDureteStatus(v: number, ranges?: DynamicRanges): ParamStatus {
+  const r = ranges?.durete ?? PARAM_RANGES.durete
+  if (inRange(v, r.ideal)) return 'normal'
+  if (inRange(v, r.acceptable)) return 'warn'
   return 'bad'
 }
 

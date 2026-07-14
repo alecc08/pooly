@@ -204,3 +204,50 @@ def test_patch_installation_volume(client: TestClient):
     data = patch_r.json()
     assert data["volume"] == 60000
     assert data["volume_unit"] == "gal"
+
+
+def test_create_installation_with_units(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={
+            "name": "Ma piscine",
+            "temp_unit": "F",
+            "salt_unit": "g/L",
+            "conc_unit": "ppm",
+            "durete_unit": "°dH",
+        },
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["temp_unit"] == "F"
+    assert data["salt_unit"] == "g/L"
+    assert data["conc_unit"] == "ppm"
+    assert data["durete_unit"] == "°dH"
+
+
+def test_create_installation_without_units_defaults(client: TestClient):
+    login(client)
+    r = client.post("/installations", json={"name": "Ma piscine"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["temp_unit"] == "C"
+    assert data["salt_unit"] == "ppm"
+    assert data["conc_unit"] == "mg/L"
+    assert data["durete_unit"] == "ppm"
+
+
+def test_patch_installation_units(client: TestClient):
+    login(client)
+    r = client.post("/installations", json={"name": "Ma piscine"})
+    installation_id = r.json()["id"]
+    patch_r = client.patch(
+        f"/installations/{installation_id}",
+        json={"temp_unit": "F", "salt_unit": "g/L", "conc_unit": "ppm", "durete_unit": "°f"},
+    )
+    assert patch_r.status_code == 200
+    data = patch_r.json()
+    assert data["temp_unit"] == "F"
+    assert data["salt_unit"] == "g/L"
+    assert data["conc_unit"] == "ppm"
+    assert data["durete_unit"] == "°f"

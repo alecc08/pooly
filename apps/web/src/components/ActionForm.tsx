@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Action, Product } from '../types'
+import type { Action, Installation, Product } from '../types'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,7 +19,11 @@ import {
   getSelStatus,
   getStabilisantStatus,
   getCcStatus,
+  getTempStatus,
+  PARAM_RANGES,
+  type DynamicRanges,
 } from '../utils'
+import { celsiusToFahrenheit, ppmToGramsPerLiter, ppmToGermanDegrees, ppmToFrenchDegrees, convertRange, formatUnitRange } from '../units'
 import { useInstallation } from '../context/InstallationContext'
 import { useT } from '../context/LocaleContext'
 
@@ -70,6 +74,7 @@ type ActionRow = {
   m_sel: string
   m_stabilisant: string
   m_cc: string
+  m_temp: string
 }
 
 function makeRow(actionTypes: string[]): ActionRow {
@@ -87,6 +92,7 @@ function makeRow(actionTypes: string[]): ActionRow {
     m_sel: '',
     m_stabilisant: '',
     m_cc: '',
+    m_temp: '',
   }
 }
 
@@ -106,6 +112,7 @@ function rowFromAction(action: Action, products: Product[]): ActionRow {
     m_sel: '',
     m_stabilisant: '',
     m_cc: '',
+    m_temp: '',
   }
   if (action.action_type === 'Mesure' || action.action_type === 'Mesure de pH') {
     base.action_type = 'Mesure'
@@ -124,6 +131,8 @@ function rowFromAction(action: Action, products: Product[]): ActionRow {
     if (stabilisantM) base.m_stabilisant = stabilisantM[1]
     const ccM = action.notes.match(/combin[ée]?\s*:?\s*([\d.]+)/i)
     if (ccM) base.m_cc = ccM[1]
+    const tempM = action.notes.match(/temp[eé]rature?\s*:?\s*([\d.]+)|T°?\s*:?\s*([\d.]+)/i)
+    if (tempM) base.m_temp = tempM[1] ?? tempM[2]
   }
   return base
 }
@@ -420,7 +429,7 @@ function BandeletteMode({ row, onChange, sanitizer }: BandeletteProps) {
 // ── Appareil numérique mode ────────────────────────────────────────────────
 
 type AppareilField = {
-  key: keyof Pick<ActionRow, 'm_ph' | 'm_brome' | 'm_chlore' | 'm_tac' | 'm_durete' | 'm_sel' | 'm_stabilisant' | 'm_cc'>
+  key: keyof Pick<ActionRow, 'm_ph' | 'm_brome' | 'm_chlore' | 'm_tac' | 'm_durete' | 'm_sel' | 'm_stabilisant' | 'm_cc' | 'm_temp'>
   label: string
   placeholder: string
   step: string
@@ -428,33 +437,67 @@ type AppareilField = {
   unit?: string
 }
 
-const APPAREIL_FIELDS_BROME: AppareilField[] = [
-  { key: 'm_ph',     label: 'pH',           placeholder: '7.2', step: '0.1', hint: 'Idéal : 7.2 – 7.6' },
-  { key: 'm_brome',  label: 'Brome total',  placeholder: '3.0', step: '0.5', hint: 'Idéal : 2 – 5 mg/L',    unit: 'mg/L' },
-  { key: 'm_tac',    label: 'TAC',          placeholder: '120', step: '5',   hint: 'Idéal : 80 – 180 mg/L', unit: 'mg/L' },
-  { key: 'm_durete', label: 'Dureté totale',placeholder: '250', step: '10',  hint: 'Idéal : 100 – 500 ppm', unit: 'ppm' },
-]
+/**
+ * Field defs are computed per-installation: unit/hint reflect the installation's chosen
+ * units (conc_unit/temp_unit/salt_unit/durete_unit). key/label/placeholder/step stay static.
+ */
+function getAppareilFields(sanitizer: 'brome' | 'chlore' | 'sel', installation?: Installation | null): AppareilField[] {
+  const tempUnit = installation?.temp_unit ?? 'C'
+  const concUnit = installation?.conc_unit ?? 'mg/L'
+  const saltUnit = installation?.salt_unit ?? 'ppm'
+  const dureteUnit = installation?.durete_unit ?? 'ppm'
 
-const APPAREIL_FIELDS_CHLORE: AppareilField[] = [
-  { key: 'm_ph',     label: 'pH',           placeholder: '7.2', step: '0.1', hint: 'Idéal : 7.2 – 7.6' },
-  { key: 'm_chlore', label: 'Chlore libre', placeholder: '1.5', step: '0.5', hint: 'Idéal : 1 – 3 mg/L',    unit: 'mg/L' },
-  { key: 'm_tac',    label: 'TAC',          placeholder: '120', step: '5',   hint: 'Idéal : 80 – 180 mg/L', unit: 'mg/L' },
-  { key: 'm_durete', label: 'Dureté totale',placeholder: '250', step: '10',  hint: 'Idéal : 100 – 500 ppm', unit: 'ppm' },
-  { key: 'm_cc',     label: 'Chlore combiné (CC)', placeholder: '0.1', step: '0.1', hint: 'Idéal : 0 – 0.2 mg/L', unit: 'mg/L' },
-]
+  const tempIdeal: [number, number] = tempUnit === 'F'
+    ? convertRange(PARAM_RANGES.temp, celsiusToFahrenheit).ideal
+    : PARAM_RANGES.temp.ideal
+  const saltIdeal: [number, number] = saltUnit === 'g/L'
+    ? convertRange(PARAM_RANGES.sel, ppmToGramsPerLiter).ideal
+    : PARAM_RANGES.sel.ideal
+  const dureteIdeal: [number, number] = dureteUnit === '°dH'
+    ? convertRange(PARAM_RANGES.durete, ppmToGermanDegrees).ideal
+    : dureteUnit === '°f'
+      ? convertRange(PARAM_RANGES.durete, ppmToFrenchDegrees).ideal
+      : PARAM_RANGES.durete.ideal
 
-const APPAREIL_FIELDS_SEL: AppareilField[] = [
-  { key: 'm_ph',          label: 'pH',                  placeholder: '7.2',  step: '0.1', hint: 'Idéal : 7.2 – 7.6' },
-  { key: 'm_sel',         label: 'Sel',                 placeholder: '3000', step: '50',  hint: 'Idéal : 2700 – 3400 ppm', unit: 'ppm' },
-  { key: 'm_tac',         label: 'TAC',                 placeholder: '120',  step: '5',   hint: 'Idéal : 80 – 180 mg/L',   unit: 'mg/L' },
-  { key: 'm_durete',      label: 'Dureté totale',       placeholder: '250',  step: '10',  hint: 'Idéal : 100 – 500 ppm',   unit: 'ppm' },
-  { key: 'm_stabilisant', label: 'Stabilisant (CYA)',   placeholder: '70',   step: '5',   hint: 'Idéal : 60 – 80 ppm',     unit: 'ppm' },
-  { key: 'm_cc',          label: 'Chlore combiné (CC)', placeholder: '0.1',  step: '0.1', hint: 'Idéal : 0 – 0.2 mg/L',    unit: 'mg/L' },
-]
+  const phField: AppareilField = { key: 'm_ph', label: 'pH', placeholder: '7.2', step: '0.1', hint: 'Idéal : 7.2 – 7.6' }
+  const tacField: AppareilField = { key: 'm_tac', label: 'TAC', placeholder: '120', step: '5', hint: `Idéal : ${formatUnitRange(PARAM_RANGES.tac.ideal)} ${concUnit}`, unit: concUnit }
+  const dureteField: AppareilField = { key: 'm_durete', label: 'Dureté totale', placeholder: '250', step: '10', hint: `Idéal : ${formatUnitRange(dureteIdeal)} ${dureteUnit}`, unit: dureteUnit }
+  const ccField: AppareilField = { key: 'm_cc', label: 'Chlore combiné (CC)', placeholder: '0.1', step: '0.1', hint: `Idéal : ${formatUnitRange(PARAM_RANGES.cc.ideal)} ${concUnit}`, unit: concUnit }
+  const tempField: AppareilField = { key: 'm_temp', label: 'Température', placeholder: '25', step: '0.5', hint: `Idéal : ${formatUnitRange(tempIdeal)} °${tempUnit}`, unit: `°${tempUnit}` }
+
+  if (sanitizer === 'brome') {
+    return [
+      phField,
+      { key: 'm_brome', label: 'Brome total', placeholder: '3.0', step: '0.5', hint: `Idéal : ${formatUnitRange(PARAM_RANGES.brome.ideal)} ${concUnit}`, unit: concUnit },
+      tacField,
+      dureteField,
+      tempField,
+    ]
+  }
+  if (sanitizer === 'sel') {
+    return [
+      phField,
+      { key: 'm_sel', label: 'Sel', placeholder: '3000', step: '50', hint: `Idéal : ${formatUnitRange(saltIdeal)} ${saltUnit}`, unit: saltUnit },
+      tacField,
+      dureteField,
+      { key: 'm_stabilisant', label: 'Stabilisant (CYA)', placeholder: '70', step: '5', hint: 'Idéal : 60 – 80 ppm', unit: 'ppm' },
+      ccField,
+      tempField,
+    ]
+  }
+  return [
+    phField,
+    { key: 'm_chlore', label: 'Chlore libre', placeholder: '1.5', step: '0.5', hint: `Idéal : ${formatUnitRange(PARAM_RANGES.chlore.ideal)} ${concUnit}`, unit: concUnit },
+    tacField,
+    dureteField,
+    ccField,
+    tempField,
+  ]
+}
 
 type FieldStatus = 'normal' | 'warn' | 'bad' | null
 
-function getAppareilStatus(key: AppareilField['key'], value: string): FieldStatus {
+function getAppareilStatus(key: AppareilField['key'], value: string, ranges?: DynamicRanges): FieldStatus {
   if (!value.trim()) return null
   const n = parseFloat(value)
   if (isNaN(n)) return null
@@ -467,8 +510,9 @@ function getAppareilStatus(key: AppareilField['key'], value: string): FieldStatu
     m_sel: getSelStatus,
     m_stabilisant: getStabilisantStatus,
     m_cc: getCcStatus,
+    m_temp: getTempStatus,
   }[key]
-  return fn(n)
+  return fn(n, ranges)
 }
 
 const STATUS_BORDER: Record<NonNullable<FieldStatus>, string> = {
@@ -483,7 +527,8 @@ type AppareilProps = {
 
 function AppareilMode({ row, onChange, sanitizer }: AppareilProps) {
   const { t } = useT()
-  const APPAREIL_FIELDS = sanitizer === 'brome' ? APPAREIL_FIELDS_BROME : sanitizer === 'sel' ? APPAREIL_FIELDS_SEL : APPAREIL_FIELDS_CHLORE
+  const { active, ranges } = useInstallation()
+  const APPAREIL_FIELDS = getAppareilFields(sanitizer, active)
   const [touched, setTouched] = useState<Partial<Record<AppareilField['key'], boolean>>>({})
   const touch = (k: AppareilField['key']) => setTouched(prev => ({ ...prev, [k]: true }))
 
@@ -491,7 +536,7 @@ function AppareilMode({ row, onChange, sanitizer }: AppareilProps) {
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
       {APPAREIL_FIELDS.map(f => {
         const val = row[f.key]
-        const status = touched[f.key] ? getAppareilStatus(f.key, val) : null
+        const status = touched[f.key] ? getAppareilStatus(f.key, val, ranges ?? undefined) : null
         const border = status ? STATUS_BORDER[status] : 'var(--border)'
         return (
           <div key={f.key}>
@@ -609,7 +654,7 @@ function ActionRowItem({ row, onChange, onRemove, canRemove, actionTypes, saniti
             action_type: v,
             product_name: null, qty: '', unit: UNITS[0],
             m_ph: '', m_brome: '', m_chlore: '', m_tac: '', m_durete: '',
-            m_sel: '', m_stabilisant: '', m_cc: '',
+            m_sel: '', m_stabilisant: '', m_cc: '', m_temp: '',
           })}
         >
           <SelectTrigger style={{ flex: 1 }}><SelectValue /></SelectTrigger>
@@ -693,6 +738,7 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
         .replace(/sel\s*:\s*[\d.]+\.?\s*/gi, '')
         .replace(/stabilisant\s*:\s*[\d.]+\.?\s*/gi, '')
         .replace(/combin[ée]?\s*:\s*[\d.]+\.?\s*/gi, '')
+        .replace(/temp[eé]rature?\s*:\s*[\d.]+\.?\s*/gi, '')
         .replace(/^[\s.]+/, '')
         .trim()
     }
@@ -739,6 +785,7 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
       if (row.m_sel)    parts.push(`sel: ${row.m_sel}`)
       if (row.m_stabilisant) parts.push(`stabilisant: ${row.m_stabilisant}`)
       if (row.m_cc)     parts.push(`combiné: ${row.m_cc}`)
+      if (row.m_temp)   parts.push(`température: ${row.m_temp}`)
       const fullNotes = [parts.join('. '), notes].filter(Boolean).join('. ')
       return { date, action_type: 'Mesure', product_id: null, installation_id: active?.id ?? null, qty: row.m_ph, unit: '', notes: fullNotes }
     }
@@ -755,7 +802,7 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
       if (row.action_type === 'Mesure') {
         if (
           !row.m_ph && !row.m_brome && !row.m_chlore && !row.m_tac && !row.m_durete &&
-          !row.m_sel && !row.m_stabilisant && !row.m_cc
+          !row.m_sel && !row.m_stabilisant && !row.m_cc && !row.m_temp
         ) {
           setMeasureError(true)
           return

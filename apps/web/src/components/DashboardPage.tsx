@@ -229,7 +229,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
           <ParamBlock
             label={t('param_brome')}
             value={params.brome !== null ? params.brome.toFixed(1) : '—'}
-            unit="mg/L"
+            unit={active?.conc_unit ?? 'mg/L'}
             status={params.brome !== null ? getBromeStatus(params.brome, ranges ?? undefined) : null}
             showDivider={true}
           />
@@ -237,7 +237,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
           <ParamBlock
             label={t('param_sel')}
             value={params.salt !== null ? params.salt.toFixed(0) : '—'}
-            unit="ppm"
+            unit={active?.salt_unit ?? 'ppm'}
             status={params.salt !== null ? getSelStatus(params.salt, ranges ?? undefined) : null}
             showDivider={true}
           />
@@ -245,7 +245,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
           <ParamBlock
             label={t('param_chlore')}
             value={params.chlore !== null ? params.chlore.toFixed(1) : '—'}
-            unit="mg/L"
+            unit={active?.conc_unit ?? 'mg/L'}
             status={params.chlore !== null ? getChloreStatus(params.chlore, ranges ?? undefined) : null}
             showDivider={true}
           />
@@ -253,7 +253,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
         <ParamBlock
           label={t('param_tac')}
           value={params.tac !== null ? String(Math.round(params.tac)) : '—'}
-          unit="mg/L"
+          unit={active?.conc_unit ?? 'mg/L'}
           status={params.tac !== null ? getTacStatus(params.tac, ranges ?? undefined) : null}
           showDivider={true}
         />
@@ -266,7 +266,7 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
               {params.temp !== null ? params.temp.toFixed(1) : '—'}
             </span>
             {params.temp !== null && (
-              <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'var(--text-muted)' }}>°C</span>
+              <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'var(--text-muted)' }}>°{active?.temp_unit ?? 'C'}</span>
             )}
           </div>
           {params.temp !== null && (
@@ -578,6 +578,7 @@ function ActionTypeBadge({ actionType }: { actionType: string }) {
 }
 
 function ActionParamPills({ action }: { action: Action }) {
+  const { active } = useInstallation()
   const p = extractMeasuredParams([action])
   const pills: Array<{ label: string; color: string; bg: string }> = []
   const styleMap = {
@@ -591,15 +592,15 @@ function ActionParamPills({ action }: { action: Action }) {
   }
   if (p.chlore !== null) {
     const s = getChloreStatus(p.chlore)
-    pills.push({ label: `Cl ${p.chlore.toFixed(1)} mg/L`, ...styleMap[s] })
+    pills.push({ label: `Cl ${p.chlore.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`, ...styleMap[s] })
   }
   if (p.tac !== null) {
     const s = getTacStatus(p.tac)
-    pills.push({ label: `TAC ${Math.round(p.tac)} mg/L`, ...styleMap[s] })
+    pills.push({ label: `TAC ${Math.round(p.tac)} ${active?.conc_unit ?? 'mg/L'}`, ...styleMap[s] })
   }
   if (p.temp !== null) {
     const s = getTempStatus(p.temp)
-    pills.push({ label: `T° ${p.temp.toFixed(1)} °C`, ...styleMap[s] })
+    pills.push({ label: `T° ${p.temp.toFixed(1)} °${active?.temp_unit ?? 'C'}`, ...styleMap[s] })
   }
   if (pills.length === 0) {
     return <span style={{ color: 'var(--text-muted)', fontFamily: '"IBM Plex Mono", monospace', fontSize: 10 }}>—</span>

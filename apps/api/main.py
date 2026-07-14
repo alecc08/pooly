@@ -125,6 +125,16 @@ def _ensure_volume_columns(session: Session) -> None:
     session.commit()
 
 
+def _ensure_measurement_unit_columns(session: Session) -> None:
+    if engine.dialect.name != "postgresql":
+        return
+    session.exec(text("ALTER TABLE installation ADD COLUMN IF NOT EXISTS temp_unit VARCHAR NOT NULL DEFAULT 'C'"))
+    session.exec(text("ALTER TABLE installation ADD COLUMN IF NOT EXISTS salt_unit VARCHAR NOT NULL DEFAULT 'ppm'"))
+    session.exec(text("ALTER TABLE installation ADD COLUMN IF NOT EXISTS conc_unit VARCHAR NOT NULL DEFAULT 'mg/L'"))
+    session.exec(text("ALTER TABLE installation ADD COLUMN IF NOT EXISTS durete_unit VARCHAR NOT NULL DEFAULT 'ppm'"))
+    session.commit()
+
+
 def _migrate_installations(session: Session) -> None:
     if engine.dialect.name != "postgresql":
         return
@@ -206,6 +216,7 @@ async def lifespan(app: FastAPI):
         _ensure_user_id_column(session)
         _ensure_first_name_column(session)
         _ensure_volume_columns(session)
+        _ensure_measurement_unit_columns(session)
         insert_seeds(session)
         _ensure_admin_user(session)
         _migrate_installations(session)
@@ -285,6 +296,10 @@ class InstallationIn(BaseModel):
     sanitizer: str = "brome"
     volume: Optional[float] = None
     volume_unit: str = "L"
+    temp_unit: str = "C"
+    salt_unit: str = "ppm"
+    conc_unit: str = "mg/L"
+    durete_unit: str = "ppm"
 
 
 class InstallationPatchIn(BaseModel):
@@ -293,6 +308,10 @@ class InstallationPatchIn(BaseModel):
     sanitizer: Optional[str] = None
     volume: Optional[float] = None
     volume_unit: Optional[str] = None
+    temp_unit: Optional[str] = None
+    salt_unit: Optional[str] = None
+    conc_unit: Optional[str] = None
+    durete_unit: Optional[str] = None
 
 
 class InstallationOut(BaseModel):
@@ -302,6 +321,10 @@ class InstallationOut(BaseModel):
     sanitizer: str
     volume: Optional[float] = None
     volume_unit: str = "L"
+    temp_unit: str = "C"
+    salt_unit: str = "ppm"
+    conc_unit: str = "mg/L"
+    durete_unit: str = "ppm"
     created_at: datetime
 
 
@@ -512,6 +535,10 @@ def create_installation(
         sanitizer=payload.sanitizer,
         volume=payload.volume,
         volume_unit=payload.volume_unit,
+        temp_unit=payload.temp_unit,
+        salt_unit=payload.salt_unit,
+        conc_unit=payload.conc_unit,
+        durete_unit=payload.durete_unit,
     )
     session.add(installation)
     session.commit()
@@ -539,6 +566,14 @@ def update_installation(
         installation.volume = payload.volume
     if payload.volume_unit is not None:
         installation.volume_unit = payload.volume_unit
+    if payload.temp_unit is not None:
+        installation.temp_unit = payload.temp_unit
+    if payload.salt_unit is not None:
+        installation.salt_unit = payload.salt_unit
+    if payload.conc_unit is not None:
+        installation.conc_unit = payload.conc_unit
+    if payload.durete_unit is not None:
+        installation.durete_unit = payload.durete_unit
     session.add(installation)
     session.commit()
     session.refresh(installation)

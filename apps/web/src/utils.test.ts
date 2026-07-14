@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import type { Action, InstallationWaterParams } from './types'
+import type { Action, Installation, InstallationWaterParams } from './types'
+import { ppmToGermanDegrees } from './units'
 import {
   getActionsThisMonth,
   daysSinceLastAction,
@@ -7,9 +8,20 @@ import {
   getSelStatus,
   getStabilisantStatus,
   getCcStatus,
+  getDureteStatus,
   extractMeasuredParams,
   installationParamsToRanges,
 } from './utils'
+
+const makeInstallation = (overrides: Partial<Installation> = {}): Installation => ({
+  id: 1,
+  user_id: 1,
+  name: 'Ma piscine',
+  type: 'piscine',
+  sanitizer: 'chlore',
+  created_at: '2026-01-01T00:00:00',
+  ...overrides,
+})
 
 const makeAction = (overrides: Partial<Action> = {}): Action => ({
   id: 1,
@@ -169,5 +181,62 @@ describe('installationParamsToRanges — salt/cya/cc', () => {
     expect(ranges.sel).toEqual({ ideal: [2700, 3400], acceptable: [2500, 4500] })
     expect(ranges.stabilisant).toEqual({ ideal: [60, 80], acceptable: [30, 100] })
     expect(ranges.cc).toEqual({ ideal: [0, 0.2], acceptable: [0, 0.5] })
+  })
+})
+
+describe('getDureteStatus', () => {
+  it('normal within 100-500 ppm (default ranges)', () => {
+    expect(getDureteStatus(250)).toBe('normal')
+  })
+  it('bad outside acceptable band (default ranges)', () => {
+    expect(getDureteStatus(2000)).toBe('bad')
+  })
+  it('respects a custom durete range override', () => {
+    const ranges = { durete: { ideal: [10, 20] as [number, number], acceptable: [5, 30] as [number, number] } }
+    expect(getDureteStatus(15, ranges)).toBe('normal')
+    expect(getDureteStatus(25, ranges)).toBe('warn')
+    expect(getDureteStatus(40, ranges)).toBe('bad')
+  })
+})
+
+describe('installationParamsToRanges — unit-aware temp/sel/durete', () => {
+  const params: InstallationWaterParams = {
+    ph: { ideal: [7.2, 7.6], acceptable: [6.8, 7.8] },
+    tac: { ideal: [80, 180], acceptable: [60, 200] },
+    temp: { ideal: [24, 28], acceptable: [15, 35] },
+    salt: { ideal: [2700, 3400], acceptable: [2500, 4500] },
+  }
+
+  it('converts temp range to Fahrenheit when installation.temp_unit is F', () => {
+    const ranges = installationParamsToRanges(params, makeInstallation({ temp_unit: 'F' }))
+    expect(ranges.temp!.ideal[0]).toBeCloseTo(75.2, 5)
+    expect(ranges.temp!.ideal[1]).toBeCloseTo(82.4, 5)
+  })
+
+  it('converts sel range to g/L when installation.salt_unit is g/L', () => {
+    const ranges = installationParamsToRanges(params, makeInstallation({ salt_unit: 'g/L' }))
+    expect(ranges.sel!.ideal).toEqual([2.7, 3.4])
+  })
+
+  it('leaves temp/sel unchanged for an installation without unit overrides, or no installation at all', () => {
+    const withDefaultInstallation = installationParamsToRanges(params, makeInstallation())
+    expect(withDefaultInstallation.temp).toEqual(params.temp)
+    expect(withDefaultInstallation.sel).toEqual(params.salt)
+
+    const withoutInstallation = installationParamsToRanges(params)
+    expect(withoutInstallation.temp).toEqual(params.temp)
+    expect(withoutInstallation.sel).toEqual(params.salt)
+  })
+
+  it('synthesizes a durete range client-side, converted per durete_unit, even though the backend never returns durete', () => {
+    const ppmRanges = installationParamsToRanges(params, makeInstallation())
+    expect(ppmRanges.durete).toEqual({ ideal: [100, 500], acceptable: [50, 1000] })
+
+    const dhRanges = installationParamsToRanges(params, makeInstallation({ durete_unit: '°dH' }))
+    expect(dhRanges.durete!.ideal[0]).toBeCloseTo(ppmToGermanDegrees(100), 5)
+    expect(dhRanges.durete!.ideal[1]).toBeCloseTo(ppmToGermanDegrees(500), 5)
+
+    const fRanges = installationParamsToRanges(params, makeInstallation({ durete_unit: '°f' }))
+    expect(fRanges.durete!.ideal).toEqual([10, 50])
   })
 })

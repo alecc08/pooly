@@ -15,6 +15,7 @@ import {
   extractMeasuredParams,
 } from '../utils'
 import { useT } from '../context/LocaleContext'
+import { useInstallation } from '../context/InstallationContext'
 import type { Locale } from '../i18n/translations'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -159,6 +160,7 @@ type Props = { actions: Action[] }
 
 export default function MesuresPage({ actions }: Props) {
   const { t, locale } = useT()
+  const { active } = useInstallation()
   const [period, setPeriod] = useState<Period>(1)
 
   const PERIODS: { label: string; value: Period }[] = [
@@ -399,13 +401,13 @@ export default function MesuresPage({ actions }: Props) {
                       {cellValue(ph, getPhStatus, v => v.toFixed(1))}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      {cellValue(chlore, getChloreStatus, v => `${v.toFixed(1)} mg/L`)}
+                      {cellValue(chlore, getChloreStatus, v => `${v.toFixed(1)} ${active?.conc_unit ?? 'mg/L'}`)}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      {cellValue(tac, getTacStatus, v => `${Math.round(v)} mg/L`)}
+                      {cellValue(tac, getTacStatus, v => `${Math.round(v)} ${active?.conc_unit ?? 'mg/L'}`)}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
-                      {cellValue(temp, getTempStatus, v => `${v.toFixed(1)} °C`)}
+                      {cellValue(temp, getTempStatus, v => `${v.toFixed(1)} °${active?.temp_unit ?? 'C'}`)}
                     </td>
                     <td style={{ padding: '9px 8px 9px 0' }}>
                       <StatusBadge ph={ph} chlore={chlore} tac={tac} />
