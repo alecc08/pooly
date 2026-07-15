@@ -34,6 +34,18 @@ directly back to aurel-f's work.
 If you like this project, please star and contribute to the **original repo** — that's
 where it all started, and that's the best way to support the person who built it.
 
+### 🚧 What this fork has added
+
+On top of the original app, this fork has added:
+
+- **Home Assistant integration** — a custom component (installable via HACS) that exposes your water parameters as sensors, plus a public API for it
+- **Salt pool mode** — dedicated salt water generator (SWG) support with combined chlorine tracking and pool volume
+- **Per-installation units** — configurable temperature, salt, concentration and hardness units per pool/spa
+- **Full English localization** — the app UI, config flow, and this documentation were rewritten/translated to English, with a FR/EN language toggle in-app
+- **Multi-installation management** — ability to delete a pool/spa installation from the sidebar
+- **Configurable ideal ranges** — override any water-parameter range (pH, chlorine, salt, CYA, etc.) via environment variables instead of touching code
+- **CI** — a GitHub Actions workflow that lints, builds and tests the web app and API on every PR
+
 ---
 
 ## Table of contents
