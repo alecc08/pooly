@@ -10,7 +10,7 @@
 import re
 from typing import Dict, List, Optional
 
-from models import Action
+from models import Action, Installation
 
 MEASURE_ACTION_TYPES = {"pH Measurement", "Measurement"}
 
@@ -62,9 +62,33 @@ def parse_measurement_action(action: Action) -> Dict[str, float]:
     return result
 
 
-def extract_current_conditions(actions: List[Action]) -> Dict[str, Dict]:
+def field_units(installation: Installation) -> Dict[str, Optional[str]]:
+    """Maps each measured field to the display unit implied by the installation's
+    unit settings, for consumers (e.g. Home Assistant) that need units alongside
+    values."""
+    temp_unit = "°F" if installation.temp_unit == "F" else "°C"
+    return {
+        "ph": None,
+        "chlorine": installation.conc_unit,
+        "bromine": installation.conc_unit,
+        "cc": installation.conc_unit,
+        "stabilizer": installation.conc_unit,
+        "tac": installation.hardness_unit,
+        "hardness": installation.hardness_unit,
+        "salt": installation.salt_unit,
+        "temp": temp_unit,
+    }
+
+
+def extract_current_conditions(
+    actions: List[Action],
+    installation: Optional[Installation] = None,
+) -> Dict[str, Dict]:
     """Newest-first scan across actions; first match per field wins. Returns
-    {field: {"value": float, "date": date}} for each field that has a value."""
+    {field: {"value": float, "date": date, "unit": Optional[str]}} for each
+    field that has a value. `unit` is None for every field if `installation`
+    isn't provided."""
+    units = field_units(installation) if installation else {}
     sorted_actions = sorted(actions, key=lambda a: a.date, reverse=True)
     result: Dict[str, Dict] = {}
     for action in sorted_actions:
@@ -75,7 +99,7 @@ def extract_current_conditions(actions: List[Action]) -> Dict[str, Dict]:
                 continue
             v = _parse_field(field, action)
             if v is not None:
-                result[field] = {"value": v, "date": action.date}
+                result[field] = {"value": v, "date": action.date, "unit": units.get(field)}
     return result
 
 
