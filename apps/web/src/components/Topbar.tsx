@@ -7,7 +7,7 @@ import { useT } from '../context/LocaleContext'
 import type { Locale } from '../i18n/translations'
 import BottomNav from './BottomNav'
 
-type Page = 'log' | 'measurements' | 'history'
+type Page = 'log' | 'measurements' | 'history' | 'recommendations'
 
 function getIsDark(theme: Theme): boolean {
   if (theme === 'dark') return true
@@ -322,6 +322,18 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
               <polyline points="12 6 12 12 16 14" />
             </svg>
             {t('nav_history')}
+          </button>
+
+          <button
+            className={`sidebar-nav-item${page === 'recommendations' ? ' active' : ''}`}
+            onClick={() => onNavigate?.('recommendations')}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+              <rect x="6" y="6" width="12" height="12" rx="2" />
+              <path d="M9 12h6M12 9v6" />
+            </svg>
+            {t('nav_recommendations')}
           </button>
         </nav>
 

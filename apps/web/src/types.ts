@@ -67,3 +67,30 @@ export type ParamFullEntry = {
 }
 
 export type InstallationParamsFull = Partial<Record<ParamKey, ParamFullEntry>>
+
+/** One dosing option within a Recommendation, as returned by
+ * GET /installations/{id}/recommendations (apps/api/dosage.py). `amount_grams`/
+ * `amount_ml` are null for non-exact products or when the installation's volume
+ * isn't set — never invented client-side. */
+export type DosageOption = {
+  product_id: string | null
+  form: 'solid' | 'liquid' | null
+  exact: boolean
+  amount_grams: number | null
+  amount_ml: number | null
+  notes_key: string | null
+}
+
+export type Recommendation = {
+  param: ParamKey
+  current_value: number
+  target_value: number
+  direction: 'raise' | 'lower'
+  volume_known: boolean
+  options: DosageOption[]
+}
+
+export type RecommendationsResponse = {
+  volume_known: boolean
+  recommendations: Recommendation[]
+}
