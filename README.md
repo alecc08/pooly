@@ -161,6 +161,47 @@ homepool's water measurements can be pulled into Home Assistant as sensors.
 5. **Display on a dashboard (optional)**
    homepool's integration only exposes the raw sensor entities — for a nicer pool-specific dashboard widget, pair it with the [Pool Monitor Card](https://github.com/wilsto/pool-monitor-card) (installable via HACS as a frontend repository). Use the homepool sensors as the card's data source to get a purpose-built pool/spa display.
 
+6. **Quick-add maintenance from Home Assistant**
+   Each installation also gets one button entity per maintenance type — **Log Cartridge Cleaning**, **Log Skimmer Filter Cleaning**, **Log Backwash**, **Log pH Calibration**, **Log Purge**, **Log Water Change**. Pressing one logs that maintenance action against homepool immediately, no app needed.
+
+   For measurements (pH, chlorine, etc.), which need numeric input a plain button can't collect, use the `pooly.log_measurement` service instead — call it from a script, automation, or a dashboard button's `tap_action: perform-action`.
+
+   Example Lovelace card combining both:
+
+   ```yaml
+   type: grid
+   columns: 2
+   square: false
+   cards:
+     - type: button
+       tap_action:
+         action: call-service
+         service: button.press
+         target:
+           entity_id: button.pool_log_cartridge_cleaning
+       name: Cartridge cleaning
+       icon: mdi:air-filter
+     - type: button
+       tap_action:
+         action: call-service
+         service: button.press
+         target:
+           entity_id: button.pool_log_backwash
+       name: Backwash
+       icon: mdi:valve
+     - type: button
+       tap_action:
+         action: perform-action
+         perform_action: pooly.log_measurement
+         target: {}
+         data:
+           installation_id: 1
+           ph: 7.2
+           chlorine: 1.5
+       name: Log measurement
+       icon: mdi:flask-outline
+   ```
+
 ---
 
 ### 🛠 Tech stack

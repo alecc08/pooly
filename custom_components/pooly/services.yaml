@@ -1,0 +1,92 @@
+log_measurement:
+  name: Log measurement
+  description: Records a water measurement (pH, chlorine, etc.) for a Pooly installation.
+  fields:
+    installation_id:
+      name: Installation ID
+      description: The Pooly installation to log the measurement for.
+      required: true
+      example: 1
+      selector:
+        number:
+          min: 1
+          mode: box
+    ph:
+      name: pH
+      description: pH value.
+      example: 7.2
+      selector:
+        number:
+          min: 0
+          max: 14
+          step: 0.1
+          mode: box
+    chlorine:
+      name: Free chlorine
+      description: Free chlorine concentration.
+      example: 1.5
+      selector:
+        number:
+          min: 0
+          mode: box
+    bromine:
+      name: Bromine
+      description: Total bromine concentration.
+      example: 3
+      selector:
+        number:
+          min: 0
+          mode: box
+    tac:
+      name: TAC
+      description: Total alkalinity.
+      example: 120
+      selector:
+        number:
+          min: 0
+          mode: box
+    hardness:
+      name: Hardness
+      description: Total hardness.
+      example: 250
+      selector:
+        number:
+          min: 0
+          mode: box
+    salt:
+      name: Salt
+      description: Salt concentration.
+      example: 3000
+      selector:
+        number:
+          min: 0
+          mode: box
+    stabilizer:
+      name: Stabilizer (CYA)
+      description: Cyanuric acid concentration.
+      example: 40
+      selector:
+        number:
+          min: 0
+          mode: box
+    cc:
+      name: Combined chlorine
+      description: Combined chlorine concentration.
+      example: 0.1
+      selector:
+        number:
+          min: 0
+          mode: box
+    temp:
+      name: Temperature
+      description: Water temperature.
+      example: 26
+      selector:
+        number:
+          mode: box
+    notes:
+      name: Notes
+      description: Optional free-text notes.
+      example: Test strip reading
+      selector:
+        text:

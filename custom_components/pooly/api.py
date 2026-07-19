@@ -35,6 +35,19 @@ class PoolyClient:
         except (ClientError, TimeoutError) as err:
             raise PoolyApiError(str(err)) from err
 
+    async def _post(self, path: str, json: dict) -> object:
+        try:
+            async with asyncio.timeout(TIMEOUT_SECONDS):
+                resp = await self._session.post(
+                    f"{self._base_url}{path}", headers=self._headers, json=json
+                )
+                if resp.status == 401:
+                    raise PoolyAuthError("Invalid API key")
+                resp.raise_for_status()
+                return await resp.json()
+        except (ClientError, TimeoutError) as err:
+            raise PoolyApiError(str(err)) from err
+
     async def list_installations(self) -> list[dict]:
         return await self._get("/v1/installations")
 
@@ -43,3 +56,21 @@ class PoolyClient:
 
     async def get_todo(self, installation_id: int) -> dict:
         return await self._get("/v1/todo", params={"installation_id": installation_id})
+
+    async def create_maintenance(
+        self,
+        installation_id: int,
+        action_type: str,
+        notes: str | None = None,
+        date: str | None = None,
+    ) -> dict:
+        payload = {"installation_id": installation_id, "action_type": action_type}
+        if notes is not None:
+            payload["notes"] = notes
+        if date is not None:
+            payload["date"] = date
+        return await self._post("/v1/maintenance", payload)
+
+    async def create_measurement(self, installation_id: int, **fields: object) -> dict:
+        payload = {"installation_id": installation_id, **{k: v for k, v in fields.items() if v is not None}}
+        return await self._post("/v1/measurements", payload)
