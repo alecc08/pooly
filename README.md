@@ -1,14 +1,12 @@
 <div align="center">
 
-<img src="docs/pooly-icon.svg" alt="Pooly" width="80" height="80">
+<img src="docs/homepool.png" alt="homepool" width="220">
 
-# Pooly
-
-**Pool & spa maintenance tracker — self-hosted**
+**Pool & spa maintenance tracker — self-hosted, built for the Home Assistant crowd**
 
 *(the app itself supports English and French via an in-app language toggle — this documentation is English-only)*
 
-[![Version](https://img.shields.io/badge/version-1.0.0-38bdf8?style=flat-square)](https://github.com/alecc08/pooly/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-38bdf8?style=flat-square)](https://github.com/alecc08/homepool/releases)
 [![Licence](https://img.shields.io/badge/licence-MIT-10b981?style=flat-square)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-compose-0ea5e9?style=flat-square&logo=docker&logoColor=white)](docker-compose.yml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
@@ -16,7 +14,7 @@
 
 ### ☕ Support
 
-If Pooly is useful to you, consider buying me a coffee:
+If homepool is useful to you, consider buying me a coffee:
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T61NJXQS)
 
@@ -24,27 +22,15 @@ If Pooly is useful to you, consider buying me a coffee:
 
 ---
 
-## 🙏 About this fork
+## 🙏 Credits
 
-Pooly was created by [aurel-f](https://github.com/aurel-f) — go check out the
-[original repository](https://github.com/aurel-f/pooly). This fork exists to move a bit
-faster and rewrite the documentation in English; the underlying app and its features trace
-directly back to aurel-f's work.
-
-If you like this project, please star and contribute to the **original repo** — that's
-where it all started, and that's the best way to support the person who built it.
-
-### 🚧 What this fork has added
-
-On top of the original app, this fork has added:
-
-- **Home Assistant integration** — a custom component (installable via HACS) that exposes your water parameters as sensors, plus a public API for it
-- **Salt pool mode** — dedicated salt water generator (SWG) support with combined chlorine tracking and pool volume
-- **Per-installation units** — configurable temperature, salt, concentration and hardness units per pool/spa
-- **Full English localization** — the app UI, config flow, and this documentation were rewritten/translated to English, with a FR/EN language toggle in-app
-- **Multi-installation management** — ability to delete a pool/spa installation from the sidebar
-- **Configurable ideal ranges** — override any water-parameter range (pH, chlorine, salt, CYA, etc.) via environment variables instead of touching code
-- **CI** — a GitHub Actions workflow that lints, builds and tests the web app and API on every PR
+homepool started life as a fork of [Pooly](https://github.com/aurel-f/pooly), created by
+[aurel-f](https://github.com/aurel-f) — the original app, its data model, and the core
+idea of a clean, self-hosted pool/spa tracker all trace back to that project. homepool has
+since grown into its own thing (new name, Home Assistant integration, salt-pool support,
+configurable ranges, and more), so it's no longer maintained as a fork, but credit for the
+original idea belongs there. If you like this project, go star the
+[original repository](https://github.com/aurel-f/pooly) too.
 
 ---
 
@@ -64,19 +50,21 @@ On top of the original app, this fork has added:
 
 ### 🌊 Overview
 
-Pooly is a **self-hosted** web application to track the maintenance of your pools and spas. Log your water measurements, treatments and maintenance tasks from a clean dashboard — your data stays on your own server.
+homepool is a **self-hosted** web application to track the maintenance of your pools and spas. Log your water measurements, treatments and maintenance tasks from a clean dashboard — your data stays on your own server.
 
-Designed for owners who want full control without complexity: one Docker command and you're up and running.
+Designed for self-hosters and the Home Assistant crowd who want full control without complexity: one Docker command and you're up and running, with a first-class HA integration to bring your water parameters into your existing smart-home setup.
 
 ---
 
 ### ✨ Features
 
 - **Full dashboard** — KPIs, real-time water parameters, visual water quality indicator
+- **Home Assistant integration** — sensors for water parameters and maintenance-due tracking, installable via HACS
 - **AquaChek test strip input** — interactive color chart for pH, Alkalinity, Bromine, Chlorine and Hardness
 - **Digital device input** — decimal inputs with range validation
 - **Multi-installation** — manage multiple pools and spas with adapted reference ranges
 - **Bromine, chlorine or salt** — differentiated ideal ranges per sanitizer, including salt water generator (SWG) pools, with free-chlorine targets set for the higher CYA a salt system runs at
+- **Configurable ideal ranges** — override any water-parameter range per installation, right from the UI
 - **Full history** — monthly timeline, type filters, full-text search
 - **Measurements page** — track parameter trends over time
 - **Dark mode** — light, dark or automatic theme (system preference)
@@ -111,14 +99,14 @@ Designed for owners who want full control without complexity: one Docker command
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/alecc08/pooly.git
-cd pooly
+git clone https://github.com/alecc08/homepool.git
+cd homepool
 
 # 2. Set up environment
 cp .env.example .env
 nano .env  # Set your passwords and secrets
 
-# 3. Start Pooly
+# 3. Start homepool
 docker compose up -d
 
 # 4. Open in your browser
@@ -153,17 +141,17 @@ Every ideal/acceptable range shown in the app (pH, free chlorine, salt, CYA, alk
 
 ### 🏠 Home Assistant Integration
 
-Pooly's water measurements can be pulled into Home Assistant as sensors.
+homepool's water measurements can be pulled into Home Assistant as sensors.
 
 1. **Install via HACS**
-   Settings → HACS → custom repositories (⋮ menu) → add repository URL `https://github.com/alecc08/pooly`, category **Integration** → find "Pooly" in HACS → Install.
+   Settings → HACS → custom repositories (⋮ menu) → add repository URL `https://github.com/alecc08/homepool`, category **Integration** → find "homepool" in HACS → Install.
 
 2. **Add the integration**
-   Settings → Devices & Services → Add Integration → search for "Pooly".
+   Settings → Devices & Services → Add Integration → search for "homepool".
 
 3. **Configure**
-   - **Base URL**: your Pooly server URL. If you're running behind the bundled nginx/reverse-proxy setup, this **must include the `/api` path** — e.g. `https://your-domain/api`, not just `https://your-domain`. Using the domain without `/api` will result in a "failed to connect to the Pooly server" error.
-   - **API Key**: generate one from Settings → API Key in the Pooly web app.
+   - **Base URL**: your homepool server URL. If you're running behind the bundled nginx/reverse-proxy setup, this **must include the `/api` path** — e.g. `https://your-domain/api`, not just `https://your-domain`. Using the domain without `/api` will result in a "failed to connect to the homepool server" error.
+   - **API Key**: generate one from Settings → API Key in the homepool web app.
 
 4. **Result**
    Once added, you'll get a Sensors card with your installation's water parameters, plus two "days until due" sensors per installation — **Days Until pH Measurement Due** and **Days Until Filter Maintenance Due**. These are plain numeric sensors (not on/off) that go negative once overdue, so you can set your own automation threshold instead of a fixed one, e.g. trigger a notification when `states('sensor.xxx_days_until_ph_measurement_due') | int <= 3`:
@@ -171,7 +159,7 @@ Pooly's water measurements can be pulled into Home Assistant as sensors.
    ![Home Assistant sensors](docs/screenshots/ha-sensors.png)
 
 5. **Display on a dashboard (optional)**
-   Pooly's integration only exposes the raw sensor entities — for a nicer pool-specific dashboard widget, pair it with the [Pool Monitor Card](https://github.com/wilsto/pool-monitor-card) (installable via HACS as a frontend repository). Use the Pooly sensors as the card's data source to get a purpose-built pool/spa display.
+   homepool's integration only exposes the raw sensor entities — for a nicer pool-specific dashboard widget, pair it with the [Pool Monitor Card](https://github.com/wilsto/pool-monitor-card) (installable via HACS as a frontend repository). Use the homepool sensors as the card's data source to get a purpose-built pool/spa display.
 
 ---
 
@@ -194,8 +182,8 @@ Contributions are welcome! Here's how to get involved:
 
 ```bash
 # Fork the repo, then:
-git clone https://github.com/alecc08/pooly.git
-cd pooly
+git clone https://github.com/alecc08/homepool.git
+cd homepool
 git checkout -b feature/my-feature
 
 # Make your changes, then:
@@ -211,7 +199,7 @@ git push origin feature/my-feature
 - 📸 Screenshots and demos
 - 📖 Documentation improvements
 
-Check the [open issues](https://github.com/alecc08/pooly/issues) to find something to work on.
+Check the [open issues](https://github.com/alecc08/homepool/issues) to find something to work on.
 
 ---
 
@@ -224,4 +212,3 @@ Distributed under the **MIT License**. See [LICENSE](LICENSE) for more informati
 <div align="center">
   <sub>Made with ♥ · Self-hosted · Open source</sub>
 </div>
-</content>
