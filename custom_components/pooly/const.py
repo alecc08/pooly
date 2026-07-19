@@ -40,3 +40,17 @@ TODO_META = {
     "ph_measurement": ("mdi:calendar-clock", "Days Until pH Measurement Due"),
     "filter_maintenance": ("mdi:calendar-clock", "Days Until Filter Maintenance Due"),
 }
+
+# Maintenance action_type -> (icon, name), mirrors MAINTENANCE_ACTION_TYPES on the
+# Pooly public API (apps/api/water_params.py). Kept as a literal set here since the
+# HA integration has no dependency on the api package.
+BUTTON_META = {
+    "Cartridge cleaning": ("mdi:air-filter", "Log Cartridge Cleaning"),
+    "Skimmer filter cleaning": ("mdi:filter-outline", "Log Skimmer Filter Cleaning"),
+    "Backwash": ("mdi:valve", "Log Backwash"),
+    "pH calibration": ("mdi:tune", "Log pH Calibration"),
+    "Purge": ("mdi:water-pump", "Log Purge"),
+    "Water change": ("mdi:water-sync", "Log Water Change"),
+}
+
+MAINTENANCE_ACTION_TYPES = list(BUTTON_META)

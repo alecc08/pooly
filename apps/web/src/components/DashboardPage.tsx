@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import type { Action, Product, RecommendationsResponse } from '../types'
-import WaterStatusCard from './WaterStatusCard'
 import { useInstallation } from '../context/InstallationContext'
 import { useTheme, type Theme } from '../hooks/useTheme'
 import { useT } from '../context/LocaleContext'
@@ -424,11 +423,6 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
 
         {/* Right column */}
         <div>
-          {/* WaterStatusCard */}
-          <div style={{ marginBottom: 14 }}>
-            <WaterStatusCard actions={actions} />
-          </div>
-
           {/* Recommendations teaser */}
           {recommendationsCount !== null && (
             <button

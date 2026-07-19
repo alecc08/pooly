@@ -104,40 +104,6 @@ export const RX_STABILIZER = new RegExp(String.raw`(?:stabilizer|cyanuric acid|c
 export const RX_CC = new RegExp(String.raw`combined\s*:?\s*${NUM}`, 'i')
 export const RX_TEMP = new RegExp(String.raw`(?:temperature?|\bT°)\s*:?\s*${NUM}`, 'i')
 
-/** Extracts the most recent pH, free chlorine and TAC values from actions. */
-export function extractWaterParams(actions: Action[]): WaterParams {
-  const sorted = [...actions].sort((a, b) => b.date.localeCompare(a.date))
-  let ph: number | null = null
-  let chlorine: number | null = null
-  let tac: number | null = null
-
-  for (const action of sorted) {
-    // pH: dedicated measurement stores value in qty
-    if (ph === null && MEASURE_ACTION_TYPES.includes(action.action_type) && action.qty) {
-      const v = parseFloat(action.qty)
-      if (!isNaN(v)) ph = v
-    }
-    // pH fallback: parse from notes (e.g. "pH 7.2")
-    if (ph === null && action.notes) {
-      const m = action.notes.match(/pH\s*([\d.]+)/i)
-      if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) ph = v }
-    }
-    // Free chlorine: parse from notes (e.g. "chlorine free: 1.5")
-    if (chlorine === null && action.notes) {
-      const m = action.notes.match(RX_CHLORINE)
-      if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) chlorine = v }
-    }
-    // TAC: parse from notes (e.g. "TAC: 120")
-    if (tac === null && action.notes) {
-      const m = action.notes.match(RX_TAC)
-      if (m) { const v = parseFloat(m[1]); if (!isNaN(v)) tac = v }
-    }
-    if (ph !== null && chlorine !== null && tac !== null) break
-  }
-
-  return { ph, chlorine, tac }
-}
-
 /**
  * Pure function — returns the water status from measured parameters.
  * Priority: green > cloudy > clear.

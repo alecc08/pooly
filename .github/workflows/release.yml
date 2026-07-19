@@ -1,0 +1,109 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Tag and publish release
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
+
+      - name: Determine release level
+        id: level
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          labels=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
+          level="patch"
+          if echo "$labels" | grep -qx "release:no-release"; then
+            level="no-release"
+          elif echo "$labels" | grep -qx "release:major"; then
+            level="major"
+          elif echo "$labels" | grep -qx "release:minor"; then
+            level="minor"
+          elif echo "$labels" | grep -qx "release:patch"; then
+            level="patch"
+          fi
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+
+      - name: Skip release
+        if: steps.level.outputs.level == 'no-release'
+        run: echo "release:no-release label set — skipping release."
+
+      - name: Compute next version
+        if: steps.level.outputs.level != 'no-release'
+        id: version
+        run: |
+          git fetch --tags
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          version="${latest_tag#v}"
+          IFS='.' read -r major minor patch <<< "$version"
+          case "${{ steps.level.outputs.level }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          next_version="${major}.${minor}.${patch}"
+          echo "next_version=$next_version" >> "$GITHUB_OUTPUT"
+          echo "next_tag=v${next_version}" >> "$GITHUB_OUTPUT"
+
+      - name: Bump manifest version
+        if: steps.level.outputs.level != 'no-release'
+        run: |
+          jq --arg v "${{ steps.version.outputs.next_version }}" '.version = $v' \
+            custom_components/pooly/manifest.json > manifest.json.tmp
+          mv manifest.json.tmp custom_components/pooly/manifest.json
+
+      - name: Update changelog
+        if: steps.level.outputs.level != 'no-release'
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          version="${{ steps.version.outputs.next_version }}"
+          python3 - "$version" "$today" <<'EOF'
+          import re
+          import sys
+
+          version, today = sys.argv[1], sys.argv[2]
+          path = "CHANGELOG.md"
+          with open(path) as f:
+              content = f.read()
+
+          heading = "## [Unreleased]"
+          idx = content.index(heading)
+          insert_at = idx + len(heading)
+          new_heading = f"\n\n## [{version}] - {today}"
+          content = content[:insert_at] + new_heading + content[insert_at:]
+
+          with open(path, "w") as f:
+              f.write(content)
+          EOF
+
+      - name: Commit version bump
+        if: steps.level.outputs.level != 'no-release'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add custom_components/pooly/manifest.json CHANGELOG.md
+          git commit -m "chore: release ${{ steps.version.outputs.next_tag }} [skip ci]"
+          git push origin HEAD:main
+
+      - name: Create tag and GitHub release
+        if: steps.level.outputs.level != 'no-release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag "${{ steps.version.outputs.next_tag }}"
+          git push origin "${{ steps.version.outputs.next_tag }}"
+          gh release create "${{ steps.version.outputs.next_tag }}" --generate-notes
