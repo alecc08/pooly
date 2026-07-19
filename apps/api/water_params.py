@@ -19,6 +19,25 @@ MEASURE_ACTION_TYPES = {"pH Measurement", "Measurement"}
 # utils.ts's getTodoItems filterTypes).
 FILTER_MAINTENANCE_TYPES = {"Cartridge cleaning", "Skimmer filter cleaning", "Backwash"}
 
+# Maintenance action types writable via /v1/maintenance. Excludes "Measurement"
+# (own endpoint, /v1/measurements) and "Add product" (needs a product_id lookup
+# that isn't meaningful for an external caller like Home Assistant).
+MAINTENANCE_ACTION_TYPES = FILTER_MAINTENANCE_TYPES | {"pH calibration", "Purge", "Water change"}
+
+# Maps parsed-field name to the label ActionForm.tsx's toPayload writes into
+# Action.notes for that field (see toPayload in ActionForm.tsx:892-905). "ph"
+# is excluded: it's stored in Action.qty, not encoded into notes.
+_MEASUREMENT_NOTE_LABELS = {
+    "bromine": "bromine",
+    "chlorine": "chlorine",
+    "tac": "TAC",
+    "hardness": "hardness",
+    "salt": "salt",
+    "stabilizer": "stabilizer",
+    "cc": "combined",
+    "temp": "temperature",
+}
+
 PH_CYCLE_DAYS = 7
 FILTER_CYCLE_DAYS = 14
 
@@ -58,6 +77,19 @@ def _parse_field(field: str, action: Action) -> Optional[float]:
     }[field]
     m = rx.search(action.notes or "")
     return float(m.group(1)) if m else None
+
+
+def encode_measurement_notes(fields: Dict[str, float]) -> str:
+    """Inverse of the notes side of parse_measurement_action: mirrors
+    ActionForm.tsx's toPayload encoding for Measurement rows, so writers (e.g.
+    the Home Assistant integration) don't need to know the notes format. `ph`
+    is not accepted here — callers store it in Action.qty instead."""
+    parts = [
+        f"{_MEASUREMENT_NOTE_LABELS[field]}: {value}"
+        for field, value in fields.items()
+        if field in _MEASUREMENT_NOTE_LABELS and value is not None
+    ]
+    return ". ".join(parts)
 
 
 def parse_measurement_action(action: Action) -> Dict[str, float]:

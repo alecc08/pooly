@@ -610,3 +610,82 @@ def test_v1_todo_requires_api_key(client: TestClient):
     client.post("/installations", json={"name": "My pool"})
     r = client.get("/v1/todo")
     assert r.status_code == 401
+
+
+# ── /v1/measurements ─────────────────────────────────────────────────────
+
+def test_v1_create_measurement_is_readable_back(client: TestClient):
+    login(client)
+    key = get_api_key(client)
+    inst_r = client.post("/installations", json={"name": "My pool"})
+    installation_id = inst_r.json()["id"]
+
+    r = client.post(
+        "/v1/measurements",
+        headers=auth_headers(key),
+        json={"installation_id": installation_id, "ph": 7.4, "chlorine": 3, "salt": 3200},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["action_type"] == "Measurement"
+    assert body["qty"] == "7.4"
+
+    current = client.get(f"/v1/current?installation_id={installation_id}", headers=auth_headers(key))
+    data = current.json()
+    assert data["ph"]["value"] == 7.4
+    assert data["chlorine"]["value"] == 3
+    assert data["salt"]["value"] == 3200
+
+
+def test_v1_create_measurement_requires_at_least_one_value(client: TestClient):
+    login(client)
+    key = get_api_key(client)
+    client.post("/installations", json={"name": "My pool"})
+    r = client.post("/v1/measurements", headers=auth_headers(key), json={})
+    assert r.status_code == 422
+
+
+def test_v1_create_measurement_requires_api_key(client: TestClient):
+    login(client)
+    client.post("/installations", json={"name": "My pool"})
+    r = client.post("/v1/measurements", json={"ph": 7.4})
+    assert r.status_code == 401
+
+
+# ── /v1/maintenance ──────────────────────────────────────────────────────
+
+def test_v1_create_maintenance_is_readable_back(client: TestClient):
+    login(client)
+    key = get_api_key(client)
+    inst_r = client.post("/installations", json={"name": "My pool"})
+    installation_id = inst_r.json()["id"]
+
+    r = client.post(
+        "/v1/maintenance",
+        headers=auth_headers(key),
+        json={"installation_id": installation_id, "action_type": "Backwash"},
+    )
+    assert r.status_code == 200
+    assert r.json()["action_type"] == "Backwash"
+
+    todo = client.get(f"/v1/todo?installation_id={installation_id}", headers=auth_headers(key))
+    assert todo.json()["filter_maintenance"]["days_until_due"] == 14
+
+
+def test_v1_create_maintenance_rejects_unknown_action_type(client: TestClient):
+    login(client)
+    key = get_api_key(client)
+    client.post("/installations", json={"name": "My pool"})
+    r = client.post(
+        "/v1/maintenance",
+        headers=auth_headers(key),
+        json={"action_type": "Add product"},
+    )
+    assert r.status_code == 422
+
+
+def test_v1_create_maintenance_requires_api_key(client: TestClient):
+    login(client)
+    client.post("/installations", json={"name": "My pool"})
+    r = client.post("/v1/maintenance", json={"action_type": "Backwash"})
+    assert r.status_code == 401
