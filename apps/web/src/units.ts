@@ -58,3 +58,41 @@ export function formatUnitRange([min, max]: [number, number], decimals = 1): str
   }
   return `${round(min)} – ${round(max)}`
 }
+
+function roundTo(n: number, decimals: number): number {
+  const factor = 10 ** decimals
+  return Math.round(n * factor) / factor
+}
+
+export type MassDisplay = { value: number; unit: 'g' | 'kg' | 'oz' | 'lb' }
+export type VolumeDisplay = { value: number; unit: 'mL' | 'L' | 'fl_oz' | 'gal' }
+
+const G_PER_OZ = 28.3495
+const G_PER_LB = 453.592
+const ML_PER_FL_OZ = 29.5735
+const ML_PER_GAL = 3785.41
+
+/** Converts a dosage mass (always given in grams — dosage.py's canonical unit) to a
+ * display-friendly value+unit pair, imperial when the installation's volume is tracked
+ * in gallons, metric otherwise. Crosses to the coarser unit past a natural threshold
+ * (1000g -> kg, 16oz -> lb) so amounts don't read as "1400 g" or "20 oz". */
+export function gramsToDisplay(grams: number, volumeUnit?: 'L' | 'gal'): MassDisplay {
+  if (volumeUnit === 'gal') {
+    const oz = grams / G_PER_OZ
+    if (oz >= 16) return { value: roundTo(grams / G_PER_LB, 2), unit: 'lb' }
+    return { value: roundTo(oz, 1), unit: 'oz' }
+  }
+  if (grams >= 1000) return { value: roundTo(grams / 1000, 2), unit: 'kg' }
+  return { value: roundTo(grams, 1), unit: 'g' }
+}
+
+/** Same idea as gramsToDisplay for liquid dosage amounts (dosage.py returns mL). */
+export function mlToDisplay(mL: number, volumeUnit?: 'L' | 'gal'): VolumeDisplay {
+  if (volumeUnit === 'gal') {
+    const flOz = mL / ML_PER_FL_OZ
+    if (mL >= ML_PER_GAL) return { value: roundTo(mL / ML_PER_GAL, 2), unit: 'gal' }
+    return { value: roundTo(flOz, 1), unit: 'fl_oz' }
+  }
+  if (mL >= 1000) return { value: roundTo(mL / 1000, 2), unit: 'L' }
+  return { value: roundTo(mL, 1), unit: 'mL' }
+}

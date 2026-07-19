@@ -689,3 +689,69 @@ def test_v1_create_maintenance_requires_api_key(client: TestClient):
     client.post("/installations", json={"name": "My pool"})
     r = client.post("/v1/maintenance", json={"action_type": "Backwash"})
     assert r.status_code == 401
+
+
+def test_get_installation_recommendations_requires_auth(client: TestClient):
+    r = client.get("/installations/1/recommendations")
+    assert r.status_code == 401
+
+
+def test_get_installation_recommendations_requires_ownership(client: TestClient):
+    login(client)
+    r = client.post("/installations", json={"name": "Salt pool", "type": "pool", "sanitizer": "salt"})
+    installation_id = r.json()["id"]
+    client.post("/auth/logout")
+    r2 = client.post(
+        "/auth/register",
+        json={"first_name": "Other", "email": "other@example.com", "password": "OtherPass1"},
+    )
+    assert r2.status_code == 200
+    rec_r = client.get(f"/installations/{installation_id}/recommendations")
+    assert rec_r.status_code == 404
+
+
+def test_get_installation_recommendations_shape(client: TestClient):
+    login(client)
+    r = client.post(
+        "/installations",
+        json={"name": "My pool", "type": "pool", "sanitizer": "bromine", "volume": 10000, "volume_unit": "L"},
+    )
+    installation_id = r.json()["id"]
+    client.post(
+        "/actions",
+        json={
+            "date": TODAY,
+            "action_type": "Measurement",
+            "installation_id": installation_id,
+            "notes": "pH 7.4 bromine 3 TAC 50 hardness 300",
+        },
+    )
+    rec_r = client.get(f"/installations/{installation_id}/recommendations")
+    assert rec_r.status_code == 200
+    data = rec_r.json()
+    assert data["volume_known"] is True
+    assert isinstance(data["recommendations"], list)
+    tac_rec = next(r for r in data["recommendations"] if r["param"] == "tac")
+    assert tac_rec["direction"] == "raise"
+    assert tac_rec["options"][0]["amount_grams"] is not None
+
+
+def test_get_installation_recommendations_without_volume(client: TestClient):
+    login(client)
+    r = client.post("/installations", json={"name": "My pool", "type": "pool", "sanitizer": "bromine"})
+    installation_id = r.json()["id"]
+    client.post(
+        "/actions",
+        json={
+            "date": TODAY,
+            "action_type": "Measurement",
+            "installation_id": installation_id,
+            "notes": "pH 7.4 bromine 3 TAC 50 hardness 300",
+        },
+    )
+    rec_r = client.get(f"/installations/{installation_id}/recommendations")
+    assert rec_r.status_code == 200
+    data = rec_r.json()
+    assert data["volume_known"] is False
+    tac_rec = next(r for r in data["recommendations"] if r["param"] == "tac")
+    assert tac_rec["options"][0]["amount_grams"] is None

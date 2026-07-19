@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
-import type { Action, Product } from '../types'
+import type { Action, Product, RecommendationsResponse } from '../types'
 import WaterStatusCard from './WaterStatusCard'
 import { useInstallation } from '../context/InstallationContext'
 import { useTheme, type Theme } from '../hooks/useTheme'
@@ -57,9 +57,10 @@ type Props = {
   onDelete: (action: Action) => void
   onExport?: () => void
   onImport?: (file: File) => Promise<void>
+  onNavigate?: (page: 'recommendations') => void
 }
 
-export default function DashboardPage({ actions, products: _products, onEdit, onDelete, onExport, onImport }: Props) {
+export default function DashboardPage({ actions, products: _products, onEdit, onDelete, onExport, onImport, onNavigate }: Props) {
   const { active, ranges } = useInstallation()
   const { theme } = useTheme()
   const { t, locale } = useT()
@@ -78,6 +79,15 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
   const nextMeasure = useMemo(() => getNextMeasureInDays(actions), [actions])
   const treatments = useMemo(() => getTreatmentsThisMonth(actions, yearMonth), [actions, yearMonth])
   const todoItems = useMemo(() => getTodoItems(actions, params, t), [actions, params, t])
+
+  const [recommendationsCount, setRecommendationsCount] = useState<number | null>(null)
+  useEffect(() => {
+    if (!active) return
+    fetch(`/api/installations/${active.id}/recommendations`, { credentials: 'same-origin' })
+      .then(r => r.ok ? r.json() : null)
+      .then((data: RecommendationsResponse | null) => setRecommendationsCount(data?.recommendations.length ?? null))
+      .catch(() => setRecommendationsCount(null))
+  }, [active?.id])
 
   function lastActionLabel(): string {
     if (actions.length === 0) return '—'
@@ -418,6 +428,36 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
           <div style={{ marginBottom: 14 }}>
             <WaterStatusCard actions={actions} />
           </div>
+
+          {/* Recommendations teaser */}
+          {recommendationsCount !== null && (
+            <button
+              onClick={() => onNavigate?.('recommendations')}
+              style={{
+                ...sectionCardStyle,
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                width: '100%', textAlign: 'left', cursor: onNavigate ? 'pointer' : 'default',
+                border: '1px solid var(--border)', font: 'inherit', color: 'inherit',
+              }}
+            >
+              <div>
+                <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
+                  {t('recommendations_page_title')}
+                </div>
+                <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
+                  {recommendationsCount === 0
+                    ? t('recommendations_dashboard_teaser_ok')
+                    : `${recommendationsCount} ${t('recommendations_dashboard_teaser_count')}`}
+                </div>
+              </div>
+              <span style={{
+                fontFamily: '"IBM Plex Mono", monospace', fontSize: 18, fontWeight: 700,
+                color: recommendationsCount === 0 ? 'var(--status-ok-text)' : 'var(--status-warn-text)',
+              }}>
+                {recommendationsCount === 0 ? '✓' : recommendationsCount}
+              </span>
+            </button>
+          )}
 
           {/* To-do card */}
           <div style={sectionCardStyle}>

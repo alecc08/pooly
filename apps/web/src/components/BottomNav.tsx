@@ -1,6 +1,6 @@
 import { useT } from '../context/LocaleContext'
 
-type Page = 'log' | 'measurements' | 'history'
+type Page = 'log' | 'measurements' | 'history' | 'recommendations'
 
 type Props = {
   page: Page
@@ -80,6 +80,18 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
           <polyline points="12 6 12 12 16 14" />
         </svg>
         {t('nav_history')}
+      </button>
+
+      <button
+        className={`bn-item${page === 'recommendations' ? ' active' : ''}`}
+        onClick={() => onNavigate('recommendations')}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+          <rect x="6" y="6" width="12" height="12" rx="2" />
+          <path d="M9 12h6M12 9v6" />
+        </svg>
+        {t('nav_recommendations')}
       </button>
     </nav>
   )

@@ -10,6 +10,8 @@ import {
   frenchDegreesToPpm,
   convertRange,
   formatUnitRange,
+  gramsToDisplay,
+  mlToDisplay,
 } from './units'
 
 describe('temperature conversion', () => {
@@ -62,5 +64,46 @@ describe('formatUnitRange', () => {
   })
   it('drops trailing zeros for whole numbers', () => {
     expect(formatUnitRange([100, 500])).toBe('100 – 500')
+  })
+})
+
+describe('gramsToDisplay', () => {
+  it('stays in grams under the kg threshold (metric)', () => {
+    expect(gramsToDisplay(999, 'L')).toEqual({ value: 999, unit: 'g' })
+  })
+  it('crosses to kg at 1000g (metric)', () => {
+    expect(gramsToDisplay(1000, 'L')).toEqual({ value: 1, unit: 'kg' })
+  })
+  it('defaults to metric when volumeUnit is omitted', () => {
+    expect(gramsToDisplay(500)).toEqual({ value: 500, unit: 'g' })
+  })
+  it('stays in oz under the lb threshold (imperial)', () => {
+    const { unit, value } = gramsToDisplay(400, 'gal')
+    expect(unit).toBe('oz')
+    expect(value).toBeCloseTo(14.1, 1)
+  })
+  it('crosses to lb at 16oz (imperial)', () => {
+    const { unit, value } = gramsToDisplay(500, 'gal')
+    expect(unit).toBe('lb')
+    expect(value).toBeCloseTo(1.1, 1)
+  })
+})
+
+describe('mlToDisplay', () => {
+  it('stays in mL under the L threshold (metric)', () => {
+    expect(mlToDisplay(999, 'L')).toEqual({ value: 999, unit: 'mL' })
+  })
+  it('crosses to L at 1000mL (metric)', () => {
+    expect(mlToDisplay(1000, 'L')).toEqual({ value: 1, unit: 'L' })
+  })
+  it('stays in fl oz under the gal threshold (imperial)', () => {
+    const { unit, value } = mlToDisplay(500, 'gal')
+    expect(unit).toBe('fl_oz')
+    expect(value).toBeCloseTo(16.9, 1)
+  })
+  it('crosses to gal at 3785.41mL (imperial)', () => {
+    const { unit, value } = mlToDisplay(3785.41, 'gal')
+    expect(unit).toBe('gal')
+    expect(value).toBeCloseTo(1, 2)
   })
 })

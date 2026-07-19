@@ -20,6 +20,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from passlib.context import CryptContext
 
 from database import engine, get_session
+from dosage import compute_recommendations
 from models import Action, ApiKey, Installation, PasswordResetToken, Product, User
 from seeds import insert_seeds
 from water_params import (
@@ -858,6 +859,29 @@ def get_installation_params_full(
             "effective": {band: list(value) for band, value in effective[param].items()},
         }
     return result
+
+
+@app.get("/installations/{installation_id}/recommendations")
+def get_installation_recommendations(
+    installation_id: int,
+    user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    installation = _get_owned_installation(installation_id, user, session)
+    cutoff = date.today() - timedelta(days=90)
+    actions = session.exec(
+        select(Action)
+        .where(Action.installation_id == installation_id, Action.date >= cutoff)
+        .order_by(Action.date.desc())
+        .limit(500)
+    ).all()
+    current = extract_current_conditions(actions, installation)
+    defaults = WATER_PARAMS.get((installation.type, installation.sanitizer), {})
+    ranges = _merge_range_overrides(defaults, installation.range_overrides)
+    return {
+        "volume_known": installation.volume is not None,
+        "recommendations": compute_recommendations(current, ranges, installation),
+    }
 
 
 def _range_error(detail: str) -> HTTPException:
