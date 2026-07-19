@@ -22,7 +22,13 @@ from passlib.context import CryptContext
 from database import engine, get_session
 from models import Action, ApiKey, Installation, PasswordResetToken, Product, User
 from seeds import insert_seeds
-from water_params import compute_todo_status, extract_current_conditions, extract_history
+from water_params import (
+    MAINTENANCE_ACTION_TYPES,
+    compute_todo_status,
+    encode_measurement_notes,
+    extract_current_conditions,
+    extract_history,
+)
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 limiter = Limiter(key_func=get_remote_address)
@@ -451,6 +457,28 @@ class HistoryEntryOut(BaseModel):
     stabilizer: Optional[float] = None
     cc: Optional[float] = None
     temp: Optional[float] = None
+
+
+class MeasurementIn(BaseModel):
+    date: Optional[date] = None
+    ph: Optional[float] = None
+    chlorine: Optional[float] = None
+    bromine: Optional[float] = None
+    tac: Optional[float] = None
+    hardness: Optional[float] = None
+    salt: Optional[float] = None
+    stabilizer: Optional[float] = None
+    cc: Optional[float] = None
+    temp: Optional[float] = None
+    notes: str = ""
+    installation_id: Optional[int] = None
+
+
+class MaintenanceIn(BaseModel):
+    date: Optional[date] = None
+    action_type: str
+    notes: str = ""
+    installation_id: Optional[int] = None
 
 
 class ActionOut(BaseModel):
@@ -1006,9 +1034,12 @@ def delete_action(
 
 # ── Public API (Home Assistant, etc.) ──────────────────────────────────────
 #
-# Token-authenticated, read-only routes for external consumers. They return
+# Token-authenticated routes for external consumers. The read routes return
 # pre-parsed measurement fields (see water_params.py) rather than raw Action
 # rows, so callers don't need to understand the internal notes-encoding scheme.
+# The write routes (/v1/measurements, /v1/maintenance) take the same
+# pre-parsed shape and encode it into an Action server-side, for the same
+# reason.
 
 def _resolve_installation_for_api_key(
     installation_id: Optional[int],
@@ -1092,3 +1123,72 @@ def api_todo_status(
         .limit(500)
     ).all()
     return TodoStatusOut(**compute_todo_status(actions))
+
+
+@app.post("/v1/measurements", response_model=ActionOut)
+@limiter.limit("60/minute")
+def api_create_measurement(
+    request: Request,
+    payload: MeasurementIn,
+    user: User = Depends(get_current_user_by_api_key),
+    session: Session = Depends(get_session),
+):
+    resolved_id = _resolve_installation_for_api_key(payload.installation_id, user, session)
+    fields = {
+        "chlorine": payload.chlorine,
+        "bromine": payload.bromine,
+        "tac": payload.tac,
+        "hardness": payload.hardness,
+        "salt": payload.salt,
+        "stabilizer": payload.stabilizer,
+        "cc": payload.cc,
+        "temp": payload.temp,
+    }
+    fields = {k: v for k, v in fields.items() if v is not None}
+    if payload.ph is None and not fields:
+        raise HTTPException(status_code=422, detail="At least one measured value is required")
+
+    encoded = encode_measurement_notes(fields)
+    full_notes = ". ".join(part for part in [encoded, payload.notes] if part)
+    action = Action(
+        date=payload.date or date.today(),
+        action_type="Measurement",
+        user_id=user.id,
+        installation_id=resolved_id,
+        qty=str(payload.ph) if payload.ph is not None else "",
+        unit="",
+        notes=full_notes,
+        created_at=datetime.now(timezone.utc),
+    )
+    session.add(action)
+    session.commit()
+    session.refresh(action)
+    return action
+
+
+@app.post("/v1/maintenance", response_model=ActionOut)
+@limiter.limit("60/minute")
+def api_create_maintenance(
+    request: Request,
+    payload: MaintenanceIn,
+    user: User = Depends(get_current_user_by_api_key),
+    session: Session = Depends(get_session),
+):
+    if payload.action_type not in MAINTENANCE_ACTION_TYPES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"action_type must be one of {sorted(MAINTENANCE_ACTION_TYPES)}",
+        )
+    resolved_id = _resolve_installation_for_api_key(payload.installation_id, user, session)
+    action = Action(
+        date=payload.date or date.today(),
+        action_type=payload.action_type,
+        user_id=user.id,
+        installation_id=resolved_id,
+        notes=payload.notes,
+        created_at=datetime.now(timezone.utc),
+    )
+    session.add(action)
+    session.commit()
+    session.refresh(action)
+    return action
