@@ -8,6 +8,19 @@
       "description": "Non-breaking updates auto-merge once CI passes; major bumps always wait for manual review.",
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": true
+    },
+    {
+      "description": "Every PR needs a release:* label before it can merge (see require-release-label.yml) — map Renovate's own semver classification onto ours.",
+      "matchUpdateTypes": ["patch", "digest", "pin"],
+      "addLabels": ["release:patch"]
+    },
+    {
+      "matchUpdateTypes": ["minor"],
+      "addLabels": ["release:minor"]
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["release:major"]
     }
   ]
 }

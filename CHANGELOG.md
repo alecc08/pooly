@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - All components (HA integration, web app, API) now version in lockstep — every release bumps `manifest.json`, `apps/web/package.json`, and `apps/api/VERSION` together via `release.yml` (#25).
 - Weekly automated dependency updates via Renovate: patch/minor updates auto-merge after a 3-day stability window and passing CI, major updates always wait for manual review (#25).
+- Every PR must carry a `release:major`/`release:minor`/`release:patch`/`release:no-release` label before it can merge — enforced by a required check, closing the gap that let a PR merge without one and silently default to a patch release.
+- Release versioning now happens pre-merge: adding a `release:*` label to an open PR pushes the version bump straight onto that PR's branch (so it goes through normal CI like any other change) instead of committing directly to `main` after the fact, which a protected `main` no longer allows.
 
 ### Changed
 
