@@ -1,5 +1,10 @@
 name: Release
 
+# All component versions (HA integration manifest, web app, API) move in
+# lockstep and are bumped exclusively by this workflow — never hand-edit a
+# version field in manifest.json, apps/web/package.json, apps/web/package-lock.json,
+# or apps/api/VERSION.
+
 on:
   pull_request:
     types: [closed]
@@ -65,12 +70,27 @@ jobs:
           echo "next_version=$next_version" >> "$GITHUB_OUTPUT"
           echo "next_tag=$next_tag" >> "$GITHUB_OUTPUT"
 
-      - name: Bump manifest version
+      - name: Bump version across all components
         if: steps.level.outputs.level != 'no-release'
         run: |
-          jq --arg v "${{ steps.version.outputs.next_version }}" '.version = $v' \
-            custom_components/homepool/manifest.json > manifest.json.tmp
-          mv manifest.json.tmp custom_components/homepool/manifest.json
+          next_version="${{ steps.version.outputs.next_version }}"
+
+          # HA integration manifest — the source of truth "Compute next version" reads from.
+          jq --arg v "$next_version" '.version = $v' \
+            custom_components/homepool/manifest.json > tmp.json
+          mv tmp.json custom_components/homepool/manifest.json
+
+          # Web app — metadata only, nothing reads this at runtime yet, kept in sync anyway.
+          jq --arg v "$next_version" '.version = $v' \
+            apps/web/package.json > tmp.json
+          mv tmp.json apps/web/package.json
+          jq --arg v "$next_version" '.packages[""].version = $v' \
+            apps/web/package-lock.json > tmp.json
+          mv tmp.json apps/web/package-lock.json
+
+          # API backend — no packaging metadata of its own, so a plain VERSION file
+          # (read by apps/api/main.py) is its version source.
+          echo "$next_version" > apps/api/VERSION
 
       - name: Update changelog
         if: steps.level.outputs.level != 'no-release'
@@ -101,7 +121,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add custom_components/homepool/manifest.json CHANGELOG.md
+          git add custom_components/homepool/manifest.json CHANGELOG.md \
+            apps/web/package.json apps/web/package-lock.json apps/api/VERSION
           git commit -m "chore: release ${{ steps.version.outputs.next_tag }} [skip ci]"
           git push origin HEAD:${{ github.event.pull_request.base.ref }}
 

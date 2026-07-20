@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 6am on monday"],
+  "minimumReleaseAge": "3 days",
+  "packageRules": [
+    {
+      "description": "Non-breaking updates auto-merge once CI passes; major bumps always wait for manual review.",
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    }
+  ]
+}
