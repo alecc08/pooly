@@ -6,6 +6,7 @@ import secrets
 import uuid
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from fastapi import Body, Depends, FastAPI, HTTPException, Request, status
@@ -300,7 +301,11 @@ async def lifespan(app: FastAPI):
 
 # ── App ────────────────────────────────────────────────────────────────────
 
-app = FastAPI(title="homepool API", lifespan=lifespan)
+# VERSION is written by release.yml on every release, in lockstep with the HA
+# integration and web app — never hand-edit it.
+_VERSION = (Path(__file__).parent / "VERSION").read_text().strip()
+
+app = FastAPI(title="homepool API", version=_VERSION, lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(
     RateLimitExceeded,

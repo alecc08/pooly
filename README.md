@@ -20,7 +20,7 @@ original idea belongs there. If you like this project, go star the
 
 [![Release](https://img.shields.io/github/v/release/alecc08/homepool?style=flat-square&color=22d3ee)](https://github.com/alecc08/homepool/releases)
 [![Licence](https://img.shields.io/badge/licence-MIT-10b981?style=flat-square)](LICENSE)
-[![Docker](https://img.shields.io/badge/docker-compose-0ea5e9?style=flat-square&logo=docker&logoColor=white)](docker-compose.yml)
+[![Docker](https://img.shields.io/badge/docker-compose-0ea5e9?style=flat-square&logo=docker&logoColor=white)](compose.yaml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 
