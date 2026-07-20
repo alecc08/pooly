@@ -23,6 +23,7 @@ original idea belongs there. If you like this project, go star the
 [![Docker](https://img.shields.io/badge/docker-compose-0ea5e9?style=flat-square&logo=docker&logoColor=white)](compose.yaml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+[![HACS Validation](https://github.com/alecc08/homepool/actions/workflows/hacs.yml/badge.svg)](https://github.com/alecc08/homepool/actions/workflows/hacs.yml)
 
 </div>
 
@@ -41,9 +42,9 @@ Designed for self-hosters and the Home Assistant crowd who want full control wit
 - **AquaChek test strip input** — interactive color chart for pH, Alkalinity, Bromine, Chlorine and Hardness
 - **Digital device input** — decimal inputs with range validation
 - **Multi-installation** — manage multiple pools and spas with adapted reference ranges
-- **Bromine, chlorine or salt** — differentiated ideal ranges per sanitizer, including salt water generator (SWG) pools, with free-chlorine targets set for the higher CYA a salt system runs at
+- **Bromine, chlorine or salt** — differentiated ideal ranges per sanitizer, including a full salt water generator (SWG) profile: higher CYA, a matching free-chlorine target, and a lower total alkalinity target to slow the pH rise SWG cells cause
 - **Configurable ideal ranges** — override any water-parameter range per installation, right from the UI
-- **Dosage recommendations** — out-of-range params get a targeted dosing suggestion, plus a freestyle what-if simulator
+- **Dosage recommendations** — out-of-range params get a targeted dosing suggestion (liquid CYA now gets a real active-ingredient estimate instead of just "check the bottle"), plus a what-if simulator with slider inputs bounded by your installation's own acceptable ranges and prefilled from your latest reading
 - **Full history** — monthly timeline, type filters, full-text search
 - **Dark mode** — light, dark or automatic theme (system preference)
 - **PWA** — installable on mobile, bottom navigation, bottom sheet modal
@@ -128,7 +129,7 @@ Each installation gets a device with the following entities:
 
 #### 5. The homepool card
 
-A hand-written Lovelace card ships with the integration (no separate frontend install) — it mirrors the web app's water-status-board look: mono values, a status dot per parameter, the ideal range, and a "measured N days ago" readout, plus the six maintenance buttons and an inline mini-form for logging a full measurement.
+A hand-written Lovelace card ships with the integration (no separate frontend install) — it mirrors the web app's water-status-board look: mono values, a status dot per parameter, an ideal/acceptable range gauge, and a "measured N days ago" readout, plus the six maintenance buttons and an inline mini-form for logging a full measurement that adapts its fields to your installation's sanitizer (chlorine/bromine/salt), with a "more fields" toggle for hardness, CYA and notes.
 
 Add it from the card picker (search "homepool") or with YAML:
 
@@ -141,7 +142,7 @@ show_buttons: true
 show_due: true
 ```
 
-`entity_prefix` should match the prefix HA generated for your installation's sensors (e.g. `sensor.my_pool_ph` → prefix `sensor.my_pool`). `installation_id` is only needed if you want the inline "Log measurement" mini-form — find it in the homepool web app's URL or API.
+`entity_prefix` should match the prefix HA generated for your installation's sensors (e.g. `sensor.my_pool_ph` → prefix `sensor.my_pool`). `installation_id` is only needed if you want the inline "Log measurement" mini-form — find it in the homepool web app's URL or API. In the card's visual editor, you can skip typing either by hand: pick any one of your installation's sensors from the entity picker and both fields are derived from it automatically.
 
 > If the card doesn't appear after installing/updating, hard-refresh your browser — the resource is cache-busted per release, but browsers occasionally hold onto a stale copy. As a manual fallback, add the resource yourself: Settings → Dashboards → ⋮ → Resources → Add Resource → URL `/homepool/homepool-card.js`, type JavaScript Module.
 
@@ -185,7 +186,7 @@ Copy `.env.example` to `.env` and adjust the values:
 
 #### Customizing ideal water-parameter ranges
 
-Every ideal/acceptable range shown in the app (pH, free chlorine, salt, CYA, alkalinity, hardness, temperature...) has sensible built-in defaults per installation type and sanitizer — including a salt water generator (SWG) profile with a higher CYA target (60-80 ppm) and a matching free-chlorine band, following [PoolMath](https://www.troublefreepool.com/blog/poolmath/) / Trouble Free Pool guidance. If your setup runs differently, open an installation's edit modal → **Water Chemistry Targets** tab to customize any band per installation, right from the UI — no env vars or restarts required.
+Every ideal/acceptable range shown in the app (pH, free chlorine, salt, CYA, alkalinity, hardness, temperature...) has sensible built-in defaults per installation type and sanitizer — including a salt water generator (SWG) profile with a higher CYA target (60-80 ppm), a matching free-chlorine band, and a lower total alkalinity target (60-80 ppm, vs. 80-180 ppm for manually-dosed pools) since SWG cells raise pH over time and a lower TA slows that rise — following [PoolMath](https://www.troublefreepool.com/blog/poolmath/) / Trouble Free Pool guidance. If your setup runs differently, open an installation's edit modal → **Water Chemistry Targets** tab to customize any band per installation, right from the UI — no env vars or restarts required.
 
 ---
 

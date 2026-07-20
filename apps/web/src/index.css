@@ -160,6 +160,47 @@ button {
   border-top: 1px solid var(--border-subtle);
 }
 
+/* ── Simulator param sliders ─────────────────────────────── */
+/* Track background is set inline per-instance (a gradient marking the ideal
+   sub-band within the acceptable range); only thumb/track shape lives here. */
+.param-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.param-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+
+.param-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-surface);
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+}
+
+.param-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: transparent;
+}
+
 /* ── Sidebar ─────────────────────────────────────────────── */
 .sidebar {
   width: 232px;

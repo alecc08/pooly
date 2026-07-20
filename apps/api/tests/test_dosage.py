@@ -118,6 +118,23 @@ def test_salt_pool_chlorine_uses_swg_guidance_not_product():
     assert option["notes_key"] == "dosage_increase_swg_runtime"
 
 
+def test_cya_raise_liquid_states_active_grams_not_ml():
+    # Liquid CYA is the same active ingredient as granular, just pre-dissolved at a
+    # brand-specific concentration -- so it should state the same active-mass dose in
+    # grams (not a guessed mL volume), with its own caveat note.
+    installation = make_installation(sanitizer="salt", volume=1000, volume_unit="L")
+    ranges = ranges_for(installation)
+    current = current_of(ph=7.4, salt=3000, stabilizer=40, chlorine=4.0)
+    recs = compute_recommendations(current, ranges, installation)
+    cya_rec = next(r for r in recs if r["param"] == "cya")
+    granular = next(o for o in cya_rec["options"] if o["product_id"] == "cya_granular")
+    liquid = next(o for o in cya_rec["options"] if o["product_id"] == "cya_liquid")
+    assert granular["notes_key"] == "dosage_cya_granular_test_lag"
+    assert liquid["notes_key"] == "dosage_cya_liquid_active_grams"
+    assert liquid["amount_grams"] == granular["amount_grams"] == 29.1
+    assert liquid["amount_ml"] is None
+
+
 def test_high_salt_is_guidance_only_dilution():
     installation = make_installation(sanitizer="salt", volume=1000, volume_unit="L")
     ranges = ranges_for(installation)

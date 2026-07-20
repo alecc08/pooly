@@ -205,7 +205,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
           : page === 'history'
           ? <HistoryPage actions={actions} products={products} onEdit={setEditingAction} onDelete={setDeletingAction} />
           : page === 'recommendations'
-          ? <RecommendationsPage />
+          ? <RecommendationsPage actions={actions} />
           : <DashboardPage actions={actions} products={products} onEdit={setEditingAction} onDelete={setDeletingAction} onExport={handleExport} onImport={handleImport} onNavigate={navigate} onAdd={() => setShowForm(true)} />
         }
       </main>

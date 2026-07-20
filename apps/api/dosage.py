@@ -37,6 +37,7 @@ def _exact_option(
     dose_volume_L: float = 1000.0,
     purity: Optional[float] = None,
     notes_key: Optional[str] = None,
+    amount_unit: Optional[str] = None,
 ) -> Dict:
     return {
         "product_id": product_id,
@@ -47,6 +48,11 @@ def _exact_option(
         "dose_param_delta": dose_param_delta,
         "dose_volume_L": dose_volume_L,
         "notes_key": notes_key,
+        # Which output field the computed amount lands in. Defaults to the product's
+        # physical form (solid -> grams, liquid -> mL), but can be overridden --
+        # e.g. cya_liquid states its dose in grams of active ingredient, not a poured
+        # volume, since liquid CYA concentration varies too much by brand to convert.
+        "amount_unit": amount_unit or ("grams" if form == "solid" else "ml"),
     }
 
 
@@ -65,6 +71,7 @@ def _inexact_option(
         "dose_param_delta": None,
         "dose_volume_L": None,
         "notes_key": notes_key,
+        "amount_unit": "grams" if form == "solid" else "ml",
     }
 
 
@@ -86,8 +93,14 @@ TREATMENT_TABLE: Dict[str, Dict] = {
     "cya": {
         "raise": {
             "options": [
-                _exact_option("cya_granular", "solid", 9.7, 10.0),
-                _inexact_option("cya_liquid", "liquid", notes_key="dosage_follow_label"),
+                _exact_option("cya_granular", "solid", 9.7, 10.0, notes_key="dosage_cya_granular_test_lag"),
+                # Same active-ingredient dose as granular -- liquid CYA is just cyanuric
+                # acid pre-dissolved at a brand-specific concentration, so we state the
+                # active mass needed (grams) rather than guessing a volume.
+                _exact_option(
+                    "cya_liquid", "liquid", 9.7, 10.0,
+                    amount_unit="grams", notes_key="dosage_cya_liquid_active_grams",
+                ),
             ]
         },
         "lower": _DILUTION_GUIDANCE,
@@ -162,8 +175,8 @@ def _options_with_amounts(options: List[Dict], delta: float, volume_L: Optional[
             "product_id": opt["product_id"],
             "form": opt["form"],
             "exact": opt["exact"],
-            "amount_grams": amount if amount is not None and opt["form"] == "solid" else None,
-            "amount_ml": amount if amount is not None and opt["form"] == "liquid" else None,
+            "amount_grams": amount if amount is not None and opt["amount_unit"] == "grams" else None,
+            "amount_ml": amount if amount is not None and opt["amount_unit"] == "ml" else None,
             "notes_key": opt.get("notes_key"),
         })
     return options_out
