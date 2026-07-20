@@ -63,8 +63,8 @@ jobs:
         if: steps.level.outputs.level != 'no-release'
         run: |
           jq --arg v "${{ steps.version.outputs.next_version }}" '.version = $v' \
-            custom_components/pooly/manifest.json > manifest.json.tmp
-          mv manifest.json.tmp custom_components/pooly/manifest.json
+            custom_components/homepool/manifest.json > manifest.json.tmp
+          mv manifest.json.tmp custom_components/homepool/manifest.json
 
       - name: Update changelog
         if: steps.level.outputs.level != 'no-release'
@@ -95,7 +95,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add custom_components/pooly/manifest.json CHANGELOG.md
+          git add custom_components/homepool/manifest.json CHANGELOG.md
           git commit -m "chore: release ${{ steps.version.outputs.next_tag }} [skip ci]"
           git push origin HEAD:main
 

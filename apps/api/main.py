@@ -23,6 +23,7 @@ from database import engine, get_session
 from dosage import compute_recommendations
 from models import Action, ApiKey, Installation, PasswordResetToken, Product, User
 from seeds import insert_seeds
+from simulator import simulate_dosage, simulate_heating_energy
 from water_params import (
     MAINTENANCE_ACTION_TYPES,
     compute_todo_status,
@@ -482,6 +483,21 @@ class MaintenanceIn(BaseModel):
     installation_id: Optional[int] = None
 
 
+class SimulateDosageIn(BaseModel):
+    param: str
+    current_value: float
+    target_value: float
+    volume_L: float
+    sanitizer: str = "chlorine"
+
+
+class SimulateHeatingIn(BaseModel):
+    volume_L: float
+    current_temp_c: float
+    target_temp_c: float
+    efficiency: float = 0.9
+
+
 class ActionOut(BaseModel):
     id: int
     date: date
@@ -882,6 +898,30 @@ def get_installation_recommendations(
         "volume_known": installation.volume is not None,
         "recommendations": compute_recommendations(current, ranges, installation),
     }
+
+
+@app.post("/simulate/dosage")
+def simulate_dosage_endpoint(
+    payload: SimulateDosageIn,
+    user: User = Depends(get_current_user),
+):
+    try:
+        return simulate_dosage(
+            payload.param, payload.current_value, payload.target_value,
+            payload.volume_L, payload.sanitizer,
+        )
+    except ValueError as err:
+        raise HTTPException(status_code=400, detail=str(err))
+
+
+@app.post("/simulate/heating")
+def simulate_heating_endpoint(
+    payload: SimulateHeatingIn,
+    user: User = Depends(get_current_user),
+):
+    return simulate_heating_energy(
+        payload.volume_L, payload.current_temp_c, payload.target_temp_c, payload.efficiency,
+    )
 
 
 def _range_error(detail: str) -> HTTPException:

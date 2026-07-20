@@ -1,4 +1,4 @@
-"""Sensor platform for Pooly."""
+"""Sensor platform for homepool."""
 from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -7,14 +7,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import PoolyConfigEntry
+from . import HomepoolConfigEntry
 from .const import DOMAIN, FIELD_META, FIELD_NAMES, TODO_META
-from .coordinator import PoolyDataUpdateCoordinator
+from .coordinator import HomepoolDataUpdateCoordinator
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: PoolyConfigEntry,
+    entry: HomepoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data
@@ -24,25 +24,25 @@ async def async_setup_entry(
             if field not in FIELD_META or not value:
                 continue
             entities.append(
-                PoolySensor(coordinator, entry.entry_id, installation_id, field)
+                HomepoolSensor(coordinator, entry.entry_id, installation_id, field)
             )
         for task in installation.get("todo", {}):
             if task not in TODO_META:
                 continue
             entities.append(
-                PoolyTodoSensor(coordinator, entry.entry_id, installation_id, task)
+                HomepoolTodoSensor(coordinator, entry.entry_id, installation_id, task)
             )
     async_add_entities(entities)
 
 
-class PoolySensor(CoordinatorEntity[PoolyDataUpdateCoordinator], SensorEntity):
+class HomepoolSensor(CoordinatorEntity[HomepoolDataUpdateCoordinator], SensorEntity):
     """A single measurement field for a single installation."""
 
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: PoolyDataUpdateCoordinator,
+        coordinator: HomepoolDataUpdateCoordinator,
         entry_id: str,
         installation_id: int,
         field: str,
@@ -77,7 +77,7 @@ class PoolySensor(CoordinatorEntity[PoolyDataUpdateCoordinator], SensorEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, str(self._installation_id))},
             name=installation["name"],
-            manufacturer="Pooly",
+            manufacturer="homepool",
             model=installation["type"].capitalize(),
         )
 
@@ -103,7 +103,7 @@ class PoolySensor(CoordinatorEntity[PoolyDataUpdateCoordinator], SensorEntity):
         return {"date": value["date"]}
 
 
-class PoolyTodoSensor(CoordinatorEntity[PoolyDataUpdateCoordinator], SensorEntity):
+class HomepoolTodoSensor(CoordinatorEntity[HomepoolDataUpdateCoordinator], SensorEntity):
     """Days-until-due for a single maintenance task on a single installation.
 
     A plain numeric sensor (not a binary_sensor) so users can build their own
@@ -117,7 +117,7 @@ class PoolyTodoSensor(CoordinatorEntity[PoolyDataUpdateCoordinator], SensorEntit
 
     def __init__(
         self,
-        coordinator: PoolyDataUpdateCoordinator,
+        coordinator: HomepoolDataUpdateCoordinator,
         entry_id: str,
         installation_id: int,
         task: str,
@@ -151,7 +151,7 @@ class PoolyTodoSensor(CoordinatorEntity[PoolyDataUpdateCoordinator], SensorEntit
         return DeviceInfo(
             identifiers={(DOMAIN, str(self._installation_id))},
             name=installation["name"],
-            manufacturer="Pooly",
+            manufacturer="homepool",
             model=installation["type"].capitalize(),
         )
 

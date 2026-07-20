@@ -164,7 +164,7 @@ homepool's water measurements can be pulled into Home Assistant as sensors.
 6. **Quick-add maintenance from Home Assistant**
    Each installation also gets one button entity per maintenance type — **Log Cartridge Cleaning**, **Log Skimmer Filter Cleaning**, **Log Backwash**, **Log pH Calibration**, **Log Purge**, **Log Water Change**. Pressing one logs that maintenance action against homepool immediately, no app needed.
 
-   For measurements (pH, chlorine, etc.), which need numeric input a plain button can't collect, use the `pooly.log_measurement` service instead — call it from a script, automation, or a dashboard button's `tap_action: perform-action`.
+   For measurements (pH, chlorine, etc.), which need numeric input a plain button can't collect, use the `homepool.log_measurement` service instead — call it from a script, automation, or a dashboard button's `tap_action: perform-action`.
 
    Example Lovelace card combining both:
 
@@ -192,7 +192,7 @@ homepool's water measurements can be pulled into Home Assistant as sensors.
      - type: button
        tap_action:
          action: perform-action
-         perform_action: pooly.log_measurement
+         perform_action: homepool.log_measurement
          target: {}
          data:
            installation_id: 1

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { Button } from '@/components/ui/button'
 import type { Recommendation, RecommendationsResponse } from '../types'
 import { PARAM_GUIDANCE } from '../paramGuidance'
 import { gramsToDisplay, mlToDisplay } from '../units'
 import { useInstallation } from '../context/InstallationContext'
 import { useT } from '../context/LocaleContext'
 import type { TranslationKey } from '../i18n/translations'
+import SimulatorModal from './SimulatorModal'
 
 const sectionCardStyle: React.CSSProperties = {
   background: 'var(--bg-surface)',
@@ -23,6 +25,7 @@ export default function RecommendationsPage() {
   const { t } = useT()
   const [data, setData] = useState<RecommendationsResponse | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showSimulator, setShowSimulator] = useState(false)
 
   useEffect(() => {
     if (!active) return
@@ -35,11 +38,16 @@ export default function RecommendationsPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
           {t('recommendations_page_title')}
         </div>
+        <Button type="button" variant="outline" onClick={() => setShowSimulator(true)}>
+          {t('simulator_open_button')}
+        </Button>
       </div>
+
+      <SimulatorModal open={showSimulator} onClose={() => setShowSimulator(false)} />
 
       {!loading && data && !data.volume_known && (
         <div style={{

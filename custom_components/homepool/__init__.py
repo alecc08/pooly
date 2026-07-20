@@ -1,4 +1,4 @@
-"""The Pooly integration."""
+"""The Homepool integration."""
 from __future__ import annotations
 
 import voluptuous as vol
@@ -8,9 +8,9 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 
-from .api import PoolyApiError
+from .api import HomepoolApiError
 from .const import DOMAIN
-from .coordinator import PoolyDataUpdateCoordinator
+from .coordinator import HomepoolDataUpdateCoordinator
 
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BUTTON]
 
@@ -32,11 +32,11 @@ SERVICE_LOG_MEASUREMENT_SCHEMA = vol.Schema(
     }
 )
 
-type PoolyConfigEntry = ConfigEntry[PoolyDataUpdateCoordinator]
+type HomepoolConfigEntry = ConfigEntry[HomepoolDataUpdateCoordinator]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: PoolyConfigEntry) -> bool:
-    coordinator = PoolyDataUpdateCoordinator(
+async def async_setup_entry(hass: HomeAssistant, entry: HomepoolConfigEntry) -> bool:
+    coordinator = HomepoolDataUpdateCoordinator(
         hass, entry.data[CONF_URL], entry.data[CONF_API_KEY]
     )
     await coordinator.async_config_entry_first_refresh()
@@ -57,11 +57,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolyConfigEntry) -> boo
                     continue
                 try:
                     await candidate_coordinator.client.create_measurement(installation_id, **fields)
-                except PoolyApiError as err:
+                except HomepoolApiError as err:
                     raise HomeAssistantError(str(err)) from err
                 await candidate_coordinator.async_request_refresh()
                 return
-            raise HomeAssistantError(f"Unknown Pooly installation_id: {installation_id}")
+            raise HomeAssistantError(f"Unknown Homepool installation_id: {installation_id}")
 
         hass.services.async_register(
             DOMAIN, SERVICE_LOG_MEASUREMENT, _async_log_measurement, schema=SERVICE_LOG_MEASUREMENT_SCHEMA
@@ -70,7 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PoolyConfigEntry) -> boo
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: PoolyConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: HomepoolConfigEntry) -> bool:
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
         other_loaded = [

@@ -1,4 +1,4 @@
-"""Config flow for Pooly."""
+"""Config flow for Homepool."""
 from __future__ import annotations
 
 from typing import Any
@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_API_KEY, CONF_URL
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import PoolyApiError, PoolyAuthError, PoolyClient
+from .api import HomepoolApiError, HomepoolAuthError, HomepoolClient
 from .const import DOMAIN
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
@@ -19,8 +19,8 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
-class PoolyConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Pooly."""
+class HomepoolConfigFlow(ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Homepool."""
 
     VERSION = 1
 
@@ -31,12 +31,12 @@ class PoolyConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             base_url = user_input[CONF_URL].rstrip("/")
             api_key = user_input[CONF_API_KEY]
-            client = PoolyClient(async_get_clientsession(self.hass), base_url, api_key)
+            client = HomepoolClient(async_get_clientsession(self.hass), base_url, api_key)
             try:
                 installations = await client.list_installations()
-            except PoolyAuthError:
+            except HomepoolAuthError:
                 errors["base"] = "invalid_auth"
-            except PoolyApiError:
+            except HomepoolApiError:
                 errors["base"] = "cannot_connect"
             else:
                 if not installations:
@@ -45,7 +45,7 @@ class PoolyConfigFlow(ConfigFlow, domain=DOMAIN):
                     await self.async_set_unique_id(f"{base_url}:{api_key}")
                     self._abort_if_unique_id_configured()
                     return self.async_create_entry(
-                        title="Pooly",
+                        title="Homepool",
                         data={CONF_URL: base_url, CONF_API_KEY: api_key},
                     )
 

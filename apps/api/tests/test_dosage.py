@@ -86,6 +86,18 @@ def test_missing_volume_returns_none_amounts_without_error():
     assert tac_rec["options"][0]["amount_grams"] is None
 
 
+def test_watch_tier_param_still_triggers_recommendation():
+    # TAC 190 is inside the acceptable band (60, 200) but outside the tighter
+    # ideal band (80, 180) -- the dashboard's "Watch" badge already fires here,
+    # so a recommendation must be generated too (previously silently skipped).
+    installation = make_installation(sanitizer="bromine", volume=1000, volume_unit="L")
+    ranges = ranges_for(installation)
+    current = current_of(ph=7.4, bromine=3.0, tac=190, temp=26, hardness=300)
+    recs = compute_recommendations(current, ranges, installation)
+    tac_rec = next(r for r in recs if r["param"] == "tac")
+    assert tac_rec["direction"] == "lower"
+
+
 def test_in_range_param_excluded():
     installation = make_installation(sanitizer="bromine", volume=1000, volume_unit="L")
     ranges = ranges_for(installation)

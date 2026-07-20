@@ -1,8 +1,8 @@
-"""Constants for the Pooly integration."""
+"""Constants for the homepool integration."""
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import CONF_API_KEY, CONF_URL  # noqa: F401
 
-DOMAIN = "pooly"
+DOMAIN = "homepool"
 
 CONF_BASE_URL = CONF_URL
 
@@ -42,7 +42,7 @@ TODO_META = {
 }
 
 # Maintenance action_type -> (icon, name), mirrors MAINTENANCE_ACTION_TYPES on the
-# Pooly public API (apps/api/water_params.py). Kept as a literal set here since the
+# homepool public API (apps/api/water_params.py). Kept as a literal set here since the
 # HA integration has no dependency on the api package.
 BUTTON_META = {
     "Cartridge cleaning": ("mdi:air-filter", "Log Cartridge Cleaning"),
