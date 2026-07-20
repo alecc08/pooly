@@ -405,6 +405,8 @@ export const translations = {
     dosage_chlorine_varies: 'La quantité dépend de la concentration du produit utilisé — suivez les instructions de l\'étiquette.',
     dosage_increase_swg_runtime: "Augmentez la durée de fonctionnement de votre chlorinateur électrolytique — le chlore provient du sel, pas d'un produit à doser.",
     dosage_dilution_required: "Valeur trop élevée — diluez en renouvelant une partie de l'eau du bassin.",
+    dosage_cya_granular_test_lag: "Le stabilisant granulé peut prendre jusqu'à une semaine pour se dissoudre complètement et apparaître dans un test — ne redosez pas sur la base d'une mesure prise trop tôt.",
+    dosage_cya_liquid_active_grams: "Ceci correspond à la quantité de stabilisant actif nécessaire. La concentration des stabilisants liquides varie selon la marque — vérifiez le %CYA ou les g/L indiqués sur l'étiquette et divisez la quantité ci-dessus par cette concentration pour obtenir le volume à ajouter. Pas de concentration indiquée ? Le stabilisant granulé offre un dosage plus fiable.",
 
     simulator_open_button: 'Simulateur',
     simulator_title: 'Simulateur',
@@ -830,6 +832,8 @@ export const translations = {
     dosage_chlorine_varies: 'Amount depends on the strength of the product used — follow the label instructions.',
     dosage_increase_swg_runtime: 'Increase your salt-water chlorinator runtime — chlorine comes from the SWG, not a dosed product.',
     dosage_dilution_required: 'Too high — dilute with a partial drain and refill.',
+    dosage_cya_granular_test_lag: "Granular stabilizer can take up to a week to fully dissolve and show up on a test — don't re-dose based on an early reading.",
+    dosage_cya_liquid_active_grams: 'This is the amount of active stabilizer needed. Liquid stabilizer concentration varies by brand — check your label for its %CYA or g/L and divide the amount above by that concentration to get the volume to add. No concentration listed? Granular CYA gives a more reliable dose.',
 
     simulator_open_button: 'Simulator',
     simulator_title: 'Simulator',

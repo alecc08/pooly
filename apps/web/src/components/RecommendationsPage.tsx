@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import type { Recommendation, RecommendationsResponse } from '../types'
+import type { Action, Recommendation, RecommendationsResponse } from '../types'
 import { PARAM_GUIDANCE } from '../paramGuidance'
 import { gramsToDisplay, mlToDisplay } from '../units'
 import { useInstallation } from '../context/InstallationContext'
@@ -21,7 +21,7 @@ function formatValue(n: number): string {
   return Number.isInteger(n) ? String(n) : n.toFixed(1)
 }
 
-export default function RecommendationsPage() {
+export default function RecommendationsPage({ actions }: { actions: Action[] }) {
   const { active } = useInstallation()
   const { t } = useT()
   const [data, setData] = useState<RecommendationsResponse | null>(null)
@@ -48,7 +48,7 @@ export default function RecommendationsPage() {
         </div>
       </div>
 
-      <SimulatorModal open={showSimulator} onClose={() => setShowSimulator(false)} />
+      <SimulatorModal open={showSimulator} onClose={() => setShowSimulator(false)} actions={actions} />
 
       {!loading && data && !data.volume_known && (
         <div style={{

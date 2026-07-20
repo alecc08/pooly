@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,7 +8,8 @@ import { useInstallation } from '../context/InstallationContext'
 import { useT } from '../context/LocaleContext'
 import { PARAM_GUIDANCE } from '../paramGuidance'
 import { displayToMetricConverter, gramsToDisplay, mlToDisplay } from '../units'
-import type { DosageOption, ParamKey } from '../types'
+import { extractMeasuredParams, type MeasuredParams } from '../utils'
+import type { Action, DosageOption, Installation, InstallationWaterParams, ParamBand, ParamKey } from '../types'
 import type { TranslationKey } from '../i18n/translations'
 
 // Params dosage.py's TREATMENT_TABLE has actionable guidance for -- cc and temp are
@@ -20,6 +21,7 @@ const GAL_TO_L = 3.78541
 type Props = {
   open: boolean
   onClose: () => void
+  actions: Action[]
 }
 
 type Tab = 'dosage' | 'heating'
@@ -56,10 +58,49 @@ function unitLabelFor(param: ParamKey, concUnit: string): string {
   }
 }
 
-export default function SimulatorModal({ open, onClose }: Props) {
+function stepFor(param: ParamKey): number {
+  if (param === 'ph') return 0.05
+  if (param === 'cl' || param === 'br') return 0.1
+  return 1
+}
+
+// Maps a dosage ParamKey to extractMeasuredParams' (differently-named) field, for
+// prefilling the sliders from the installation's own logged measurements.
+const MEASURED_KEY_FOR_PARAM: Partial<Record<ParamKey, keyof MeasuredParams>> = {
+  ph: 'ph', cl: 'chlorine', br: 'bromine', tac: 'tac', salt: 'salt', cya: 'stabilizer', hardness: 'hardness',
+}
+
+function measuredValueFor(param: ParamKey, measured: MeasuredParams, installation: Installation | null): number | null {
+  const key = MEASURED_KEY_FOR_PARAM[param]
+  if (!key) return null
+  const raw = measured[key]
+  if (raw == null) return null
+  // Only salt/hardness actually convert between display and canonical units --
+  // everything else here is display-label-only (see units.ts).
+  if (param === 'salt' || param === 'hardness') {
+    const toMetric = displayToMetricConverter(param, installation ?? undefined)
+    return toMetric ? toMetric(raw) : raw
+  }
+  return raw
+}
+
+export default function SimulatorModal({ open, onClose, actions }: Props) {
   const { t } = useT()
-  const { active } = useInstallation()
+  const { active, ranges } = useInstallation()
   const [tab, setTab] = useState<Tab>('dosage')
+  const [waterParams, setWaterParams] = useState<InstallationWaterParams | null>(null)
+
+  const measured = useMemo(() => extractMeasuredParams(actions), [actions])
+
+  useEffect(() => {
+    if (!open || !active) return
+    let cancelled = false
+    fetch(`/api/installations/${active.id}/params`, { credentials: 'same-origin' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (!cancelled) setWaterParams(data) })
+      .catch(() => { if (!cancelled) setWaterParams(null) })
+    return () => { cancelled = true }
+  }, [open, active?.id])
 
   const handleClose = () => onClose()
 
@@ -95,24 +136,101 @@ export default function SimulatorModal({ open, onClose }: Props) {
           ))}
         </div>
 
-        {tab === 'dosage' ? <DosageTab installationVolume={active?.volume ?? undefined} volumeUnit={active?.volume_unit ?? 'L'} sanitizer={active?.sanitizer ?? 'chlorine'} concUnit={active?.conc_unit ?? 'mg/L'} /> : <HeatingTab installationVolume={active?.volume ?? undefined} volumeUnit={active?.volume_unit ?? 'L'} tempUnit={active?.temp_unit ?? 'C'} />}
+        {tab === 'dosage'
+          ? (
+            <DosageTab
+              installationVolume={active?.volume ?? undefined}
+              volumeUnit={active?.volume_unit ?? 'L'}
+              sanitizer={active?.sanitizer ?? 'chlorine'}
+              concUnit={active?.conc_unit ?? 'mg/L'}
+              waterParams={waterParams}
+              measured={measured}
+              active={active}
+            />
+          )
+          : (
+            <HeatingTab
+              installationVolume={active?.volume ?? undefined}
+              volumeUnit={active?.volume_unit ?? 'L'}
+              tempUnit={active?.temp_unit ?? 'C'}
+              tempRange={ranges?.temp}
+              measuredTemp={measured.temp}
+            />
+          )}
       </DialogContent>
     </Dialog>
   )
 }
 
+function ParamSlider({
+  label, unit, min, max, step, idealMin, idealMax, value, onChange,
+}: {
+  label: string
+  unit: string
+  min: number
+  max: number
+  step: number
+  idealMin: number
+  idealMax: number
+  value: number
+  onChange: (v: number) => void
+}) {
+  const pct = (v: number) => (max > min ? ((v - min) / (max - min)) * 100 : 0)
+  const idealStartPct = pct(idealMin)
+  const idealEndPct = pct(idealMax)
+  const gradient = `linear-gradient(to right, var(--border) 0%, var(--border) ${idealStartPct}%, var(--accent) ${idealStartPct}%, var(--accent) ${idealEndPct}%, var(--border) ${idealEndPct}%, var(--border) 100%)`
+
+  return (
+    <div style={sectionStyle}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+        <Label style={{ margin: 0 }}>{label}</Label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Input
+            type="number"
+            step="any"
+            value={value}
+            onChange={e => {
+              const v = parseFloat(e.target.value)
+              if (!isNaN(v)) onChange(v)
+            }}
+            style={{ width: 76, height: 26, fontSize: 12, textAlign: 'right', padding: '2px 6px' }}
+          />
+          {unit && (
+            <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'var(--text-muted)' }}>
+              {unit}
+            </span>
+          )}
+        </div>
+      </div>
+      <input
+        type="range"
+        className="param-slider"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={e => onChange(parseFloat(e.target.value))}
+        style={{ background: gradient }}
+      />
+    </div>
+  )
+}
+
 function DosageTab({
-  installationVolume, volumeUnit, sanitizer, concUnit,
+  installationVolume, volumeUnit, sanitizer, concUnit, waterParams, measured, active,
 }: {
   installationVolume?: number
   volumeUnit: 'L' | 'gal'
   sanitizer: 'bromine' | 'chlorine' | 'salt'
   concUnit: string
+  waterParams: InstallationWaterParams | null
+  measured: MeasuredParams
+  active: Installation | null
 }) {
   const { t } = useT()
   const [param, setParam] = useState<ParamKey>('ph')
-  const [current, setCurrent] = useState('')
-  const [target, setTarget] = useState('')
+  const [current, setCurrent] = useState(7.4)
+  const [target, setTarget] = useState(7.4)
   const [volume, setVolume] = useState(installationVolume != null ? String(installationVolume) : '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -121,13 +239,23 @@ function DosageTab({
   const unit = useMemo(() => unitLabelFor(param, concUnit), [param, concUnit])
   const guidance = PARAM_GUIDANCE[param]
 
+  const band: ParamBand = waterParams?.[param] ?? { ideal: guidance.bounds, acceptable: guidance.bounds }
+  const [min, max] = band.acceptable
+  const [idealMin, idealMax] = band.ideal
+
+  useEffect(() => {
+    const mid = (idealMin + idealMax) / 2
+    const measuredValue = measuredValueFor(param, measured, active)
+    setCurrent(measuredValue ?? mid)
+    setTarget(mid)
+    setResult(null)
+  }, [param, idealMin, idealMax, measured, active])
+
   async function handleCalculate() {
     setError(null)
     setResult(null)
-    const currentValue = parseFloat(current)
-    const targetValue = parseFloat(target)
     const volumeValue = parseFloat(volume)
-    if (isNaN(currentValue) || isNaN(targetValue) || isNaN(volumeValue)) {
+    if (isNaN(volumeValue)) {
       setError(t('simulator_dosage_error_generic'))
       return
     }
@@ -140,12 +268,12 @@ function DosageTab({
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify({
-          param, current_value: currentValue, target_value: targetValue,
+          param, current_value: current, target_value: target,
           volume_L: volumeL, sanitizer,
         }),
       })
       if (!res.ok) {
-        setError(currentValue === targetValue ? t('simulator_dosage_error_same_value') : t('simulator_dosage_error_generic'))
+        setError(current === target ? t('simulator_dosage_error_same_value') : t('simulator_dosage_error_generic'))
         return
       }
       setResult(await res.json())
@@ -160,7 +288,7 @@ function DosageTab({
     <div style={{ display: 'grid', gap: 14 }}>
       <div style={sectionStyle}>
         <Label>{t('simulator_dosage_param_label')}</Label>
-        <Select value={param} onValueChange={v => { setParam(v as ParamKey); setResult(null) }}>
+        <Select value={param} onValueChange={v => setParam(v as ParamKey)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             {SIMULATOR_DOSAGE_PARAMS.map(p => (
@@ -170,16 +298,22 @@ function DosageTab({
         </Select>
       </div>
 
-      <div style={{ display: 'flex', gap: 8 }}>
-        <div style={{ ...sectionStyle, flex: 1 }}>
-          <Label htmlFor="sim-current">{t('simulator_dosage_current_label')}{unit ? ` (${unit})` : ''}</Label>
-          <Input id="sim-current" type="number" step="any" value={current} onChange={e => setCurrent(e.target.value)} />
-        </div>
-        <div style={{ ...sectionStyle, flex: 1 }}>
-          <Label htmlFor="sim-target">{t('simulator_dosage_target_label')}{unit ? ` (${unit})` : ''}</Label>
-          <Input id="sim-target" type="number" step="any" value={target} onChange={e => setTarget(e.target.value)} />
-        </div>
-      </div>
+      <ParamSlider
+        label={t('simulator_dosage_current_label')}
+        unit={unit}
+        min={min} max={max} step={stepFor(param)}
+        idealMin={idealMin} idealMax={idealMax}
+        value={current}
+        onChange={setCurrent}
+      />
+      <ParamSlider
+        label={t('simulator_dosage_target_label')}
+        unit={unit}
+        min={min} max={max} step={stepFor(param)}
+        idealMin={idealMin} idealMax={idealMax}
+        value={target}
+        onChange={setTarget}
+      />
 
       <div style={sectionStyle}>
         <Label htmlFor="sim-volume">{t('simulator_dosage_volume_label')} ({volumeUnit})</Label>
@@ -246,34 +380,47 @@ function AmountLine({ grams, mL, volumeUnit }: { grams?: number; mL?: number; vo
 }
 
 function HeatingTab({
-  installationVolume, volumeUnit, tempUnit,
+  installationVolume, volumeUnit, tempUnit, tempRange, measuredTemp,
 }: {
   installationVolume?: number
   volumeUnit: 'L' | 'gal'
   tempUnit: 'C' | 'F'
+  tempRange?: ParamBand
+  measuredTemp: number | null
 }) {
   const { t } = useT()
-  const [currentTemp, setCurrentTemp] = useState('')
-  const [targetTemp, setTargetTemp] = useState('')
+  const guidanceBounds = PARAM_GUIDANCE.temp.bounds
+  const band: ParamBand = tempRange ?? { ideal: guidanceBounds, acceptable: guidanceBounds }
+  const [min, max] = band.acceptable
+  const [idealMin, idealMax] = band.ideal
+  const idealMid = (idealMin + idealMax) / 2
+
+  const [currentTemp, setCurrentTemp] = useState(measuredTemp ?? idealMid)
+  const [targetTemp, setTargetTemp] = useState(idealMid)
   const [volume, setVolume] = useState(installationVolume != null ? String(installationVolume) : '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<HeatingResult | null>(null)
 
+  useEffect(() => {
+    setCurrentTemp(measuredTemp ?? idealMid)
+    setTargetTemp(idealMid)
+    setResult(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idealMin, idealMax, measuredTemp])
+
   async function handleCalculate() {
     setError(null)
     setResult(null)
-    const currentValue = parseFloat(currentTemp)
-    const targetValue = parseFloat(targetTemp)
     const volumeValue = parseFloat(volume)
-    if (isNaN(currentValue) || isNaN(targetValue) || isNaN(volumeValue)) {
+    if (isNaN(volumeValue)) {
       setError(t('simulator_dosage_error_generic'))
       return
     }
     const volumeL = volumeUnit === 'gal' ? volumeValue * GAL_TO_L : volumeValue
     const toCelsius = displayToMetricConverter('temp', { temp_unit: tempUnit })
-    const currentC = toCelsius ? toCelsius(currentValue) : currentValue
-    const targetC = toCelsius ? toCelsius(targetValue) : targetValue
+    const currentC = toCelsius ? toCelsius(currentTemp) : currentTemp
+    const targetC = toCelsius ? toCelsius(targetTemp) : targetTemp
 
     setLoading(true)
     try {
@@ -294,16 +441,22 @@ function HeatingTab({
 
   return (
     <div style={{ display: 'grid', gap: 14 }}>
-      <div style={{ display: 'flex', gap: 8 }}>
-        <div style={{ ...sectionStyle, flex: 1 }}>
-          <Label htmlFor="sim-heat-current">{t('simulator_heating_current_temp_label')} (°{tempUnit})</Label>
-          <Input id="sim-heat-current" type="number" step="any" value={currentTemp} onChange={e => setCurrentTemp(e.target.value)} />
-        </div>
-        <div style={{ ...sectionStyle, flex: 1 }}>
-          <Label htmlFor="sim-heat-target">{t('simulator_heating_target_temp_label')} (°{tempUnit})</Label>
-          <Input id="sim-heat-target" type="number" step="any" value={targetTemp} onChange={e => setTargetTemp(e.target.value)} />
-        </div>
-      </div>
+      <ParamSlider
+        label={t('simulator_heating_current_temp_label')}
+        unit={`°${tempUnit}`}
+        min={min} max={max} step={0.5}
+        idealMin={idealMin} idealMax={idealMax}
+        value={currentTemp}
+        onChange={setCurrentTemp}
+      />
+      <ParamSlider
+        label={t('simulator_heating_target_temp_label')}
+        unit={`°${tempUnit}`}
+        min={min} max={max} step={0.5}
+        idealMin={idealMin} idealMax={idealMax}
+        value={targetTemp}
+        onChange={setTargetTemp}
+      />
 
       <div style={sectionStyle}>
         <Label htmlFor="sim-heat-volume">{t('simulator_heating_volume_label')} ({volumeUnit})</Label>
