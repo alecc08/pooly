@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- All components (HA integration, web app, API) now version in lockstep — every release bumps `manifest.json`, `apps/web/package.json`, and `apps/api/VERSION` together via `release.yml` (#25).
+- Weekly automated dependency updates via Renovate: patch/minor updates auto-merge after a 3-day stability window and passing CI, major updates always wait for manual review (#25).
+
+### Changed
+
+- `docker-compose.yml` renamed to `compose.yaml` (#25).
+
+### Removed
+
+- Dead pre-rebrand `landing/` and `docs/index.html` marketing pages — never published (no GitHub Pages configured), unreferenced anywhere, and still fully "Pooly"-branded (#25).
+
 ## [0.1.3] - 2026-07-20
 
 ## [0.2.0] - 2026-07-20 [RETRACTED]
