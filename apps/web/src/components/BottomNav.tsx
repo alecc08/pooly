@@ -1,3 +1,4 @@
+import { Home, Activity, Clock, ClipboardList, Plus } from 'lucide-react'
 import { useT } from '../context/LocaleContext'
 
 type Page = 'log' | 'measurements' | 'history' | 'recommendations'
@@ -16,10 +17,7 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
         className={`bn-item${page === 'log' ? ' active' : ''}`}
         onClick={() => onNavigate('log')}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
+        <Home size={20} strokeWidth={1.75} aria-hidden="true" />
         {t('nav_log')}
       </button>
 
@@ -27,58 +25,19 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
         className={`bn-item${page === 'measurements' ? ' active' : ''}`}
         onClick={() => onNavigate('measurements')}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-        </svg>
+        <Activity size={20} strokeWidth={1.75} aria-hidden="true" />
         {t('nav_measurements')}
       </button>
 
-      <button
-        onClick={onAdd}
-        aria-label={t('nav_new_entry_aria')}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '3px',
-          flexShrink: 0,
-          padding: '6px 10px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-        }}
-      >
-        <div style={{
-          width: '36px',
-          height: '36px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: '10px',
-          background: 'rgba(45,212,191,0.08)',
-        }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-            stroke="#2dd4bf" strokeWidth="2.5">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-        </div>
-        <span style={{
-          fontSize: '9px',
-          fontWeight: 600,
-          color: '#2dd4bf',
-          fontFamily: 'Sora, sans-serif',
-        }}>{t('nav_new')}</span>
+      <button className="bn-fab" onClick={onAdd} aria-label={t('nav_new_entry_aria')}>
+        <Plus size={22} strokeWidth={2} aria-hidden="true" />
       </button>
 
       <button
         className={`bn-item${page === 'history' ? ' active' : ''}`}
         onClick={() => onNavigate('history')}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
+        <Clock size={20} strokeWidth={1.75} aria-hidden="true" />
         {t('nav_history')}
       </button>
 
@@ -86,11 +45,7 @@ export default function BottomNav({ page, onNavigate, onAdd }: Props) {
         className={`bn-item${page === 'recommendations' ? ' active' : ''}`}
         onClick={() => onNavigate('recommendations')}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
-          <rect x="6" y="6" width="12" height="12" rx="2" />
-          <path d="M9 12h6M12 9v6" />
-        </svg>
+        <ClipboardList size={20} strokeWidth={1.75} aria-hidden="true" />
         {t('nav_recommendations')}
       </button>
     </nav>

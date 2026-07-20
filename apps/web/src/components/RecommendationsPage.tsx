@@ -11,7 +11,8 @@ import SimulatorModal from './SimulatorModal'
 const sectionCardStyle: React.CSSProperties = {
   background: 'var(--bg-surface)',
   border: '1px solid var(--border)',
-  borderRadius: 16,
+  borderRadius: 'var(--radius-lg)',
+  boxShadow: 'var(--shadow-card)',
   padding: '16px',
   marginBottom: 14,
 }
@@ -38,13 +39,13 @@ export default function RecommendationsPage() {
 
   return (
     <div>
-      <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
-          {t('recommendations_page_title')}
+      <div className="page-header">
+        <h1 className="page-header-title">{t('recommendations_page_title')}</h1>
+        <div className="page-header-actions">
+          <Button type="button" variant="outline" onClick={() => setShowSimulator(true)}>
+            {t('simulator_open_button')}
+          </Button>
         </div>
-        <Button type="button" variant="outline" onClick={() => setShowSimulator(true)}>
-          {t('simulator_open_button')}
-        </Button>
       </div>
 
       <SimulatorModal open={showSimulator} onClose={() => setShowSimulator(false)} />
@@ -52,7 +53,7 @@ export default function RecommendationsPage() {
       {!loading && data && !data.volume_known && (
         <div style={{
           background: 'var(--status-warn-bg)', color: 'var(--status-warn-text)',
-          border: '1px solid var(--status-warn-text)', borderRadius: 12,
+          border: '1px solid var(--status-warn-text)', borderRadius: 'var(--radius-md)',
           padding: '10px 14px', marginBottom: 14,
           fontFamily: '"Sora", sans-serif', fontSize: 12,
         }}>

@@ -1,104 +1,114 @@
-/* ── DARK MODE (default) ──────────────────────────────────────────────────
-   homepool's palette is drawn from the logo: deep navy base, teal + violet
-   accents pulled from the test-tube gradient and scale-pan liquids. Dark is
-   the primary/default theme — home-assistant/self-hosting users tend to run
-   dark-first dashboards — with light fully supported as an alternative. */
+/* ── "Deep Ocean" theme ───────────────────────────────────────────────────
+   Near-black cool surfaces, hairline borders, a single cyan accent used
+   sparingly. Depth comes from subtle shadows and borders — no gradients.
+   Dark is the primary/default theme; light is a refined "paper over cool
+   gray" counterpart with the same token names. */
 :root, [data-theme="dark"] {
   /* homepool semantic tokens */
-  --bg-page:        #0a141f;
-  --bg-surface:     #101d2c;
-  --bg-surface-2:   #0b1622;
+  --bg-page:        #0B0F14;
+  --bg-surface:     #11161D;
+  --bg-surface-2:   #0D1218;
+  --bg-raised:      #161D26;
 
-  --border:         #1e3042;
-  --border-subtle:  #182636;
+  --border:         #1E2630;
+  --border-subtle:  #171E27;
 
-  --text-primary:   #eef6fb;
-  --text-secondary: #93aec4;
-  --text-muted:     #56728a;
+  --text-primary:   #E6EDF3;
+  --text-secondary: #8B98A9;
+  --text-muted:     #5B6878;
 
-  --accent:         #2dd4bf;
-  --accent-indigo:  #a78bfa;
+  --accent:         #22D3EE;
+  --accent-dim:     rgba(34, 211, 238, 0.12);
+  --accent-fg:      #06181D;
 
-  --status-ok-bg:      rgba(16,185,129,0.15);
-  --status-ok-text:    #34d399;
-  --status-warn-bg:    rgba(245,158,11,0.15);
-  --status-warn-text:  #fbbf24;
-  --status-danger-bg:  rgba(239,68,68,0.15);
-  --status-danger-text:#f87171;
+  --status-ok-bg:      rgba(63, 182, 139, 0.12);
+  --status-ok-text:    #3FB68B;
+  --status-warn-bg:    rgba(217, 161, 59, 0.12);
+  --status-warn-text:  #D9A13B;
+  --status-danger-bg:  rgba(229, 100, 95, 0.12);
+  --status-danger-text:#E5645F;
 
-  --badge-blue-bg:     rgba(45,212,191,0.14);
-  --badge-blue-text:   #2dd4bf;
-  --badge-purple-bg:   rgba(139,92,246,0.16);
-  --badge-purple-text: #c4b5fd;
-  --badge-orange-bg:   rgba(245,158,11,0.15);
-  --badge-orange-text: #fbbf24;
+  --badge-accent-bg:   rgba(34, 211, 238, 0.10);
+  --badge-accent-text: #22D3EE;
+  --badge-neutral-bg:  rgba(139, 152, 169, 0.10);
+  --badge-neutral-text:#8B98A9;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-pop:  0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
 
   /* Shadcn HSL tokens — dark */
-  --background:           210 45% 7%;
-  --foreground:           200 60% 96%;
-  --card:                 205 38% 12%;
-  --card-foreground:      200 60% 96%;
-  --popover:              205 38% 12%;
-  --popover-foreground:   200 60% 96%;
-  --primary:              205 55% 22%;
-  --primary-foreground:   200 60% 97%;
-  --secondary:            205 30% 18%;
-  --secondary-foreground: 200 60% 96%;
-  --muted:                205 30% 16%;
-  --muted-foreground:     205 20% 55%;
-  --destructive:          0 63% 55%;
+  --background:           210 27% 6%;
+  --foreground:           207 31% 93%;
+  --card:                 213 26% 9%;
+  --card-foreground:      207 31% 93%;
+  --popover:              212 26% 12%;
+  --popover-foreground:   207 31% 93%;
+  --primary:              189 85% 53%;
+  --primary-foreground:   193 66% 7%;
+  --secondary:            211 22% 15%;
+  --secondary-foreground: 207 31% 93%;
+  --muted:                212 25% 12%;
+  --muted-foreground:     212 12% 51%;
+  --destructive:          2 72% 63%;
   --destructive-foreground: 210 40% 98%;
-  --input:                205 30% 18%;
-  --ring:                 172 66% 50%;
+  --input:                211 22% 15%;
+  --ring:                 189 85% 53%;
   --radius:               0.5rem;
 }
 
 /* ── LIGHT MODE ─────────────────────────────────────────────────────────── */
 [data-theme="light"] {
   /* homepool semantic tokens */
-  --bg-page:        #f6f9fb;
-  --bg-surface:     #ffffff;
-  --bg-surface-2:   #f3f7fa;
+  --bg-page:        #F4F6F8;
+  --bg-surface:     #FFFFFF;
+  --bg-surface-2:   #EDF0F3;
+  --bg-raised:      #FFFFFF;
 
-  --border:         #dbe4ec;
-  --border-subtle:  #eef2f6;
+  --border:         #D8DEE5;
+  --border-subtle:  #E6EAEF;
 
-  --text-primary:   #0c2436;
-  --text-secondary: #4a6478;
-  --text-muted:     #90a4b4;
+  --text-primary:   #17222E;
+  --text-secondary: #556373;
+  --text-muted:     #8593A3;
 
-  --accent:         #14b8a6;
-  --accent-indigo:  #7c3aed;
+  --accent:         #0891B2;
+  --accent-dim:     rgba(8, 145, 178, 0.10);
+  --accent-fg:      #FFFFFF;
 
-  --status-ok-bg:      #e0f7ee;
-  --status-ok-text:    #0a6640;
-  --status-warn-bg:    #fff4e0;
-  --status-warn-text:  #9a5a00;
-  --status-danger-bg:  #feecec;
-  --status-danger-text:#b91c1c;
+  --status-ok-bg:      #E2F3EC;
+  --status-ok-text:    #1D8A64;
+  --status-warn-bg:    #F8EEDC;
+  --status-warn-text:  #96660F;
+  --status-danger-bg:  #FAE7E6;
+  --status-danger-text:#C03530;
 
-  --badge-blue-bg:     #ccfbf1;
-  --badge-blue-text:   #0f766e;
-  --badge-purple-bg:   #f3e8ff;
-  --badge-purple-text: #7c3aed;
-  --badge-orange-bg:   #fff4e0;
-  --badge-orange-text: #9a5a00;
+  --badge-accent-bg:   #E0F2F7;
+  --badge-accent-text: #0E7490;
+  --badge-neutral-bg:  #EBEEF2;
+  --badge-neutral-text:#556373;
+
+  --shadow-card: 0 1px 2px rgba(23, 34, 46, 0.06);
+  --shadow-pop:  0 8px 24px rgba(23, 34, 46, 0.14), 0 2px 6px rgba(23, 34, 46, 0.08);
 
   /* Shadcn HSL tokens — light */
-  --background:           195 35% 97%;
-  --foreground:           204 70% 13%;
+  --background:           210 22% 96%;
+  --foreground:           211 33% 14%;
   --card:                 0 0% 100%;
-  --card-foreground:      204 70% 13%;
+  --card-foreground:      211 33% 14%;
   --popover:              0 0% 100%;
-  --popover-foreground:   204 70% 13%;
-  --primary:              204 70% 18%;
+  --popover-foreground:   211 33% 14%;
+  --primary:              192 92% 36%;
   --primary-foreground:   0 0% 100%;
-  --secondary:            200 25% 90%;
-  --secondary-foreground: 204 70% 18%;
-  --muted:                195 30% 96%;
-  --muted-foreground:     204 20% 45%;
-  --destructive:          0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --input:                200 25% 89%;
-  --ring:                 172 66% 40%;
+  --secondary:            212 17% 90%;
+  --secondary-foreground: 211 33% 14%;
+  --muted:                212 18% 94%;
+  --muted-foreground:     211 14% 45%;
+  --destructive:          2 60% 47%;
+  --destructive-foreground: 0 0% 100%;
+  --input:                212 17% 87%;
+  --ring:                 192 92% 36%;
 }

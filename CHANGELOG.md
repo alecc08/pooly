@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- "Deep Ocean" visual redesign: near-black cool surfaces, hairline borders, a single cyan accent, no gradients — applied across every page, modal, and the sidebar/mobile nav, with a matching refined light theme (#22).
+- Hand-rolled `TrendChart` component (line/area with an ideal-range band, status-colored dots, hover tooltip) replacing the CSS bar charts on the dashboard and Measurements page (#22).
+- Redesigned dashboard: a unified water-status board of param tiles (value, status dot, ideal range, sparkline) replaces the old KPI grid + params banner, plus a new "Needs attention" panel merging overdue maintenance and out-of-range params into one prioritized list (#22).
+- A hand-written custom Home Assistant Lovelace card (`homepool-card`), served directly by the integration — no separate frontend install. Mirrors the web app's param-tile look, with status dots, due chips, quick-add maintenance buttons, and an inline measurement-logging form (#22).
+- `status` and `ideal_min`/`ideal_max` attributes on homepool's water-parameter sensors (backward compatible — older servers simply omit them) (#22).
+
+### Changed
+
+- Lucide icons replace hand-inline SVGs and emoji throughout the UI (nav, theme switch, installation type picker, dialogs, etc.) (#22).
+- README reordered to lead with the Home Assistant story, including a new homepool-card section; stale Pooly-era `docs/api.md` and `docs/stack.md` removed (#22).
+
 ## [0.1.1] - 2026-07-20
 
 ### Added

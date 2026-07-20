@@ -196,8 +196,7 @@ export type PhPoint = { date: string; ph: number }
 
 export type TodoItem = {
   id: string
-  icon: string
-  iconBg: string
+  kind: 'measure' | 'maintenance' | 'chemistry'
   title: string
   subtitle: string
   delay: string
@@ -432,8 +431,7 @@ export function getTodoItems(actions: Action[], params: MeasuredParams, t: (key:
     const overdue = nextPh !== null && nextPh < 0
     items.push({
       id: 'ph-measure',
-      icon: '⚗️',
-      iconBg: overdue ? '#feecec' : '#fff4e0',
+      kind: 'measure',
       title: t('todo_ph_title'),
       subtitle: t('todo_ph_subtitle'),
       delay: nextPh === null
@@ -454,8 +452,7 @@ export function getTodoItems(actions: Action[], params: MeasuredParams, t: (key:
   if (filterDays === null || filterDays > 14) {
     items.push({
       id: 'filter-maintenance',
-      icon: '🔧',
-      iconBg: '#feecec',
+      kind: 'maintenance',
       title: t('todo_filter_title'),
       subtitle: t('todo_filter_subtitle'),
       delay: filterDays === null ? t('todo_never_done') : `${t('kpi_overdue')} (${filterDays} ${t('todo_day_abbr')})`,
@@ -467,8 +464,7 @@ export function getTodoItems(actions: Action[], params: MeasuredParams, t: (key:
   if (params.chlorine !== null && params.chlorine < 1) {
     items.push({
       id: 'chlorine-low',
-      icon: '⚠️',
-      iconBg: '#fff4e0',
+      kind: 'chemistry',
       title: t('todo_low_chlorine_title'),
       subtitle: `${t('param_chlorine')} : ${params.chlorine} mg/L (${t('todo_chlorine_min_recommended')})`,
       delay: t('todo_check'),
@@ -477,6 +473,49 @@ export function getTodoItems(actions: Action[], params: MeasuredParams, t: (key:
   }
 
   return items
+}
+
+// ── Param history (sparklines / trend charts) ───────────────────────────────
+
+export type ParamPoint = { date: string; value: number }
+
+export type HistoryParamKey =
+  | 'ph' | 'chlorine' | 'tac' | 'temp' | 'bromine' | 'hardness' | 'salt' | 'stabilizer' | 'cc'
+
+const HISTORY_RX: Record<Exclude<HistoryParamKey, 'ph'>, RegExp> = {
+  chlorine: RX_CHLORINE,
+  tac: RX_TAC,
+  temp: RX_TEMP,
+  bromine: RX_BROMINE,
+  hardness: RX_HARDNESS,
+  salt: RX_SALT,
+  stabilizer: RX_STABILIZER,
+  cc: RX_CC,
+}
+
+/**
+ * Last `limit` measured values of a parameter, oldest-first.
+ * pH reads the dedicated qty field (with a notes fallback); everything else
+ * parses the structured `key: value` fields toPayload writes into notes.
+ */
+export function getParamHistory(actions: Action[], param: HistoryParamKey, limit = 10): ParamPoint[] {
+  const result: ParamPoint[] = []
+  for (const a of [...actions].sort((x, y) => x.date.localeCompare(y.date))) {
+    if (!MEASURE_ACTION_TYPES.includes(a.action_type)) continue
+    let v: number | null = null
+    if (param === 'ph') {
+      if (a.qty) v = parseFloat(a.qty)
+      if (v === null || isNaN(v)) {
+        const m = a.notes?.match(/pH\s*([\d.]+)/i)
+        if (m) v = parseFloat(m[1])
+      }
+    } else {
+      const m = a.notes?.match(HISTORY_RX[param])
+      if (m) v = parseFloat(m[1])
+    }
+    if (v !== null && !isNaN(v)) result.push({ date: a.date, value: v })
+  }
+  return result.slice(-limit)
 }
 
 // ── Measurements page helpers ───────────────────────────────────────────────

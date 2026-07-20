@@ -13,12 +13,11 @@ function renderEnglish() {
 }
 
 describe('BottomNav — English locale', () => {
-  it('renders nav labels and the mid-button label in English', () => {
+  it('renders nav labels in English', () => {
     renderEnglish()
     expect(screen.getByText('Dashboard')).toBeInTheDocument()
     expect(screen.getByText('Measurements')).toBeInTheDocument()
     expect(screen.getByText('History')).toBeInTheDocument()
-    expect(screen.getByText('New')).toBeInTheDocument()
   })
 
   it('renders the English aria-label on the add button', () => {

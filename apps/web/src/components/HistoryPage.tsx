@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, FlaskConical, Droplets, Wrench, Search } from 'lucide-react'
 import type { Action, Product } from '../types'
 import {
   getWaterStatus,
@@ -50,10 +50,10 @@ function getTitle(action: Action, products: Product[], t: (key: TranslationKey) 
   return translateLabel(t, ACTION_TYPE_LABELS, action.action_type)
 }
 
-const CATEGORY_ICON: Record<Category, { emoji: string; bg: string }> = {
-  measurement: { emoji: '🧪', bg: '#eef2ff' },
-  treatment:   { emoji: '🧴', bg: '#f3e8ff' },
-  maintenance: { emoji: '🔧', bg: '#e0f2fe' },
+const CATEGORY_ICON: Record<Category, { Icon: typeof FlaskConical; bg: string; color: string }> = {
+  measurement: { Icon: FlaskConical, bg: 'var(--badge-accent-bg)',  color: 'var(--badge-accent-text)'  },
+  treatment:   { Icon: Droplets,     bg: 'var(--badge-neutral-bg)', color: 'var(--badge-neutral-text)' },
+  maintenance: { Icon: Wrench,       bg: 'var(--badge-neutral-bg)', color: 'var(--badge-neutral-text)' },
 }
 
 const PARAM_STATUS_STYLE: Record<'normal' | 'warn' | 'bad', { color: string; bg: string }> = {
@@ -119,7 +119,7 @@ function EntryCard({ action, products, onEdit, onDelete }: {
   const [hovered, setHovered] = useState(false)
   const cat = getCategory(action)
   const title = getTitle(action, products, t)
-  const { emoji, bg: iconBg } = CATEGORY_ICON[cat]
+  const { Icon, bg: iconBg, color: iconColor } = CATEGORY_ICON[cat]
 
   const STATUS_CFG = {
     clear:  { label: t('status_normal'),     color: 'var(--status-ok-text)',     bg: 'var(--status-ok-bg)'     },
@@ -128,8 +128,8 @@ function EntryCard({ action, products, onEdit, onDelete }: {
   }
 
   const TYPE_PILL: Record<'treatment' | 'maintenance', { label: string; color: string; bg: string }> = {
-    treatment: { label: t('history_treatment_badge'), color: 'var(--badge-purple-text)', bg: 'var(--badge-purple-bg)' },
-    maintenance: { label: t('history_maintenance_badge'),  color: 'var(--badge-blue-text)',   bg: 'var(--badge-blue-bg)'   },
+    treatment: { label: t('history_treatment_badge'), color: 'var(--badge-accent-text)', bg: 'var(--badge-accent-bg)' },
+    maintenance: { label: t('history_maintenance_badge'),  color: 'var(--badge-neutral-text)',   bg: 'var(--badge-neutral-bg)'   },
   }
 
   // Status badge (measurement) or type pill (treatment/maintenance)
@@ -167,8 +167,9 @@ function EntryCard({ action, products, onEdit, onDelete }: {
       style={{
         background: 'var(--bg-surface)',
         border: '1px solid var(--border)',
-        borderRadius: 9,
-        padding: '11px 14px',
+        borderRadius: 'var(--radius-md)',
+        boxShadow: 'var(--shadow-card)',
+        padding: '12px 14px',
         marginBottom: 6,
         display: 'flex',
         alignItems: 'flex-start',
@@ -177,12 +178,12 @@ function EntryCard({ action, products, onEdit, onDelete }: {
     >
       {/* Icon */}
       <div style={{
-        width: 34, height: 34, borderRadius: 8,
-        background: iconBg,
+        width: 32, height: 32, borderRadius: 'var(--radius-sm)',
+        background: iconBg, color: iconColor,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 15, flexShrink: 0, marginTop: 1,
+        flexShrink: 0, marginTop: 1,
       }}>
-        {emoji}
+        <Icon size={15} strokeWidth={1.75} aria-hidden="true" />
       </div>
 
       {/* Body */}
@@ -222,23 +223,25 @@ function EntryCard({ action, products, onEdit, onDelete }: {
         }}>
           {formatDate(action.date)}
         </div>
-        <div style={{ display: 'flex', gap: 2, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
+        <div className="row-actions" style={{ display: 'flex', gap: 2, opacity: hovered ? 1 : 0, transition: 'opacity 0.15s' }}>
           {onEdit && (
             <button
               onClick={() => onEdit(action)}
               title={t('modal_edit')}
+              aria-label={t('modal_edit')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
             >
-              <Pencil size={13} />
+              <Pencil size={14} strokeWidth={1.75} />
             </button>
           )}
           {onDelete && (
             <button
               onClick={() => onDelete(action)}
               title={t('modal_delete')}
+              aria-label={t('modal_delete')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
             >
-              <Trash2 size={13} />
+              <Trash2 size={14} strokeWidth={1.75} />
             </button>
           )}
         </div>
@@ -298,58 +301,43 @@ export default function HistoryPage({ actions, products, onEdit, onDelete }: Pro
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
-          {t('page_history_title')}
+      <div className="page-header">
+        <div>
+          <h1 className="page-header-title">{t('page_history_title')}</h1>
+          <div className="page-header-sub">{t('page_history_sub')}</div>
         </div>
-        <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-          {t('page_history_sub')}
-        </div>
-      </div>
-
-      {/* Toolbar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
-        {/* Type filters */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {FILTER_BTNS.map(btn => {
-            const active = btn.value === filter
-            return (
+        <div className="page-header-actions">
+          <div className="segmented">
+            {FILTER_BTNS.map(btn => (
               <button
                 key={btn.value}
+                className={btn.value === filter ? 'active' : ''}
                 onClick={() => setFilter(btn.value)}
-                style={{
-                  fontFamily: '"Sora", sans-serif',
-                  fontSize: 12, fontWeight: 500,
-                  padding: '5px 12px', borderRadius: 7,
-                  border: '1px solid var(--border)', cursor: 'pointer',
-                  background: active ? 'var(--text-primary)' : 'var(--bg-surface)',
-                  color: active ? 'var(--bg-surface)' : 'var(--text-muted)',
-                  transition: 'background 0.12s, color 0.12s',
-                }}
               >
                 {btn.label}
               </button>
-            )
-          })}
+            ))}
+          </div>
+          <div style={{ position: 'relative' }}>
+            <Search size={13} strokeWidth={1.75} aria-hidden="true" style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={t('history_search')}
+              style={{
+                fontFamily: '"Sora", sans-serif',
+                fontSize: 12, color: 'var(--text-primary)',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '6px 10px 6px 26px',
+                width: 160,
+                outline: 'none',
+              }}
+            />
+          </div>
         </div>
-
-        {/* Search */}
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder={t('history_search')}
-          style={{
-            fontFamily: '"Sora", sans-serif',
-            fontSize: 11, color: 'var(--text-primary)',
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 6,
-            padding: '6px 10px',
-            width: 160,
-            outline: 'none',
-          }}
-        />
       </div>
 
       {/* Timeline */}

@@ -5,10 +5,13 @@
     "@alecc08"
   ],
   "config_flow": true,
+  "dependencies": [
+    "frontend"
+  ],
   "documentation": "https://github.com/alecc08/homepool",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/alecc08/homepool/issues",
   "requirements": [],
-  "version": "0.1.1"
+  "version": "0.2.0"
 }

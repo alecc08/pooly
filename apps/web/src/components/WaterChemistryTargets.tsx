@@ -272,7 +272,7 @@ export default function WaterChemistryTargets({ installation }: Props) {
                   onClick={() => resetParam(param)}
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    fontFamily: '"Sora", sans-serif', fontSize: 11, color: '#2dd4bf', padding: 0,
+                    fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--accent)', padding: 0,
                   }}
                 >
                   {t('ranges_reset_param')}
@@ -287,7 +287,7 @@ export default function WaterChemistryTargets({ installation }: Props) {
             {guidance.prominent && (
               <div style={{
                 padding: '8px 10px', borderRadius: 8,
-                background: 'rgba(250,204,21,0.1)', border: '1px solid rgba(250,204,21,0.3)',
+                background: 'var(--status-warn-bg)', border: '1px solid color-mix(in srgb, var(--status-warn-text) 35%, transparent)',
                 fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-primary)',
               }}>
                 {guidance.extraKey && <div>{t(guidance.extraKey)}</div>}

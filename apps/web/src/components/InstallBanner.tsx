@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Droplets, X } from 'lucide-react'
 import { useT } from '../context/LocaleContext'
 
 const DISMISS_KEY = 'pooly_install_dismissed'
@@ -42,7 +43,7 @@ export default function InstallBanner() {
 
   return (
     <div className="install-banner">
-      <div style={{ fontSize: 28, lineHeight: 1, flexShrink: 0 }}>💧</div>
+      <Droplets size={24} strokeWidth={1.75} aria-hidden="true" style={{ color: 'var(--accent)', flexShrink: 0 }} />
       <div style={{ flex: 1 }}>
         <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>
           {t('install_banner_title')}
@@ -58,11 +59,12 @@ export default function InstallBanner() {
         onClick={handleDismiss}
         aria-label={t('common_close')}
         style={{
-          background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)',
-          fontSize: 18, cursor: 'pointer', padding: '4px 2px', lineHeight: 1, flexShrink: 0,
+          background: 'none', border: 'none', color: 'var(--text-muted)',
+          cursor: 'pointer', padding: '4px 2px', lineHeight: 1, flexShrink: 0,
+          display: 'flex', alignItems: 'center',
         }}
       >
-        ✕
+        <X size={16} strokeWidth={1.75} aria-hidden="true" />
       </button>
     </div>
   )

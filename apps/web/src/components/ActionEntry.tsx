@@ -40,7 +40,7 @@ export default function ActionEntry({ action, products, onEdit }: Props) {
         </span>
       </td>
       <td>{formatDetail(action, products)}</td>
-      <td style={{ color: 'var(--pooly-muted)' }}>{action.notes || '—'}</td>
+      <td style={{ color: 'var(--text-muted)' }}>{action.notes || '—'}</td>
       <td style={{ width: 36, padding: '8px 8px 8px 4px', textAlign: 'center' }}>
         {onEdit && (
           <button
@@ -49,14 +49,14 @@ export default function ActionEntry({ action, products, onEdit }: Props) {
             title={t('modal_edit')}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              padding: 4, borderRadius: 4, color: 'var(--pooly-muted)',
+              padding: 4, borderRadius: 4, color: 'var(--text-muted)',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               transition: 'color 0.15s',
             }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--pooly-primary)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--pooly-muted)')}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
           >
-            <Pencil size={13} />
+            <Pencil size={14} strokeWidth={1.75} />
           </button>
         )}
       </td>

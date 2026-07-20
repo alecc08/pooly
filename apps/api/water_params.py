@@ -9,7 +9,7 @@
 # ever changes, both places need to change together.
 import re
 from datetime import date as date_type
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from models import Action, Installation
 
@@ -118,6 +118,54 @@ def field_units(installation: Installation) -> Dict[str, Optional[str]]:
         "salt": installation.salt_unit,
         "temp": temp_unit,
     }
+
+
+# Inverse of dosage.py's RANGE_TO_CURRENT_FIELD — maps a parsed measurement
+# field name back to its WATER_PARAMS range key. Duplicated here rather than
+# imported (dosage.py already depends on this module, and it stays a tiny
+# leaf mapping) — keep both in sync if either changes.
+CURRENT_FIELD_TO_RANGE_KEY: Dict[str, str] = {
+    "ph": "ph",
+    "chlorine": "cl",
+    "bromine": "br",
+    "cc": "cc",
+    "tac": "tac",
+    "temp": "temp",
+    "salt": "salt",
+    "stabilizer": "cya",
+    "hardness": "hardness",
+}
+
+
+def param_status(value: float, ideal: Optional[Tuple[float, float]], acceptable: Optional[Tuple[float, float]]) -> str:
+    """ok = within ideal, warn = within acceptable but outside ideal, danger = outside acceptable
+    (or no acceptable band known)."""
+    if ideal and ideal[0] <= value <= ideal[1]:
+        return "ok"
+    if acceptable and acceptable[0] <= value <= acceptable[1]:
+        return "warn"
+    return "danger"
+
+
+def attach_status(conditions: Dict[str, Dict], ranges: Dict[str, Dict]) -> Dict[str, Dict]:
+    """Adds status ("ok"/"warn"/"danger") and ideal_min/ideal_max to each field
+    entry in `conditions` (as returned by extract_current_conditions), using
+    `ranges` (WATER_PARAMS defaults merged with any installation overrides —
+    see main.py's _merge_range_overrides). Mutates and returns `conditions`.
+    Fields with no matching range (e.g. a combo that doesn't track that param)
+    are left without a status, so older/newer clients can treat its absence
+    as "unknown" rather than a false negative."""
+    for field, entry in conditions.items():
+        range_key = CURRENT_FIELD_TO_RANGE_KEY.get(field)
+        bands = ranges.get(range_key) if range_key else None
+        if not bands:
+            continue
+        ideal = bands.get("ideal")
+        acceptable = bands.get("acceptable")
+        if ideal:
+            entry["ideal_min"], entry["ideal_max"] = ideal
+        entry["status"] = param_status(entry["value"], ideal, acceptable)
+    return conditions
 
 
 def extract_current_conditions(

@@ -26,6 +26,7 @@ from seeds import insert_seeds
 from simulator import simulate_dosage, simulate_heating_energy
 from water_params import (
     MAINTENANCE_ACTION_TYPES,
+    attach_status,
     compute_todo_status,
     encode_measurement_notes,
     extract_current_conditions,
@@ -416,6 +417,12 @@ class ParamValueOut(BaseModel):
     value: float
     date: date
     unit: Optional[str] = None
+    # Added for the Home Assistant card's status dots/rails. Omitted (None) for
+    # combos with no known range for that field — older API clients and the
+    # HA card both tolerate their absence and fall back to a neutral display.
+    status: Optional[str] = None  # "ok" | "warn" | "danger"
+    ideal_min: Optional[float] = None
+    ideal_max: Optional[float] = None
 
 
 class CurrentConditionsOut(BaseModel):
@@ -1146,7 +1153,11 @@ def api_current_conditions(
         .order_by(Action.date.desc())
         .limit(500)
     ).all()
-    return CurrentConditionsOut(**extract_current_conditions(actions, installation))
+    conditions = extract_current_conditions(actions, installation)
+    defaults = WATER_PARAMS.get((installation.type, installation.sanitizer), {})
+    ranges = _merge_range_overrides(defaults, installation.range_overrides)
+    attach_status(conditions, ranges)
+    return CurrentConditionsOut(**conditions)
 
 
 @app.get("/v1/history", response_model=List[HistoryEntryOut])

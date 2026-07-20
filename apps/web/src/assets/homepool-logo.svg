@@ -1,36 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 48" fill="none">
-  <!-- Icon -->
-  <circle cx="24" cy="24" r="20" stroke="rgba(45,212,191,0.3)" stroke-width="1.5"/>
-  <circle cx="24" cy="24" r="20" stroke="url(#grad)" stroke-width="1.5"
-    stroke-dasharray="40 90" stroke-linecap="round"
-    transform="rotate(-90 24 24)"/>
-  <!-- Water wave -->
-  <path d="M7 27 Q12 22 17 27 Q22 32 27 27 Q32 22 37 25"
-    stroke="#2dd4bf" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <!-- Center dot -->
-  <circle cx="24" cy="24" r="3" fill="#2dd4bf"/>
-  <!-- Top tick -->
-  <line x1="24" y1="9" x2="24" y2="16"
-    stroke="rgba(45,212,191,0.5)" stroke-width="1.5" stroke-linecap="round"/>
-
-  <!-- Wordmark -->
-  <text x="56" y="31"
-    font-family="Sora, sans-serif"
-    font-size="22"
-    font-weight="700"
-    letter-spacing="-0.5"
-    fill="#eef6fb">home</text>
-  <text x="140" y="31"
-    font-family="Sora, sans-serif"
-    font-size="22"
-    font-weight="700"
-    letter-spacing="-0.5"
-    fill="#2dd4bf">pool</text>
-
-  <defs>
-    <linearGradient id="grad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#2dd4bf"/>
-      <stop offset="100%" stop-color="#8b5cf6"/>
-    </linearGradient>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 40" fill="none">
+  <!-- mark -->
+  <rect x="0.5" y="3.5" width="33" height="33" rx="8" fill="#11161D" stroke="#1E2630"/>
+  <line x1="17" y1="10" x2="17" y2="24" stroke="#8B98A9" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M6 20 C9.5 16.5 13 16.5 17 20 C21 23.5 24.5 23.5 28 20" stroke="#22D3EE" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <circle cx="17" cy="28" r="2.5" fill="#22D3EE"/>
+  <!-- wordmark: mid-gray "home" reads on light and dark; cyan "pool" -->
+  <text x="42" y="27" font-family="Sora, system-ui, sans-serif" font-size="18" font-weight="700" letter-spacing="-0.4">
+    <tspan fill="#77828F">home</tspan><tspan fill="#22D3EE">pool</tspan>
+  </text>
 </svg>

@@ -100,7 +100,18 @@ class HomepoolSensor(CoordinatorEntity[HomepoolDataUpdateCoordinator], SensorEnt
         value = self._field_value
         if not value:
             return None
-        return {"date": value["date"]}
+        attrs = {"date": value["date"]}
+        # status/ideal_min/ideal_max are only present on servers new enough to
+        # send them (apps/api/main.py ParamValueOut) — older servers simply
+        # omit the keys, and the homepool-card frontend degrades to neutral
+        # tiles when they're absent.
+        if "status" in value:
+            attrs["status"] = value["status"]
+        if "ideal_min" in value:
+            attrs["ideal_min"] = value["ideal_min"]
+        if "ideal_max" in value:
+            attrs["ideal_max"] = value["ideal_max"]
+        return attrs
 
 
 class HomepoolTodoSensor(CoordinatorEntity[HomepoolDataUpdateCoordinator], SensorEntity):

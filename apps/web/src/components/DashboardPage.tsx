@@ -1,17 +1,12 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, Plus, Download, Upload, FlaskConical, Wrench, AlertTriangle, ChevronRight, Droplets, Check } from 'lucide-react'
 import type { Action, Product, RecommendationsResponse } from '../types'
 import { useInstallation } from '../context/InstallationContext'
-import { useTheme, type Theme } from '../hooks/useTheme'
 import { useT } from '../context/LocaleContext'
 import type { Locale } from '../i18n/translations'
-
-function getIsDark(theme: Theme): boolean {
-  if (theme === 'dark') return true
-  if (theme === 'light') return false
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-}
+import TrendChart from './TrendChart'
 import {
+  PARAM_RANGES,
   extractMeasuredParams,
   getPhStatus,
   getChlorineStatus,
@@ -21,14 +16,13 @@ import {
   getTempStatus,
   getStabilizerStatus,
   getHardnessStatus,
-  getPhHistory,
-  getActionsThisMonth,
-  getActionsLastMonth,
-  daysSinceLastAction,
-  getNextMeasureInDays,
-  getTreatmentsThisMonth,
+  getParamHistory,
+  getDaysSince,
   getTodoItems,
   translateLabel,
+  type ParamStatus,
+  type HistoryParamKey,
+  type DynamicRanges,
 } from '../utils'
 import { ACTION_TYPE_LABELS } from './ActionForm'
 
@@ -43,12 +37,10 @@ function formatShortDate(dateStr: string): string {
   return `${day}/${m}`
 }
 
-type ParamStatus = 'normal' | 'warn' | 'bad'
-
-function statusColors(s: ParamStatus): { color: string; bg: string } {
-  if (s === 'normal') return { color: 'var(--status-ok-text)', bg: 'var(--status-ok-bg)' }
-  if (s === 'warn') return { color: 'var(--status-warn-text)', bg: 'var(--status-warn-bg)' }
-  return { color: 'var(--status-danger-text)', bg: 'var(--status-danger-bg)' }
+function statusColor(s: ParamStatus): string {
+  if (s === 'normal') return 'var(--status-ok-text)'
+  if (s === 'warn') return 'var(--status-warn-text)'
+  return 'var(--status-danger-text)'
 }
 
 type Props = {
@@ -58,28 +50,31 @@ type Props = {
   onDelete: (action: Action) => void
   onExport?: () => void
   onImport?: (file: File) => Promise<void>
-  onNavigate?: (page: 'recommendations') => void
+  onNavigate?: (page: 'measurements' | 'history' | 'recommendations') => void
+  onAdd?: () => void
 }
 
-export default function DashboardPage({ actions, products: _products, onEdit, onDelete, onExport, onImport, onNavigate }: Props) {
+type TileDef = {
+  key: string
+  label: string
+  value: string
+  unit: string
+  status: ParamStatus | null
+  historyKey: HistoryParamKey
+  range: { ideal: [number, number]; acceptable: [number, number] }
+  format: (v: number) => string
+}
+
+export default function DashboardPage({ actions, products: _products, onEdit, onDelete, onExport, onImport, onNavigate, onAdd }: Props) {
   const { active, ranges } = useInstallation()
-  const { theme } = useTheme()
   const { t, locale } = useT()
-  const isDark = getIsDark(theme)
   const sanitizer = active?.sanitizer ?? 'chlorine'
-  const [showAll, setShowAll] = useState(false)
 
   const today = new Date()
-  const yearMonth = today.toISOString().slice(0, 7)
 
   const params = useMemo(() => extractMeasuredParams(actions), [actions])
-  const phHistory = useMemo(() => getPhHistory(actions, 10), [actions])
-  const thisMonthActions = useMemo(() => getActionsThisMonth(actions, yearMonth), [actions, yearMonth])
-  const lastMonthActions = useMemo(() => getActionsLastMonth(actions), [actions])
-  const daysSince = useMemo(() => daysSinceLastAction(actions), [actions])
-  const nextMeasure = useMemo(() => getNextMeasureInDays(actions), [actions])
-  const treatments = useMemo(() => getTreatmentsThisMonth(actions, yearMonth), [actions, yearMonth])
   const todoItems = useMemo(() => getTodoItems(actions, params, t), [actions, params, t])
+  const phHistory = useMemo(() => getParamHistory(actions, 'ph', 12), [actions])
 
   const [recommendationsCount, setRecommendationsCount] = useState<number | null>(null)
   useEffect(() => {
@@ -90,470 +85,114 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
       .catch(() => setRecommendationsCount(null))
   }, [active?.id])
 
-  function lastActionLabel(): string {
-    if (actions.length === 0) return '—'
-    if (daysSince === 0) return t('kpi_today')
-    if (daysSince === 1) return t('kpi_yesterday')
-    const prefix = t('kpi_ago')
-    return prefix ? `${prefix} ${daysSince} ${t('kpi_day_abbr')}` : `${daysSince} ${t('kpi_day_abbr')}`
-  }
-
-  function lastActionType(): string {
-    if (actions.length === 0) return ''
-    const sorted = [...actions].sort((a, b) => b.date.localeCompare(a.date))
-    return sorted[0].action_type
-  }
-
-  function nextMeasureLabel(): string {
-    if (nextMeasure === null) return t('kpi_never_measured')
-    if (nextMeasure < 0) return t('kpi_overdue')
-    return `${t('kpi_in')} ${nextMeasure} ${t('kpi_days_abbr')}`
-  }
-
-  function nextMeasureColor(): string {
-    if (nextMeasure === null || nextMeasure <= 0) return 'var(--status-danger-text)'
-    if (nextMeasure <= 2) return 'var(--status-warn-text)'
-    return 'var(--text-primary)'
-  }
-
-  function vsLastMonth(): string {
-    const diff = thisMonthActions.length - lastMonthActions.length
-    const vs = t('kpi_vs_month')
-    if (diff > 0) return `+${diff} ${vs}`
-    if (diff < 0) return `${diff} ${vs}`
-    return `= ${vs}`
-  }
-
-  const PH_MIN = 6.0
-  const PH_MAX = 9.0
-  const CHART_HEIGHT = 60
-
-  function phBarHeight(ph: number): number {
-    const ratio = Math.max(0, Math.min(1, (ph - PH_MIN) / (PH_MAX - PH_MIN)))
-    return Math.round(ratio * CHART_HEIGHT)
-  }
-
-  function phBarColor(ph: number): string {
-    if (isDark) {
-      return ph >= 7.0 && ph <= 7.6 ? 'rgba(16,185,129,0.35)' : 'rgba(245,158,11,0.3)'
-    }
-    return ph >= 7.0 && ph <= 7.6 ? '#a7f3d0' : '#fde68a'
-  }
-
   const [hoveredRowId, setHoveredRowId] = useState<number | null>(null)
 
-  const displayedActions = useMemo(() => {
-    const sorted = [...actions].sort((a, b) => b.date.localeCompare(a.date))
-    return showAll ? sorted : sorted.slice(0, 5)
-  }, [actions, showAll])
+  const recentActions = useMemo(() =>
+    [...actions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6)
+  , [actions])
 
-  const kpiCardStyle: React.CSSProperties = {
-    background: 'var(--bg-surface)',
-    border: '1px solid var(--border)',
-    borderRadius: 16,
-    padding: '14px 16px',
-  }
+  const lastMeasuredLabel = useMemo(() => {
+    if (!params.date) return null
+    const days = getDaysSince(params.date)
+    if (days === 0) return t('kpi_today').toLowerCase()
+    if (days === 1) return t('kpi_yesterday').toLowerCase()
+    const prefix = t('kpi_ago')
+    return prefix ? `${prefix.toLowerCase()} ${days} ${t('kpi_day_abbr')}` : `${days} ${t('kpi_day_abbr')}`
+  }, [params.date, t])
 
-  const sectionCardStyle: React.CSSProperties = {
-    background: 'var(--bg-surface)',
-    border: '1px solid var(--border)',
-    borderRadius: 16,
-    padding: '16px',
-    marginBottom: 14,
-  }
+  // ── Param tiles ───────────────────────────────────────────────────────────
+  const tiles = useMemo<TileDef[]>(() => {
+    const r = (key: keyof typeof PARAM_RANGES) => (ranges as DynamicRanges | null)?.[key] ?? PARAM_RANGES[key]
+    const concUnit = active?.conc_unit ?? 'mg/L'
+    const defs: TileDef[] = []
+
+    defs.push({
+      key: 'ph', label: t('param_ph'),
+      value: params.ph !== null ? params.ph.toFixed(1) : '—', unit: '',
+      status: params.ph !== null ? getPhStatus(params.ph, ranges ?? undefined) : null,
+      historyKey: 'ph', range: r('ph'), format: v => v.toFixed(1),
+    })
+    if (sanitizer === 'bromine') {
+      defs.push({
+        key: 'bromine', label: t('param_bromine'),
+        value: params.bromine !== null ? params.bromine.toFixed(1) : '—', unit: concUnit,
+        status: params.bromine !== null ? getBromineStatus(params.bromine, ranges ?? undefined) : null,
+        historyKey: 'bromine', range: r('bromine'), format: v => v.toFixed(1),
+      })
+    } else if (sanitizer === 'salt') {
+      defs.push({
+        key: 'salt', label: t('param_salt'),
+        value: params.salt !== null ? params.salt.toFixed(0) : '—', unit: active?.salt_unit ?? 'ppm',
+        status: params.salt !== null ? getSaltStatus(params.salt, ranges ?? undefined) : null,
+        historyKey: 'salt', range: r('salt'), format: v => v.toFixed(0),
+      })
+      defs.push({
+        key: 'chlorine', label: t('param_chlorine'),
+        value: params.chlorine !== null ? params.chlorine.toFixed(1) : '—', unit: concUnit,
+        status: params.chlorine !== null ? getChlorineStatus(params.chlorine, ranges ?? undefined) : null,
+        historyKey: 'chlorine', range: r('chlorine'), format: v => v.toFixed(1),
+      })
+    } else {
+      defs.push({
+        key: 'chlorine', label: t('param_chlorine'),
+        value: params.chlorine !== null ? params.chlorine.toFixed(1) : '—', unit: concUnit,
+        status: params.chlorine !== null ? getChlorineStatus(params.chlorine, ranges ?? undefined) : null,
+        historyKey: 'chlorine', range: r('chlorine'), format: v => v.toFixed(1),
+      })
+    }
+    defs.push({
+      key: 'tac', label: t('param_tac'),
+      value: params.tac !== null ? String(Math.round(params.tac)) : '—', unit: concUnit,
+      status: params.tac !== null ? getTacStatus(params.tac, ranges ?? undefined) : null,
+      historyKey: 'tac', range: r('tac'), format: v => String(Math.round(v)),
+    })
+    defs.push({
+      key: 'temp', label: t('param_temp_label'),
+      value: params.temp !== null ? params.temp.toFixed(1) : '—', unit: `°${active?.temp_unit ?? 'C'}`,
+      status: params.temp !== null ? getTempStatus(params.temp, ranges ?? undefined) : null,
+      historyKey: 'temp', range: r('temp'), format: v => v.toFixed(1),
+    })
+    if (ranges?.stabilizer) {
+      defs.push({
+        key: 'stabilizer', label: t('guidance_cya_label'),
+        value: params.stabilizer !== null ? String(Math.round(params.stabilizer)) : '—', unit: 'ppm',
+        status: params.stabilizer !== null ? getStabilizerStatus(params.stabilizer, ranges ?? undefined) : null,
+        historyKey: 'stabilizer', range: r('stabilizer'), format: v => String(Math.round(v)),
+      })
+    }
+    if (ranges?.hardness) {
+      defs.push({
+        key: 'hardness', label: t('param_hardness'),
+        value: params.hardness !== null ? String(Math.round(params.hardness)) : '—', unit: active?.hardness_unit ?? 'ppm',
+        status: params.hardness !== null ? getHardnessStatus(params.hardness, ranges ?? undefined) : null,
+        historyKey: 'hardness', range: r('hardness'), format: v => String(Math.round(v)),
+      })
+    }
+    return defs
+  }, [params, ranges, sanitizer, active, t])
+
+  const phRange = (ranges as DynamicRanges | null)?.ph ?? PARAM_RANGES.ph
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
-          {t('page_log_title')}
-        </div>
-        <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-          {formatDateLong(today, locale)}
-        </div>
-      </div>
-
-      {/* KPI grid */}
-      <div className="kpi-grid">
-        {/* Actions this month */}
-        <div className="kpi-card" style={kpiCardStyle}>
-          <div className="kpi-label" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-            {t('kpi_actions_month')}
-          </div>
-          <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '6px 0 4px' }}>
-            {thisMonthActions.length}
-          </div>
-          <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-muted)' }}>
-            {vsLastMonth()}
-          </div>
-        </div>
-
-        {/* Last action */}
-        <div className="kpi-card" style={kpiCardStyle}>
-          <div className="kpi-label" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-            {t('kpi_last_action')}
-          </div>
-          <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '6px 0 4px' }}>
-            {lastActionLabel()}
-          </div>
-          <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-muted)' }}>
-            {lastActionType() ? translateLabel(t, ACTION_TYPE_LABELS, lastActionType()) : t('kpi_no_action')}
-          </div>
-        </div>
-
-        {/* Next measurement */}
-        <div className="kpi-card" style={kpiCardStyle}>
-          <div className="kpi-label" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-            {t('kpi_next_measurement')}
-          </div>
-          <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 22, fontWeight: 700, color: nextMeasureColor(), margin: '6px 0 4px' }}>
-            {nextMeasureLabel()}
-          </div>
-          <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-muted)' }}>
-            {t('kpi_recommended')}
-          </div>
-        </div>
-
-        {/* Treatments this month */}
-        <div className="kpi-card" style={kpiCardStyle}>
-          <div className="kpi-label" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-            {t('kpi_treatments_month')}
-          </div>
-          <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', margin: '6px 0 4px' }}>
-            {treatments.total}
-          </div>
-          <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-muted)' }}>
-            {treatments.maintenance} {t('kpi_maintenance')} · {treatments.additions} {t('kpi_additions')}
-          </div>
-        </div>
-      </div>
-
-      {/* Params banner */}
-      <div className="params-banner" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '14px 0', display: 'flex', marginBottom: 14 }}>
-        <ParamBlock
-          label={t('param_ph')}
-          value={params.ph !== null ? params.ph.toFixed(1) : '—'}
-          unit=""
-          status={params.ph !== null ? getPhStatus(params.ph, ranges ?? undefined) : null}
-          showDivider={false}
-        />
-        {sanitizer === 'bromine' ? (
-          <ParamBlock
-            label={t('param_bromine')}
-            value={params.bromine !== null ? params.bromine.toFixed(1) : '—'}
-            unit={active?.conc_unit ?? 'mg/L'}
-            status={params.bromine !== null ? getBromineStatus(params.bromine, ranges ?? undefined) : null}
-            showDivider={true}
-          />
-        ) : sanitizer === 'salt' ? (
-          <>
-            <ParamBlock
-              label={t('param_salt')}
-              value={params.salt !== null ? params.salt.toFixed(0) : '—'}
-              unit={active?.salt_unit ?? 'ppm'}
-              status={params.salt !== null ? getSaltStatus(params.salt, ranges ?? undefined) : null}
-              showDivider={true}
-            />
-            <ParamBlock
-              label={t('param_chlorine')}
-              value={params.chlorine !== null ? params.chlorine.toFixed(1) : '—'}
-              unit={active?.conc_unit ?? 'mg/L'}
-              status={params.chlorine !== null ? getChlorineStatus(params.chlorine, ranges ?? undefined) : null}
-              showDivider={true}
-            />
-          </>
-        ) : (
-          <ParamBlock
-            label={t('param_chlorine')}
-            value={params.chlorine !== null ? params.chlorine.toFixed(1) : '—'}
-            unit={active?.conc_unit ?? 'mg/L'}
-            status={params.chlorine !== null ? getChlorineStatus(params.chlorine, ranges ?? undefined) : null}
-            showDivider={true}
-          />
-        )}
-        <ParamBlock
-          label={t('param_tac')}
-          value={params.tac !== null ? String(Math.round(params.tac)) : '—'}
-          unit={active?.conc_unit ?? 'mg/L'}
-          status={params.tac !== null ? getTacStatus(params.tac, ranges ?? undefined) : null}
-          showDivider={true}
-        />
-        <div style={{ flex: 1, padding: '0 20px', borderLeft: '1px solid var(--border-subtle)', opacity: params.temp === null ? 0.5 : 1 }}>
-          <div className="kpi-label" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-            {t('param_temp_label')}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, margin: '6px 0 4px' }}>
-            <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>
-              {params.temp !== null ? params.temp.toFixed(1) : '—'}
-            </span>
-            {params.temp !== null && (
-              <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'var(--text-muted)' }}>°{active?.temp_unit ?? 'C'}</span>
-            )}
-          </div>
-          {params.temp !== null && (
-            <StatusBadge status={getTempStatus(params.temp, ranges ?? undefined)} />
-          )}
-          {params.date && (
-            <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: 'var(--text-muted)', marginTop: 4 }}>
-              {t('param_measured_on')} {formatShortDate(params.date)}
-            </div>
-          )}
-        </div>
-        {ranges?.stabilizer && (
-          <ParamBlock
-            label={t('guidance_cya_label')}
-            value={params.stabilizer !== null ? String(Math.round(params.stabilizer)) : '—'}
-            unit="ppm"
-            status={params.stabilizer !== null ? getStabilizerStatus(params.stabilizer, ranges ?? undefined) : null}
-            showDivider={true}
-          />
-        )}
-        {ranges?.hardness && (
-          <ParamBlock
-            label={t('param_hardness')}
-            value={params.hardness !== null ? String(Math.round(params.hardness)) : '—'}
-            unit={active?.hardness_unit ?? 'ppm'}
-            status={params.hardness !== null ? getHardnessStatus(params.hardness, ranges ?? undefined) : null}
-            showDivider={true}
-          />
-        )}
-      </div>
-
-      {/* 2-column layout */}
-      <div className="dashboard-columns">
-        {/* Left column */}
+      {/* ── Page header ──────────────────────────────────────────────────── */}
+      <div className="page-header">
         <div>
-          {/* Recent history card */}
-          <div style={sectionCardStyle}>
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-                {t('table_recent_history')}
-              </div>
-              <button
-                onClick={() => setShowAll(v => !v)}
-                style={{
-                  fontFamily: '"IBM Plex Mono", monospace',
-                  fontSize: 11,
-                  color: 'var(--accent)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                }}
-              >
-                {showAll ? t('kpi_collapse') : t('kpi_see_all')}
-              </button>
-            </div>
-
-            {actions.length === 0 ? (
-              <p style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
-                {t('table_no_actions')}
-              </p>
-            ) : (
-              <table className="history-table" style={{ marginBottom: 0 }}>
-                <thead>
-                  <tr>
-                    <th style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{t('table_date')}</th>
-                    <th style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{t('table_type')}</th>
-                    <th className="history-col-params" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{t('table_parameters')}</th>
-                    <th className="history-col-notes" style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{t('table_notes')}</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayedActions.map(action => (
-                    <tr
-                      key={action.id}
-                      onMouseEnter={() => setHoveredRowId(action.id)}
-                      onMouseLeave={() => setHoveredRowId(null)}
-                    >
-                      <td style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, color: 'var(--text-secondary)' }}>
-                        {formatShortDate(action.date)}
-                      </td>
-                      <td>
-                        <ActionTypeBadge actionType={action.action_type} />
-                      </td>
-                      <td className="history-col-params">
-                        <ActionParamPills action={action} />
-                      </td>
-                      <td className="history-col-notes" style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, color: 'var(--text-secondary)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {action.notes || '—'}
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: 2, opacity: hoveredRowId === action.id ? 1 : 0, transition: 'opacity 0.15s' }}>
-                          <button
-                            onClick={() => onEdit(action)}
-                            title={t('modal_edit')}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
-                          >
-                            <Pencil size={13} />
-                          </button>
-                          <button
-                            onClick={() => onDelete(action)}
-                            title={t('modal_delete')}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* pH trend card */}
-          <div style={sectionCardStyle}>
-            <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
-              {t('graph_ph_trend')}
-            </div>
-            {phHistory.length === 0 ? (
-              <p style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, color: 'var(--text-muted)', margin: 0 }}>
-                {t('graph_no_ph_measurement')}
-              </p>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
-                {phHistory.map((point, i) => {
-                  const barH = phBarHeight(point.ph)
-                  const color = phBarColor(point.ph)
-                  return (
-                    <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 32 }}>
-                      <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: 'var(--text-primary)', marginBottom: 2 }}>
-                        {point.ph.toFixed(1)}
-                      </div>
-                      <div style={{
-                        width: 24,
-                        height: Math.max(barH, 4),
-                        background: color,
-                        borderRadius: '3px 3px 0 0',
-                      }} />
-                      <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 9, color: 'var(--text-muted)', marginTop: 4 }}>
-                        {formatShortDate(point.date)}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
+          <h1 className="page-header-title" style={{ margin: 0 }}>{t('page_log_title')}</h1>
+          <div className="page-header-sub">
+            {active?.name ? `${active.name} · ` : ''}{formatDateLong(today, locale)}
+            {lastMeasuredLabel ? ` · ${t('dash_last_measured').toLowerCase()} ${lastMeasuredLabel}` : ''}
           </div>
         </div>
-
-        {/* Right column */}
-        <div>
-          {/* Recommendations teaser */}
-          {recommendationsCount !== null && (
-            <button
-              onClick={() => onNavigate?.('recommendations')}
-              style={{
-                ...sectionCardStyle,
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                width: '100%', textAlign: 'left', cursor: onNavigate ? 'pointer' : 'default',
-                border: '1px solid var(--border)', font: 'inherit', color: 'inherit',
-              }}
-            >
-              <div>
-                <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {t('recommendations_page_title')}
-                </div>
-                <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                  {recommendationsCount === 0
-                    ? t('recommendations_dashboard_teaser_ok')
-                    : `${recommendationsCount} ${t('recommendations_dashboard_teaser_count')}`}
-                </div>
-              </div>
-              <span style={{
-                fontFamily: '"IBM Plex Mono", monospace', fontSize: 18, fontWeight: 700,
-                color: recommendationsCount === 0 ? 'var(--status-ok-text)' : 'var(--status-warn-text)',
-              }}>
-                {recommendationsCount === 0 ? '✓' : recommendationsCount}
-              </span>
-            </button>
-          )}
-
-          {/* To-do card */}
-          <div style={sectionCardStyle}>
-            <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
-              {t('todo_title')}
-            </div>
-            {todoItems.length === 0 ? (
-              <p style={{ fontFamily: '"Sora", sans-serif', fontSize: 13, color: 'var(--status-ok-text)', margin: 0, textAlign: 'center' }}>
-                {t('todo_all_ok')}
-              </p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {todoItems.map(item => (
-                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 8,
-                      background: item.iconBg,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 14,
-                      flexShrink: 0,
-                    }}>
-                      {item.icon}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {item.title}
-                      </div>
-                      <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {item.subtitle}
-                      </div>
-                    </div>
-                    <div style={{
-                      fontFamily: '"IBM Plex Mono", monospace',
-                      fontSize: 10,
-                      color: item.isOverdue ? 'var(--status-danger-text)' : 'var(--text-muted)',
-                      flexShrink: 0,
-                    }}>
-                      {item.delay}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Backups */}
-      {(onExport || onImport) && (
-        <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', marginRight: 4 }}>
-            {t('backups')}
-          </span>
+        <div className="page-header-actions">
           {onExport && (
-            <button
-              onClick={onExport}
-              style={{
-                fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600,
-                color: 'var(--pooly-primary)', background: 'var(--bg-surface-2)',
-                border: '1px solid var(--border)', borderRadius: 7,
-                padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-              }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              {t('export_label')}
+            <button className="btn-ghost" onClick={onExport} title={t('export_label')} aria-label={t('export_label')} style={{ padding: '7px 9px' }}>
+              <Download size={15} strokeWidth={1.75} />
             </button>
           )}
           {onImport && (
-            <label
-              style={{
-                fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600,
-                color: 'var(--text-secondary)', background: 'var(--bg-surface-2)',
-                border: '1px solid var(--border)', borderRadius: 7,
-                padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-              }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              {t('import_label')}
+            <label className="btn-ghost" title={t('import_label')} aria-label={t('import_label')} style={{ padding: '7px 9px' }}>
+              <Upload size={15} strokeWidth={1.75} />
               <input
                 type="file"
                 accept=".json,application/json"
@@ -565,7 +204,136 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
               />
             </label>
           )}
+          {onAdd && (
+            <button className="btn-primary" onClick={onAdd}>
+              <Plus size={15} strokeWidth={2} />
+              {t('nav_new_entry_aria')}
+            </button>
+          )}
         </div>
+      </div>
+
+      {actions.length === 0 ? (
+        /* ── Empty state ─────────────────────────────────────────────────── */
+        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <Droplets size={28} strokeWidth={1.5} style={{ color: 'var(--accent)', marginBottom: 12 }} aria-hidden="true" />
+          <div style={{ fontFamily: '"Sora", sans-serif', fontSize: 16, fontWeight: 600, color: 'var(--text-primary)' }}>
+            {t('dash_empty_title')}
+          </div>
+          <p style={{ fontFamily: '"Sora", sans-serif', fontSize: 13, color: 'var(--text-secondary)', margin: '6px auto 20px', maxWidth: 340 }}>
+            {t('dash_empty_sub')}
+          </p>
+          {onAdd && (
+            <button className="btn-primary" onClick={onAdd}>
+              <Plus size={15} strokeWidth={2} />
+              {t('dash_log_first')}
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* ── Water status board ──────────────────────────────────────────── */}
+          <div className="param-tile-grid">
+            {tiles.map(tile => (
+              <ParamTile key={tile.key} tile={tile} actions={actions} onClick={() => onNavigate?.('measurements')} />
+            ))}
+          </div>
+
+          {/* ── Attention + trend ───────────────────────────────────────────── */}
+          <div className="dashboard-columns">
+            <AttentionPanel
+              todoItems={todoItems}
+              recommendationsCount={recommendationsCount}
+              onNavigate={onNavigate}
+            />
+
+            <div className="card" style={{ padding: 16 }}>
+              <div className="section-title" style={{ marginBottom: 8 }}>{t('graph_ph_trend')}</div>
+              <TrendChart
+                points={phHistory}
+                idealMin={phRange.ideal[0]}
+                idealMax={phRange.ideal[1]}
+                acceptableMin={phRange.acceptable[0]}
+                acceptableMax={phRange.acceptable[1]}
+                height={150}
+                formatValue={v => v.toFixed(1)}
+                emptyLabel={t('graph_not_enough_data')}
+              />
+            </div>
+          </div>
+
+          {/* ── Recent activity ─────────────────────────────────────────────── */}
+          <div className="card" style={{ padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div className="section-title" style={{ margin: 0 }}>{t('table_recent_history')}</div>
+              <button
+                onClick={() => onNavigate?.('history')}
+                style={{
+                  fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'var(--accent)',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                  display: 'inline-flex', alignItems: 'center', gap: 2,
+                }}
+              >
+                {t('kpi_see_all').replace(' →', '')}
+                <ChevronRight size={12} strokeWidth={2} />
+              </button>
+            </div>
+
+            <table className="history-table" style={{ marginBottom: 0 }}>
+              <thead>
+                <tr>
+                  <th>{t('table_date')}</th>
+                  <th>{t('table_type')}</th>
+                  <th className="history-col-params">{t('table_parameters')}</th>
+                  <th className="history-col-notes">{t('table_notes')}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentActions.map(action => (
+                  <tr
+                    key={action.id}
+                    onMouseEnter={() => setHoveredRowId(action.id)}
+                    onMouseLeave={() => setHoveredRowId(null)}
+                  >
+                    <td style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 12, whiteSpace: 'nowrap' }}>
+                      {formatShortDate(action.date)}
+                    </td>
+                    <td>
+                      <ActionTypeBadge actionType={action.action_type} />
+                    </td>
+                    <td className="history-col-params">
+                      <ActionParamPills action={action} />
+                    </td>
+                    <td className="history-col-notes" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {action.notes || '—'}
+                    </td>
+                    <td style={{ width: 56 }}>
+                      <div className="row-actions" style={{ display: 'flex', gap: 2, opacity: hoveredRowId === action.id ? 1 : 0, transition: 'opacity 0.15s' }}>
+                        <button
+                          onClick={() => onEdit(action)}
+                          title={t('modal_edit')}
+                          aria-label={t('modal_edit')}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                        >
+                          <Pencil size={14} strokeWidth={1.75} />
+                        </button>
+                        <button
+                          onClick={() => onDelete(action)}
+                          title={t('modal_delete')}
+                          aria-label={t('modal_delete')}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                        >
+                          <Trash2 size={14} strokeWidth={1.75} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )
@@ -573,62 +341,158 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
-function ParamBlock({
-  label, value, unit, status, showDivider,
-}: {
-  label: string; value: string; unit: string; status: ParamStatus | null; showDivider: boolean
-}) {
-  const hasData = value !== '—'
+function ParamTile({ tile, actions, onClick }: { tile: TileDef; actions: Action[]; onClick: () => void }) {
+  const { t } = useT()
+  const hasData = tile.value !== '—'
+  const history = useMemo(
+    () => getParamHistory(actions, tile.historyKey, 10),
+    [actions, tile.historyKey],
+  )
+  const rail = tile.status !== null ? statusColor(tile.status) : 'var(--border)'
   return (
-    <div style={{
-      flex: 1, padding: '0 20px',
-      borderLeft: showDivider ? '1px solid var(--border-subtle)' : 'none',
-      opacity: hasData ? 1 : 0.5,
-    }}>
-      <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-        {label}
-      </div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 3, margin: '6px 0 4px' }}>
-        <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>
-          {value}
+    <button
+      className="param-tile"
+      onClick={onClick}
+      style={{ '--tile-rail': rail, opacity: hasData ? 1 : 0.6 } as React.CSSProperties}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+        <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {tile.label}
         </span>
-        {unit && hasData && (
-          <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'var(--text-muted)' }}>{unit}</span>
+        {tile.status !== null && (
+          <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: '50%', background: rail, flexShrink: 0 }} />
         )}
       </div>
-      {status !== null && hasData && <StatusBadge status={status} />}
-    </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, margin: '6px 0 2px' }}>
+        <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 22, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+          {tile.value}
+        </span>
+        {tile.unit && hasData && (
+          <span style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 11, color: 'var(--text-muted)' }}>{tile.unit}</span>
+        )}
+      </div>
+      <div style={{ fontFamily: '"IBM Plex Mono", monospace', fontSize: 10, color: 'var(--text-muted)' }}>
+        {t('param_ideal_label')} {tile.format(tile.range.ideal[0])}–{tile.format(tile.range.ideal[1])}
+      </div>
+      {history.length >= 2 && (
+        <div style={{ marginTop: 8 }}>
+          <TrendChart
+            points={history}
+            idealMin={tile.range.ideal[0]}
+            idealMax={tile.range.ideal[1]}
+            acceptableMin={tile.range.acceptable[0]}
+            acceptableMax={tile.range.acceptable[1]}
+            compact
+          />
+        </div>
+      )}
+    </button>
   )
 }
 
-function StatusBadge({ status }: { status: ParamStatus }) {
+function AttentionPanel({
+  todoItems,
+  recommendationsCount,
+  onNavigate,
+}: {
+  todoItems: ReturnType<typeof getTodoItems>
+  recommendationsCount: number | null
+  onNavigate?: (page: 'measurements' | 'history' | 'recommendations') => void
+}) {
   const { t } = useT()
-  const { color, bg } = statusColors(status)
-  const label = status === 'normal' ? t('status_normal') : status === 'warn' ? t('status_watch') : t('status_out_of_range')
+  const KIND_ICON = {
+    measure: FlaskConical,
+    maintenance: Wrench,
+    chemistry: AlertTriangle,
+  } as const
+
+  const isEmpty = todoItems.length === 0 && (recommendationsCount === null || recommendationsCount === 0)
+
   return (
-    <span style={{
-      fontFamily: '"IBM Plex Mono", monospace',
-      fontSize: 10, fontWeight: 600,
-      color, background: bg,
-      padding: '2px 6px', borderRadius: 4, display: 'inline-block',
-    }}>
-      {label}
-    </span>
+    <div className="card" style={{ padding: 16 }}>
+      <div className="section-title" style={{ marginBottom: 12 }}>{t('attention_title')}</div>
+
+      {isEmpty ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--status-ok-text)', fontFamily: '"Sora", sans-serif', fontSize: 13, padding: '8px 0' }}>
+          <Check size={16} strokeWidth={1.75} aria-hidden="true" />
+          {t('attention_all_ok')}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {todoItems.map(item => {
+            const Icon = KIND_ICON[item.kind]
+            const color = item.isOverdue ? 'var(--status-danger-text)' : 'var(--status-warn-text)'
+            const bg = item.isOverdue ? 'var(--status-danger-bg)' : 'var(--status-warn-bg)'
+            return (
+              <button
+                key={item.id}
+                onClick={() => onNavigate?.('recommendations')}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                  padding: '8px 8px', margin: '0 -8px', borderRadius: 'var(--radius-sm)',
+                  background: 'none', border: 'none', cursor: onNavigate ? 'pointer' : 'default',
+                  textAlign: 'left', font: 'inherit', color: 'inherit',
+                }}
+              >
+                <span style={{
+                  width: 28, height: 28, borderRadius: 'var(--radius-sm)', background: bg, color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <Icon size={14} strokeWidth={1.75} aria-hidden="true" />
+                </span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: 'block', fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {item.title}
+                  </span>
+                  <span style={{ display: 'block', fontFamily: '"Sora", sans-serif', fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.subtitle}
+                  </span>
+                </span>
+                <span style={{
+                  fontFamily: '"IBM Plex Mono", monospace', fontSize: 10,
+                  color: item.isOverdue ? 'var(--status-danger-text)' : 'var(--text-muted)',
+                  flexShrink: 0,
+                }}>
+                  {item.delay}
+                </span>
+              </button>
+            )
+          })}
+
+          {recommendationsCount !== null && recommendationsCount > 0 && (
+            <button
+              onClick={() => onNavigate?.('recommendations')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                padding: '8px 8px', margin: '0 -8px', borderRadius: 'var(--radius-sm)',
+                background: 'none', border: 'none', cursor: onNavigate ? 'pointer' : 'default',
+                textAlign: 'left', font: 'inherit', color: 'inherit',
+              }}
+            >
+              <span style={{
+                width: 28, height: 28, borderRadius: 'var(--radius-sm)',
+                background: 'var(--accent-dim)', color: 'var(--accent)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <FlaskConical size={14} strokeWidth={1.75} aria-hidden="true" />
+              </span>
+              <span style={{ flex: 1, fontFamily: '"Sora", sans-serif', fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
+                {recommendationsCount} {t('recommendations_dashboard_teaser_count')}
+              </span>
+              <ChevronRight size={14} strokeWidth={1.75} style={{ color: 'var(--text-muted)', flexShrink: 0 }} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 
 function ActionTypeBadge({ actionType }: { actionType: string }) {
   const { t } = useT()
-  let color = 'var(--text-muted)', bg = 'var(--bg-surface-2)'
+  let color = 'var(--badge-neutral-text)', bg = 'var(--badge-neutral-bg)'
   if (actionType === 'Measurement' || actionType === 'pH Measurement') {
-    color = 'var(--badge-orange-text)'; bg = 'var(--badge-orange-bg)'
-  } else if (actionType === 'Add product') {
-    color = 'var(--badge-purple-text)'; bg = 'var(--badge-purple-bg)'
-  } else if (
-    actionType === 'Cartridge cleaning' || actionType === 'Skimmer filter cleaning' ||
-    actionType === 'Backwash' || actionType === 'pH calibration'
-  ) {
-    color = 'var(--badge-blue-text)'; bg = 'var(--badge-blue-bg)'
+    color = 'var(--badge-accent-text)'; bg = 'var(--badge-accent-bg)'
   }
   return (
     <span style={{

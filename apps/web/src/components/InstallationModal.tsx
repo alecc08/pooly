@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Waves, Bath } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -114,9 +115,9 @@ export default function InstallationModal({ open, onClose, installation }: Props
     minWidth: 48,
     padding: '5px 10px',
     fontSize: 11,
-    borderColor: active ? 'rgba(45,212,191,0.35)' : 'var(--border)',
-    background: active ? 'rgba(45,212,191,0.1)' : 'var(--bg-surface-2)',
-    color: active ? '#2dd4bf' : 'var(--text-secondary)',
+    borderColor: active ? 'color-mix(in srgb, var(--accent) 35%, transparent)' : 'var(--border)',
+    background: active ? 'var(--accent-dim)' : 'var(--bg-surface-2)',
+    color: active ? 'var(--accent)' : 'var(--text-secondary)',
   })
 
   return (
@@ -138,8 +139,8 @@ export default function InstallationModal({ open, onClose, installation }: Props
                 style={{
                   padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer',
                   fontFamily: '"Sora", sans-serif', fontSize: 13, fontWeight: 600,
-                  color: tab === tb ? '#2dd4bf' : 'var(--text-secondary)',
-                  borderBottom: tab === tb ? '2px solid #2dd4bf' : '2px solid transparent',
+                  color: tab === tb ? 'var(--accent)' : 'var(--text-secondary)',
+                  borderBottom: tab === tb ? '2px solid var(--accent)' : '2px solid transparent',
                   marginBottom: -1,
                 }}
               >
@@ -169,19 +170,19 @@ export default function InstallationModal({ open, onClose, installation }: Props
           <div style={{ display: 'grid', gap: 8 }}>
             <Label>{t('modal_install_type')}</Label>
             <div style={{ display: 'flex', gap: 10 }}>
-              {([['pool', '🏊', t('modal_install_pool')], ['spa', '🛁', t('modal_install_spa')]] as const).map(([tp, icon, label]) => (
+              {([['pool', Waves, t('modal_install_pool')], ['spa', Bath, t('modal_install_spa')]] as const).map(([tp, Icon, label]) => (
                 <button
                   key={tp}
                   type="button"
                   onClick={() => setType(tp)}
                   style={{
                     ...cardBase,
-                    borderColor: type === tp ? 'rgba(45,212,191,0.35)' : 'var(--border)',
-                    background: type === tp ? 'rgba(45,212,191,0.1)' : 'var(--bg-surface-2)',
+                    borderColor: type === tp ? 'color-mix(in srgb, var(--accent) 35%, transparent)' : 'var(--border)',
+                    background: type === tp ? 'var(--accent-dim)' : 'var(--bg-surface-2)',
                     color: type === tp ? 'var(--text-primary)' : 'var(--text-secondary)',
                   }}
                 >
-                  <span style={{ fontSize: 22 }}>{icon}</span>
+                  <Icon size={20} strokeWidth={1.75} aria-hidden="true" style={{ color: type === tp ? 'var(--accent)' : 'var(--text-muted)' }} />
                   {label.replace(/^.\s/, '')}
                 </button>
               ))}
@@ -199,9 +200,9 @@ export default function InstallationModal({ open, onClose, installation }: Props
                   onClick={() => setSanitizer(s)}
                   style={{
                     ...pillBase,
-                    borderColor: sanitizer === s ? 'rgba(45,212,191,0.35)' : 'var(--border)',
-                    background: sanitizer === s ? 'rgba(45,212,191,0.1)' : 'var(--bg-surface-2)',
-                    color: sanitizer === s ? '#2dd4bf' : 'var(--text-secondary)',
+                    borderColor: sanitizer === s ? 'color-mix(in srgb, var(--accent) 35%, transparent)' : 'var(--border)',
+                    background: sanitizer === s ? 'var(--accent-dim)' : 'var(--bg-surface-2)',
+                    color: sanitizer === s ? 'var(--accent)' : 'var(--text-secondary)',
                   }}
                 >
                   {label}
@@ -233,9 +234,9 @@ export default function InstallationModal({ open, onClose, installation }: Props
                     ...pillBase,
                     flex: 'none',
                     minWidth: 56,
-                    borderColor: volumeUnit === u ? 'rgba(45,212,191,0.35)' : 'var(--border)',
-                    background: volumeUnit === u ? 'rgba(45,212,191,0.1)' : 'var(--bg-surface-2)',
-                    color: volumeUnit === u ? '#2dd4bf' : 'var(--text-secondary)',
+                    borderColor: volumeUnit === u ? 'color-mix(in srgb, var(--accent) 35%, transparent)' : 'var(--border)',
+                    background: volumeUnit === u ? 'var(--accent-dim)' : 'var(--bg-surface-2)',
+                    color: volumeUnit === u ? 'var(--accent)' : 'var(--text-secondary)',
                   }}
                 >
                   {u}
