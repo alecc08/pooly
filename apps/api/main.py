@@ -428,6 +428,8 @@ class ParamValueOut(BaseModel):
     status: Optional[str] = None  # "ok" | "warn" | "danger"
     ideal_min: Optional[float] = None
     ideal_max: Optional[float] = None
+    acceptable_min: Optional[float] = None
+    acceptable_max: Optional[float] = None
 
 
 class CurrentConditionsOut(BaseModel):
@@ -446,6 +448,7 @@ class InstallationSummaryOut(BaseModel):
     id: int
     name: str
     type: str
+    sanitizer: str
 
 
 class TodoItemOut(BaseModel):

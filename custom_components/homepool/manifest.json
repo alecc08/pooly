@@ -6,12 +6,13 @@
   ],
   "config_flow": true,
   "dependencies": [
-    "frontend"
+    "frontend",
+    "http"
   ],
   "documentation": "https://github.com/alecc08/homepool",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/alecc08/homepool/issues",
   "requirements": [],
-  "version": "1.0.0"
+  "version": "1.0.1"
 }

@@ -1,0 +1,33 @@
+name: HACS
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  hacs:
+    name: HACS validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
+
+  hassfest:
+    name: Hassfest validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Not the plain home-assistant/actions/hassfest composite action: its
+      # entrypoint globs for every file named manifest.json under the mounted
+      # workspace and validates each as an HA integration manifest. Mounting
+      # the whole repo picks up apps/web/public/manifest.json (the PWA
+      # manifest — an unrelated schema, no `codeowners` key) and crashes.
+      # Mounting only custom_components/ limits the glob to our integration.
+      - name: Hassfest validation
+        run: docker run --rm -v "${{ github.workspace }}/custom_components:/github/workspace" ghcr.io/home-assistant/hassfest

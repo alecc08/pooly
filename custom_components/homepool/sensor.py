@@ -101,16 +101,16 @@ class HomepoolSensor(CoordinatorEntity[HomepoolDataUpdateCoordinator], SensorEnt
         if not value:
             return None
         attrs = {"date": value["date"]}
-        # status/ideal_min/ideal_max are only present on servers new enough to
-        # send them (apps/api/main.py ParamValueOut) — older servers simply
-        # omit the keys, and the homepool-card frontend degrades to neutral
-        # tiles when they're absent.
-        if "status" in value:
-            attrs["status"] = value["status"]
-        if "ideal_min" in value:
-            attrs["ideal_min"] = value["ideal_min"]
-        if "ideal_max" in value:
-            attrs["ideal_max"] = value["ideal_max"]
+        # status/ideal_min/ideal_max/acceptable_min/acceptable_max are only
+        # present on servers new enough to send them (apps/api/main.py
+        # ParamValueOut) — older servers simply omit the keys, and the
+        # homepool-card frontend degrades to neutral tiles when they're absent.
+        for key in ("status", "ideal_min", "ideal_max", "acceptable_min", "acceptable_max"):
+            if key in value:
+                attrs[key] = value[key]
+        installation = self._installation
+        if installation and installation.get("sanitizer"):
+            attrs["sanitizer"] = installation["sanitizer"]
         return attrs
 
 
