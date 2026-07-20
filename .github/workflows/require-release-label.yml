@@ -22,7 +22,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          labels=$(gh pr view "$PR_NUMBER" --json labels --jq '.labels[].name')
+          labels=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json labels --jq '.labels[].name')
           if echo "$labels" | grep -qxE "release:(major|minor|patch|no-release)"; then
             echo "Release label present."
           else
