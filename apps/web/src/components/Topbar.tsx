@@ -1,3 +1,4 @@
+import { Sun, Moon, Bath, Waves, Pencil, Trash2, Home, Activity, Clock, ClipboardList, LogOut, User as UserIcon } from 'lucide-react'
 import homepoolLogo from '@/assets/homepool-logo.svg'
 import homepoolSidebarLogo from '@/assets/homepool-logo-sidebar.svg'
 import type { User } from '../types'
@@ -22,50 +23,44 @@ function ThemeSwitch({ theme, setTheme }: { theme: Theme; setTheme: (t: Theme) =
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '10px',
-      padding: '8px 12px',
-      margin: '0 8px',
+      gap: 10,
+      padding: '6px 12px',
     }}>
-      <span style={{
-        fontSize: '15px',
-        opacity: isDark ? 0.35 : 1,
-        transition: 'opacity 0.2s',
-      }}>☀️</span>
+      <Sun size={14} strokeWidth={1.75} aria-hidden="true" style={{ color: 'var(--text-muted)', opacity: isDark ? 0.4 : 1, transition: 'opacity 0.2s' }} />
 
       <div
         onClick={toggleTheme}
+        role="switch"
+        aria-checked={isDark}
+        aria-label="Theme"
+        tabIndex={0}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTheme() } }}
         style={{
-          width: '52px',
-          height: '28px',
-          borderRadius: '100px',
-          background: isDark ? 'rgba(45,212,191,0.12)' : '#123852',
-          border: isDark ? '1px solid rgba(45,212,191,0.3)' : '1px solid rgba(45,212,191,0.15)',
-          boxShadow: isDark ? '0 0 10px rgba(45,212,191,0.1)' : 'none',
+          width: 40,
+          height: 22,
+          borderRadius: 100,
+          background: isDark ? 'var(--accent-dim)' : 'var(--bg-surface-2)',
+          border: '1px solid var(--border)',
           position: 'relative',
           cursor: 'pointer',
-          transition: 'background 0.3s, border-color 0.3s, box-shadow 0.3s',
+          transition: 'background 0.3s, border-color 0.3s',
           flexShrink: 0,
         }}
       >
         <div style={{
           position: 'absolute',
-          top: '4px',
-          left: '4px',
-          width: '18px',
-          height: '18px',
+          top: 3,
+          left: 3,
+          width: 14,
+          height: 14,
           borderRadius: '50%',
-          background: '#2dd4bf',
-          boxShadow: '0 1px 4px rgba(45,212,191,0.5)',
-          transform: isDark ? 'translateX(24px)' : 'translateX(0)',
+          background: 'var(--accent)',
+          transform: isDark ? 'translateX(18px)' : 'translateX(0)',
           transition: 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
         }} />
       </div>
 
-      <span style={{
-        fontSize: '15px',
-        opacity: isDark ? 1 : 0.35,
-        transition: 'opacity 0.2s',
-      }}>🌙</span>
+      <Moon size={14} strokeWidth={1.75} aria-hidden="true" style={{ color: 'var(--text-muted)', opacity: isDark ? 1 : 0.4, transition: 'opacity 0.2s' }} />
     </div>
   )
 }
@@ -75,36 +70,30 @@ function LocaleSwitch({ locale, setLocale }: { locale: Locale; setLocale: (l: Lo
     <div style={{
       display: 'flex',
       alignItems: 'center',
-      gap: '8px',
-      padding: '4px 20px',
-      margin: '0 0 4px',
+      gap: 4,
+      padding: '2px 12px',
     }}>
-      {(['fr', 'en'] as Locale[]).map((l, i) => (
-        <>
-          {i > 0 && (
-            <div key={`sep-${l}`} style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.08)' }} />
-          )}
-          <button
-            key={l}
-            onClick={() => setLocale(l)}
-            style={{
-              flex: 1,
-              padding: '5px 0',
-              borderRadius: '6px',
-              border: 'none',
-              background: locale === l ? 'rgba(45,212,191,0.12)' : 'transparent',
-              color: locale === l ? '#2dd4bf' : 'rgba(255,255,255,0.3)',
-              fontSize: '11px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: "'IBM Plex Mono', monospace",
-              transition: 'all 0.15s',
-              letterSpacing: '0.05em',
-            }}
-          >
-            {l.toUpperCase()}
-          </button>
-        </>
+      {(['fr', 'en'] as Locale[]).map(l => (
+        <button
+          key={l}
+          onClick={() => setLocale(l)}
+          style={{
+            flex: 1,
+            padding: '4px 0',
+            borderRadius: 4,
+            border: 'none',
+            background: locale === l ? 'var(--accent-dim)' : 'transparent',
+            color: locale === l ? 'var(--accent)' : 'var(--text-muted)',
+            fontSize: 11,
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontFamily: "'IBM Plex Mono', monospace",
+            transition: 'all 0.15s',
+            letterSpacing: '0.05em',
+          }}
+        >
+          {l.toUpperCase()}
+        </button>
       ))}
     </div>
   )
@@ -122,6 +111,13 @@ type Props = {
   theme?: Theme
   setTheme?: (t: Theme) => void
 }
+
+const NAV_ITEMS: { page: Page; labelKey: 'nav_log' | 'nav_measurements' | 'nav_history' | 'nav_recommendations'; Icon: typeof Home }[] = [
+  { page: 'log', labelKey: 'nav_log', Icon: Home },
+  { page: 'measurements', labelKey: 'nav_measurements', Icon: Activity },
+  { page: 'history', labelKey: 'nav_history', Icon: Clock },
+  { page: 'recommendations', labelKey: 'nav_recommendations', Icon: ClipboardList },
+]
 
 export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, onEditInstallation, page = 'log', onNavigate, user, theme = 'auto', setTheme }: Props) {
   const { installations, active, setActive, deleteInstallation } = useInstallation()
@@ -143,40 +139,43 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
     }
   }
 
+  const InstallationIcon = active?.type === 'spa' ? Bath : Waves
+
   return (
     <>
       {/* ── Desktop sidebar ─────────────────────────────────── */}
       <aside className="sidebar">
+        {/* Logo */}
         <div style={{
-          padding: '18px 16px 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          padding: '0 16px 16px',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
+          gap: 10,
         }}>
           <img
             src={homepoolSidebarLogo}
             alt="homepool"
-            width={34}
-            height={34}
+            width={32}
+            height={32}
             style={{ flexShrink: 0 }}
           />
           <div>
             <div style={{
-              fontSize: '17px',
+              fontSize: 16,
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 1,
               fontFamily: 'Sora, sans-serif',
             }}>
-              <span style={{ color: 'white' }}>home</span>
+              <span style={{ color: 'var(--text-primary)' }}>home</span>
               <span style={{ color: 'var(--accent)' }}>pool</span>
             </div>
             <div style={{
-              fontSize: '9px',
-              color: 'rgba(255,255,255,0.3)',
+              fontSize: 9,
+              color: 'var(--text-muted)',
               fontFamily: "'IBM Plex Mono', monospace",
-              marginTop: '3px',
+              marginTop: 3,
               letterSpacing: '0.04em',
             }}>
               {user?.first_name ? `${t('hello')} ${user.first_name.toUpperCase()}` : installationLabel}
@@ -184,16 +183,73 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
           </div>
         </div>
 
-        {/* ── Installation selector ── */}
-        {installations.length > 0 && (
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-            {installations.length === 1 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ fontSize: 14 }}>{active?.type === 'spa' ? '🛁' : '🏊'}</span>
-                  <span style={{ fontFamily: 'Sora, sans-serif', fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.65)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                    {active?.name ?? '…'}
-                  </span>
+        {/* Nav */}
+        <nav className="sidebar-nav">
+          {NAV_ITEMS.map(({ page: p, labelKey, Icon }) => (
+            <button
+              key={p}
+              className={`sidebar-nav-item${page === p ? ' active' : ''}`}
+              onClick={() => onNavigate?.(p)}
+            >
+              <Icon size={15} strokeWidth={1.75} aria-hidden="true" />
+              {t(labelKey)}
+            </button>
+          ))}
+        </nav>
+
+        {/* Footer: installation + preferences + profile */}
+        <div className="sidebar-footer">
+          {/* Installation selector */}
+          {installations.length > 0 && (
+            <div style={{ padding: '2px 0 6px' }}>
+              {installations.length === 1 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, padding: '0 12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <InstallationIcon size={14} strokeWidth={1.75} aria-hidden="true" style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                    <span style={{ fontFamily: 'Sora, sans-serif', fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                      {active?.name ?? '…'}
+                    </span>
+                    {onEditInstallation && (
+                      <button
+                        type="button"
+                        onClick={onEditInstallation}
+                        aria-label={t('nav_edit_installation')}
+                        title={t('nav_edit_installation')}
+                        style={{
+                          flexShrink: 0, width: 22, height: 22, borderRadius: 'var(--radius-sm)',
+                          background: 'none', border: 'none',
+                          color: 'var(--text-muted)', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        <Pencil size={12} strokeWidth={1.75} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+                  {active?.volume != null && (
+                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: 'var(--text-muted)', marginLeft: 21 }}>
+                      {active.volume.toLocaleString('fr-FR')} {active.volume_unit ?? 'L'}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '0 12px' }}>
+                  <select
+                    value={active?.id ?? ''}
+                    onChange={e => setActive(Number(e.target.value))}
+                    style={{
+                      flex: 1, width: '100%', padding: '5px 8px', borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg-surface)', border: '1px solid var(--border)',
+                      color: 'var(--text-secondary)', fontFamily: 'Sora, sans-serif', fontSize: 12,
+                      cursor: 'pointer', outline: 'none',
+                    }}
+                  >
+                    {installations.map(i => (
+                      <option key={i.id} value={i.id}>
+                        {i.name}
+                      </option>
+                    ))}
+                  </select>
                   {onEditInstallation && (
                     <button
                       type="button"
@@ -201,188 +257,88 @@ export default function Topbar({ onAdd, onLogout, onProfile, onAddInstallation, 
                       aria-label={t('nav_edit_installation')}
                       title={t('nav_edit_installation')}
                       style={{
-                        flexShrink: 0, width: 22, height: 22, borderRadius: 6,
-                        background: 'none', border: 'none',
-                        color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
+                        flexShrink: 0, width: 26, height: 26, borderRadius: 'var(--radius-sm)',
+                        background: 'var(--bg-surface)', border: '1px solid var(--border)',
+                        color: 'var(--text-muted)', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
+                      <Pencil size={12} strokeWidth={1.75} aria-hidden="true" />
                     </button>
                   )}
-                </div>
-                {active?.volume != null && (
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: 'rgba(255,255,255,0.35)', marginLeft: 21 }}>
-                    {active.volume.toLocaleString('fr-FR')} {active.volume_unit ?? 'L'}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <select
-                  value={active?.id ?? ''}
-                  onChange={e => setActive(Number(e.target.value))}
-                  style={{
-                    flex: 1, width: '100%', padding: '5px 8px', borderRadius: 6,
-                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)',
-                    color: 'rgba(255,255,255,0.75)', fontFamily: 'Sora, sans-serif', fontSize: 12,
-                    cursor: 'pointer', outline: 'none',
-                  }}
-                >
-                  {installations.map(i => (
-                    <option key={i.id} value={i.id} style={{ background: '#0f1a28' }}>
-                      {i.type === 'spa' ? '🛁' : '🏊'} {i.name}
-                    </option>
-                  ))}
-                </select>
-                {onEditInstallation && (
                   <button
                     type="button"
-                    onClick={onEditInstallation}
-                    aria-label={t('nav_edit_installation')}
-                    title={t('nav_edit_installation')}
+                    onClick={handleDeleteInstallation}
+                    aria-label={t('installation_delete')}
+                    title={t('installation_delete')}
                     style={{
-                      flexShrink: 0, width: 26, height: 26, borderRadius: 6,
-                      background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)',
-                      color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
+                      flexShrink: 0, width: 26, height: 26, borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg-surface)', border: '1px solid var(--border)',
+                      color: 'var(--text-muted)', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
+                    <Trash2 size={12} strokeWidth={1.75} aria-hidden="true" />
                   </button>
-                )}
+                </div>
+              )}
+              {onAddInstallation && (
                 <button
-                  type="button"
-                  onClick={handleDeleteInstallation}
-                  aria-label={t('installation_delete')}
-                  title={t('installation_delete')}
+                  onClick={onAddInstallation}
                   style={{
-                    flexShrink: 0, width: 26, height: 26, borderRadius: 6,
-                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)',
-                    color: 'rgba(255,255,255,0.45)', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginTop: 4, width: '100%', background: 'none', border: 'none',
+                    fontFamily: 'Sora, sans-serif', fontSize: 10, color: 'var(--text-muted)',
+                    cursor: 'pointer', textAlign: 'left', padding: '2px 12px',
                   }}
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                  </svg>
+                  {t('nav_add_installation')}
                 </button>
-              </div>
-            )}
-            {onAddInstallation && (
-              <button
-                onClick={onAddInstallation}
-                style={{
-                  marginTop: 6, width: '100%', background: 'none', border: 'none',
-                  fontFamily: 'Sora, sans-serif', fontSize: 10, color: 'rgba(255,255,255,0.30)',
-                  cursor: 'pointer', textAlign: 'left', padding: '2px 0',
-                }}
-              >
-                {t('nav_add_installation')}
-              </button>
-            )}
-          </div>
-        )}
-
-        <nav className="sidebar-nav">
-          <button
-            className={`sidebar-nav-item${page === 'log' ? ' active' : ''}`}
-            onClick={() => onNavigate?.('log')}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            {t('nav_log')}
-          </button>
-
-          <button
-            className={`sidebar-nav-item${page === 'measurements' ? ' active' : ''}`}
-            onClick={() => onNavigate?.('measurements')}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-            {t('nav_measurements')}
-          </button>
-
-          <button
-            className={`sidebar-nav-item${page === 'history' ? ' active' : ''}`}
-            onClick={() => onNavigate?.('history')}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            {t('nav_history')}
-          </button>
-
-          <button
-            className={`sidebar-nav-item${page === 'recommendations' ? ' active' : ''}`}
-            onClick={() => onNavigate?.('recommendations')}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
-              <rect x="6" y="6" width="12" height="12" rx="2" />
-              <path d="M9 12h6M12 9v6" />
-            </svg>
-            {t('nav_recommendations')}
-          </button>
-        </nav>
-
-        <div className="sidebar-footer">
-          {onAdd && (
-            <button className="btn-sidebar-add" onClick={onAdd}>
-              {t('nav_new_entry')}
-            </button>
+              )}
+            </div>
           )}
+
           {setTheme && <ThemeSwitch theme={theme} setTheme={setTheme} />}
           <LocaleSwitch locale={locale} setLocale={setLocale} />
+
           {onProfile && (
-            <button className="btn-sidebar-logout" onClick={onProfile} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
+            <button className="btn-sidebar-logout" onClick={onProfile} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <UserIcon size={13} strokeWidth={1.75} aria-hidden="true" />
               {t('nav_my_profile')}
             </button>
           )}
           {onLogout && (
-            <button className="btn-sidebar-logout" onClick={onLogout}>
+            <button className="btn-sidebar-logout" onClick={onLogout} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <LogOut size={13} strokeWidth={1.75} aria-hidden="true" />
               {t('nav_logout')}
             </button>
           )}
           <div style={{
-            padding: '8px 12px 12px',
-            fontSize: '10px',
+            padding: '6px 12px 8px',
+            fontSize: 10,
             fontFamily: "'IBM Plex Mono', monospace",
-            color: 'rgba(255,255,255,0.28)',
+            color: 'var(--text-muted)',
             letterSpacing: '0.03em',
             userSelect: 'none',
           }}>
-            homepool v1.0.0 · MIT License
+            homepool · MIT License
           </div>
         </div>
       </aside>
 
       {/* ── Mobile top header ───────────────────────────────── */}
       <header className="mobile-header">
-        <img src={homepoolLogo} alt="homepool" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <img src={homepoolLogo} alt="homepool" />
+          {active?.name && (
+            <span style={{ fontFamily: 'Sora, sans-serif', fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {active.name}
+            </span>
+          )}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {onLogout && (
             <button className="mobile-header-logout" onClick={onLogout}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
+              <LogOut size={14} strokeWidth={1.75} aria-hidden="true" />
               {t('nav_logout_short')}
             </button>
           )}

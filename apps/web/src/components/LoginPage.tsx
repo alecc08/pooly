@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import type { User } from '../types'
 import homepoolSidebarLogo from '@/assets/homepool-logo-sidebar.svg'
 import { useT } from '../context/LocaleContext'
@@ -94,8 +95,8 @@ function PrimaryBtn({
       type={type}
       disabled={loading || disabled}
       style={{
-        width: '100%', background: 'var(--text-primary)', color: 'var(--bg-surface)',
-        border: 'none', borderRadius: 8,
+        width: '100%', background: 'var(--accent)', color: 'var(--accent-fg)',
+        border: 'none', borderRadius: 'var(--radius-sm)',
         fontFamily: '"Sora", sans-serif', fontSize: 13, fontWeight: 600,
         padding: '11px 0', cursor: loading || disabled ? 'not-allowed' : 'pointer',
         opacity: loading || disabled ? 0.65 : 1, transition: 'opacity 0.15s',
@@ -107,17 +108,9 @@ function PrimaryBtn({
 }
 
 function EyeIcon({ open }: { open: boolean }) {
-  return open ? (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>
-    </svg>
-  ) : (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  )
+  return open
+    ? <EyeOff size={15} strokeWidth={1.75} aria-hidden="true" />
+    : <Eye size={15} strokeWidth={1.75} aria-hidden="true" />
 }
 
 function PwField({
@@ -328,7 +321,8 @@ export default function LoginPage({ onLogin }: Props) {
       <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{
           background: 'var(--bg-surface)', border: '1px solid var(--border)',
-          borderRadius: 14, padding: 36,
+          borderRadius: 'var(--radius-lg)', padding: 36,
+          boxShadow: 'var(--shadow-card)',
         }}>
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 8 }}>

@@ -14,14 +14,14 @@ export default function InfoGrid() {
         <div
           key={title}
           style={{
-            background: 'rgba(255,255,255,0.6)',
-            borderRadius: 20,
+            background: 'var(--bg-surface)',
+            borderRadius: 'var(--radius-lg)',
             padding: 16,
-            border: '1px solid #edf1f4',
+            border: '1px solid var(--border)',
           }}
         >
           <h3>{title}</h3>
-          <p style={{ margin: 0, color: 'var(--pooly-muted)', fontSize: 13, lineHeight: 1.4 }}>{text}</p>
+          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.4 }}>{text}</p>
         </div>
       ))}
     </section>

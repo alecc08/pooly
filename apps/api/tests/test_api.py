@@ -526,6 +526,35 @@ def test_v1_current_requires_api_key(client: TestClient):
     assert r.status_code == 401
 
 
+def test_v1_current_includes_status_and_ideal_range(client: TestClient):
+    """ParamValueOut carries status/ideal_min/ideal_max (added for the Home
+    Assistant card's status dots) — verifies ok/warn/danger classification
+    and that ideal_min/ideal_max mirror WATER_PARAMS' default pool+chlorine
+    ph band."""
+    login(client)
+    key = get_api_key(client)
+    inst_r = client.post("/installations", json={"name": "My pool", "sanitizer": "chlorine"})
+    installation_id = inst_r.json()["id"]
+    client.post(
+        "/actions",
+        json={
+            "date": TODAY,
+            "action_type": "Measurement",
+            "installation_id": installation_id,
+            "qty": "7.4",
+            # chlorine 1.0-3.0 ideal / 0.5-4.0 acceptable, danger threshold below
+            "notes": "chlorine: 6. TAC: 100.",
+        },
+    )
+    r = client.get(f"/v1/current?installation_id={installation_id}", headers=auth_headers(key))
+    assert r.status_code == 200
+    data = r.json()
+    assert data["ph"]["status"] == "ok"
+    assert data["ph"]["ideal_min"] == pytest.approx(7.2)
+    assert data["ph"]["ideal_max"] == pytest.approx(7.6)
+    assert data["chlorine"]["status"] == "danger"
+
+
 # ── /v1/todo ─────────────────────────────────────────────────────────────
 
 def test_v1_todo_ph_days_until_due(client: TestClient):

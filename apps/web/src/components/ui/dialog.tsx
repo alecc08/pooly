@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useT } from "../../context/LocaleContext"
@@ -24,7 +25,7 @@ const DialogOverlay = React.forwardRef<
       "fixed inset-0 z-50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
-    style={{ background: 'rgba(10,31,60,0.4)', backdropFilter: 'blur(4px)' }}
+    style={{ background: 'rgba(4, 8, 12, 0.55)', backdropFilter: 'blur(4px)' }}
     {...props}
   />
 ))
@@ -71,7 +72,7 @@ const DialogContent = React.forwardRef<
           flexShrink: 0,
         }}
       >
-        ✕<span className="sr-only">{t('common_close')}</span>
+        <X size={14} strokeWidth={1.75} aria-hidden="true" /><span className="sr-only">{t('common_close')}</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>

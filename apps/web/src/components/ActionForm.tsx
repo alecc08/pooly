@@ -971,7 +971,7 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
             <button
               type="button"
               onClick={addRow}
-              style={{ border: '1px dashed var(--border)', borderRadius: 8, padding: '8px 14px', background: 'none', color: 'var(--pooly-primary)', fontSize: 13, fontFamily: '"Sora", sans-serif', fontWeight: 600, cursor: 'pointer', width: '100%', textAlign: 'left' }}
+              style={{ border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 14px', background: 'none', color: 'var(--accent)', fontSize: 13, fontFamily: '"Sora", sans-serif', fontWeight: 600, cursor: 'pointer', width: '100%', textAlign: 'left' }}
             >
               {t('modal_add_action')}
             </button>
@@ -983,8 +983,8 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
           <Label>{t('modal_quick_status')}</Label>
           <div className="grid grid-cols-2 gap-2">
             {quickTags.map(tag => (
-              <label key={tag} className="flex items-center gap-2" style={{ fontFamily: '"Sora", sans-serif', color: 'var(--pooly-body)', fontSize: 13, textTransform: 'none', letterSpacing: 'normal' }}>
-                <input type="checkbox" className="h-4 w-4" style={{ accentColor: 'var(--pooly-primary)' }} checked={selectedTags.includes(tag)} onChange={() => toggleQuickTag(tag)} />
+              <label key={tag} className="flex items-center gap-2" style={{ fontFamily: '"Sora", sans-serif', color: 'var(--text-secondary)', fontSize: 13, textTransform: 'none', letterSpacing: 'normal' }}>
+                <input type="checkbox" className="h-4 w-4" checked={selectedTags.includes(tag)} onChange={() => toggleQuickTag(tag)} />
                 {translateLabel(t, QUICK_TAG_LABELS, tag)}
               </label>
             ))}
@@ -1011,34 +1011,14 @@ export default function ActionForm({ onAdd, products: _products, onClose, editAc
       }}>
         <button
           type="button"
+          className="btn-ghost"
           onClick={onClose}
-          style={{
-            padding: '10px 18px',
-            borderRadius: '9px',
-            border: '1px solid var(--border)',
-            background: 'transparent',
-            color: 'var(--text-secondary)',
-            fontSize: '13px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontFamily: 'Sora, sans-serif',
-          }}
         >
           {t('modal_cancel')}
         </button>
         <button
           type="submit"
-          style={{
-            padding: '10px 22px',
-            borderRadius: '9px',
-            border: 'none',
-            background: '#2dd4bf',
-            color: '#123852',
-            fontSize: '13px',
-            fontWeight: 700,
-            cursor: 'pointer',
-            fontFamily: 'Sora, sans-serif',
-          }}
+          className="btn-primary"
         >
           {isEditMode ? t('modal_save_changes') : rows.length > 1 ? `${t('modal_save')} (${rows.length})` : t('modal_save')}
         </button>

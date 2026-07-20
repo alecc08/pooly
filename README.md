@@ -6,45 +6,13 @@
 
 *(the app itself supports English and French via an in-app language toggle — this documentation is English-only)*
 
-[![Version](https://img.shields.io/badge/version-1.0.0-38bdf8?style=flat-square)](https://github.com/alecc08/homepool/releases)
+[![Release](https://img.shields.io/github/v/release/alecc08/homepool?style=flat-square&color=22d3ee)](https://github.com/alecc08/homepool/releases)
 [![Licence](https://img.shields.io/badge/licence-MIT-10b981?style=flat-square)](LICENSE)
 [![Docker](https://img.shields.io/badge/docker-compose-0ea5e9?style=flat-square&logo=docker&logoColor=white)](docker-compose.yml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=black)](https://react.dev)
 
-### ☕ Support
-
-If homepool is useful to you, consider buying me a coffee:
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T61NJXQS)
-
 </div>
-
----
-
-## 🙏 Credits
-
-homepool started life as a fork of [Pooly](https://github.com/aurel-f/pooly), created by
-[aurel-f](https://github.com/aurel-f) — the original app, its data model, and the core
-idea of a clean, self-hosted pool/spa tracker all trace back to that project. homepool has
-since grown into its own thing (new name, Home Assistant integration, salt-pool support,
-configurable ranges, and more), so it's no longer maintained as a fork, but credit for the
-original idea belongs there. If you like this project, go star the
-[original repository](https://github.com/aurel-f/pooly) too.
-
----
-
-## Table of contents
-- [Overview](#-overview)
-- [Features](#-features)
-- [Screenshots](#-screenshots)
-- [Quick start](#-quick-start)
-- [Configuration](#-configuration)
-- [Home Assistant Integration](#-home-assistant-integration)
-- [Tech stack](#-tech-stack)
-- [Contributing](#-contributing)
-- [Support](#-support)
-- [License](#-license)
 
 ---
 
@@ -52,21 +20,19 @@ original idea belongs there. If you like this project, go star the
 
 homepool is a **self-hosted** web application to track the maintenance of your pools and spas. Log your water measurements, treatments and maintenance tasks from a clean dashboard — your data stays on your own server.
 
-Designed for self-hosters and the Home Assistant crowd who want full control without complexity: one Docker command and you're up and running, with a first-class HA integration to bring your water parameters into your existing smart-home setup.
+Designed for self-hosters and the Home Assistant crowd who want full control without complexity: one Docker command and you're up and running, with a first-class HA integration — including a purpose-built Lovelace card — to bring your water parameters into your existing smart-home setup.
 
----
+**Features:**
 
-### ✨ Features
-
-- **Full dashboard** — KPIs, real-time water parameters, visual water quality indicator
-- **Home Assistant integration** — sensors for water parameters and maintenance-due tracking, installable via HACS
+- **Water status board** — mono-value param tiles with status dot, ideal range, and per-parameter trend sparkline
+- **Home Assistant integration** — sensors, maintenance-logging buttons, and a custom Lovelace card, installable via HACS
 - **AquaChek test strip input** — interactive color chart for pH, Alkalinity, Bromine, Chlorine and Hardness
 - **Digital device input** — decimal inputs with range validation
 - **Multi-installation** — manage multiple pools and spas with adapted reference ranges
 - **Bromine, chlorine or salt** — differentiated ideal ranges per sanitizer, including salt water generator (SWG) pools, with free-chlorine targets set for the higher CYA a salt system runs at
 - **Configurable ideal ranges** — override any water-parameter range per installation, right from the UI
+- **Dosage recommendations** — out-of-range params get a targeted dosing suggestion, plus a freestyle what-if simulator
 - **Full history** — monthly timeline, type filters, full-text search
-- **Measurements page** — track parameter trends over time
 - **Dark mode** — light, dark or automatic theme (system preference)
 - **PWA** — installable on mobile, bottom navigation, bottom sheet modal
 - **Self-hosted & private** — no third-party cloud, no tracking, your data stays yours
@@ -77,17 +43,17 @@ Designed for self-hosters and the Home Assistant crowd who want full control wit
 
 <div align="center">
 
-| Dashboard — Light mode | Dashboard — Dark mode |
+| Dashboard — Dark mode | Dashboard — Light mode |
 |---|---|
-| ![Dashboard light](docs/screenshots/dashboard-light.png) | ![Dashboard dark](docs/screenshots/dashboard-dark.png) |
+| ![Dashboard dark](docs/screenshots/dashboard-dark.png) | ![Dashboard light](docs/screenshots/dashboard-light.png) |
 
 | Measurements | History |
 |---|---|
 | ![Measurements](docs/screenshots/measurements-light.png) | ![History](docs/screenshots/history-light.png) |
 
-| New entry — Maintenance | New entry — AquaChek strip |
-|---|---|
-| ![Maintenance modal](docs/screenshots/modal-entry.png) | ![Strip modal](docs/screenshots/modal-strip.png) |
+| New entry — AquaChek strip |
+|---|
+| ![Strip modal](docs/screenshots/modal-strip.png) |
 
 </div>
 
@@ -117,6 +83,78 @@ The app is available at `http://localhost:8090`. Create your account on first lo
 
 ---
 
+### 🏠 Home Assistant Integration
+
+homepool ships a full Home Assistant integration: sensors for every water parameter, maintenance-due tracking, one-tap maintenance buttons, and a custom **homepool card** for your dashboard.
+
+#### 1. Install via HACS
+
+Settings → HACS → custom repositories (⋮ menu) → add repository URL `https://github.com/alecc08/homepool`, category **Integration** → find "homepool" in HACS → Install.
+
+#### 2. Add the integration
+
+Settings → Devices & Services → Add Integration → search for "homepool".
+
+#### 3. Configure
+
+- **Base URL**: your homepool server URL. If you're running behind the bundled nginx/reverse-proxy setup, this **must include the `/api` path** — e.g. `https://your-domain/api`, not just `https://your-domain`. Using the domain without `/api` will result in a "failed to connect to the homepool server" error.
+- **API Key**: generate one from Settings → API Key in the homepool web app.
+
+#### 4. Entities
+
+Each installation gets a device with the following entities:
+
+| Entity | Description |
+|---|---|
+| `sensor.<installation>_ph`, `_chlorine`, `_bromine`, `_tac`, `_hardness`, `_salt`, `_stabilizer_cya`, `_combined_chlorine`, `_temperature` | One sensor per measured water parameter — only created for fields your installation actually tracks. Carries `date`, and (server permitting) `status` (`ok`/`warn`/`danger`) and `ideal_min`/`ideal_max` attributes. |
+| `sensor.<installation>_days_until_ph_measurement_due`, `_days_until_filter_maintenance_due` | Plain numeric "days until due" sensors (not on/off) that go negative once overdue, so you can set your own automation threshold instead of a fixed one, e.g. `states('sensor.xxx_days_until_ph_measurement_due') \| int <= 3`. |
+| `button.<installation>_log_cartridge_cleaning`, `_log_skimmer_filter_cleaning`, `_log_backwash`, `_log_ph_calibration`, `_log_purge`, `_log_water_change` | Press to log that maintenance action against homepool immediately, no app needed. |
+
+![Home Assistant sensors](docs/screenshots/ha-sensors.png)
+
+#### 5. The homepool card
+
+A hand-written Lovelace card ships with the integration (no separate frontend install) — it mirrors the web app's water-status-board look: mono values, a status dot per parameter, the ideal range, and a "measured N days ago" readout, plus the six maintenance buttons and an inline mini-form for logging a full measurement.
+
+Add it from the card picker (search "homepool") or with YAML:
+
+```yaml
+type: custom:homepool-card
+title: My pool
+entity_prefix: sensor.my_pool
+installation_id: 1
+show_buttons: true
+show_due: true
+```
+
+`entity_prefix` should match the prefix HA generated for your installation's sensors (e.g. `sensor.my_pool_ph` → prefix `sensor.my_pool`). `installation_id` is only needed if you want the inline "Log measurement" mini-form — find it in the homepool web app's URL or API.
+
+> If the card doesn't appear after installing/updating, hard-refresh your browser — the resource is cache-busted per release, but browsers occasionally hold onto a stale copy. As a manual fallback, add the resource yourself: Settings → Dashboards → ⋮ → Resources → Add Resource → URL `/homepool/homepool-card.js`, type JavaScript Module.
+
+Prefer a more configurable, general-purpose pool widget instead? The [Pool Monitor Card](https://github.com/wilsto/pool-monitor-card) (installable via HACS as a frontend repository) also works against homepool's sensor entities.
+
+> Dosage recommendations are web-app-only for now — the card doesn't surface them yet.
+
+#### 6. The `homepool.log_measurement` service
+
+For measurements (pH, chlorine, etc.), call the `homepool.log_measurement` service from a script, automation, or a dashboard button's `tap_action: perform-action`:
+
+```yaml
+type: button
+tap_action:
+  action: perform-action
+  perform_action: homepool.log_measurement
+  target: {}
+  data:
+    installation_id: 1
+    ph: 7.2
+    chlorine: 1.5
+name: Log measurement
+icon: mdi:flask-outline
+```
+
+---
+
 ### ⚙️ Configuration
 
 Copy `.env.example` to `.env` and adjust the values:
@@ -135,73 +173,6 @@ Copy `.env.example` to `.env` and adjust the values:
 
 Every ideal/acceptable range shown in the app (pH, free chlorine, salt, CYA, alkalinity, hardness, temperature...) has sensible built-in defaults per installation type and sanitizer — including a salt water generator (SWG) profile with a higher CYA target (60-80 ppm) and a matching free-chlorine band, following [PoolMath](https://www.troublefreepool.com/blog/poolmath/) / Trouble Free Pool guidance. If your setup runs differently, open an installation's edit modal → **Water Chemistry Targets** tab to customize any band per installation, right from the UI — no env vars or restarts required.
 
-> ⚠️ **Upgrading from an older version?** The `RANGE_<TYPE>_<SANITIZER>_<PARAM>_{IDEAL,ACCEPTABLE}_{MIN,MAX}` env var mechanism has been removed in favor of the per-installation UI above. If you were relying on `RANGE_*` env vars, re-apply your preferred ranges per-installation via the UI after upgrading — the env vars are now ignored.
-
----
-
-### 🏠 Home Assistant Integration
-
-homepool's water measurements can be pulled into Home Assistant as sensors.
-
-1. **Install via HACS**
-   Settings → HACS → custom repositories (⋮ menu) → add repository URL `https://github.com/alecc08/homepool`, category **Integration** → find "homepool" in HACS → Install.
-
-2. **Add the integration**
-   Settings → Devices & Services → Add Integration → search for "homepool".
-
-3. **Configure**
-   - **Base URL**: your homepool server URL. If you're running behind the bundled nginx/reverse-proxy setup, this **must include the `/api` path** — e.g. `https://your-domain/api`, not just `https://your-domain`. Using the domain without `/api` will result in a "failed to connect to the homepool server" error.
-   - **API Key**: generate one from Settings → API Key in the homepool web app.
-
-4. **Result**
-   Once added, you'll get a Sensors card with your installation's water parameters, plus two "days until due" sensors per installation — **Days Until pH Measurement Due** and **Days Until Filter Maintenance Due**. These are plain numeric sensors (not on/off) that go negative once overdue, so you can set your own automation threshold instead of a fixed one, e.g. trigger a notification when `states('sensor.xxx_days_until_ph_measurement_due') | int <= 3`:
-
-   ![Home Assistant sensors](docs/screenshots/ha-sensors.png)
-
-5. **Display on a dashboard (optional)**
-   homepool's integration only exposes the raw sensor entities — for a nicer pool-specific dashboard widget, pair it with the [Pool Monitor Card](https://github.com/wilsto/pool-monitor-card) (installable via HACS as a frontend repository). Use the homepool sensors as the card's data source to get a purpose-built pool/spa display.
-
-6. **Quick-add maintenance from Home Assistant**
-   Each installation also gets one button entity per maintenance type — **Log Cartridge Cleaning**, **Log Skimmer Filter Cleaning**, **Log Backwash**, **Log pH Calibration**, **Log Purge**, **Log Water Change**. Pressing one logs that maintenance action against homepool immediately, no app needed.
-
-   For measurements (pH, chlorine, etc.), which need numeric input a plain button can't collect, use the `homepool.log_measurement` service instead — call it from a script, automation, or a dashboard button's `tap_action: perform-action`.
-
-   Example Lovelace card combining both:
-
-   ```yaml
-   type: grid
-   columns: 2
-   square: false
-   cards:
-     - type: button
-       tap_action:
-         action: call-service
-         service: button.press
-         target:
-           entity_id: button.pool_log_cartridge_cleaning
-       name: Cartridge cleaning
-       icon: mdi:air-filter
-     - type: button
-       tap_action:
-         action: call-service
-         service: button.press
-         target:
-           entity_id: button.pool_log_backwash
-       name: Backwash
-       icon: mdi:valve
-     - type: button
-       tap_action:
-         action: perform-action
-         perform_action: homepool.log_measurement
-         target: {}
-         data:
-           installation_id: 1
-           ph: 7.2
-           chlorine: 1.5
-       name: Log measurement
-       icon: mdi:flask-outline
-   ```
-
 ---
 
 ### 🛠 Tech stack
@@ -209,7 +180,7 @@ homepool's water measurements can be pulled into Home Assistant as sensors.
 | Layer | Technology |
 |---|---|
 | Frontend | React 19, Vite, Tailwind CSS |
-| Backend | FastAPI, SQLModel, Python 3.12 |
+| Backend | FastAPI, SQLModel, Python 3.13 |
 | Database | PostgreSQL 16 |
 | Auth | Cookie sessions (httpOnly, same_site=strict) |
 | Deployment | Docker Compose |
@@ -217,30 +188,23 @@ homepool's water measurements can be pulled into Home Assistant as sensors.
 
 ---
 
-### 🤝 Contributing
+### 🙏 Credits
 
-Contributions are welcome! Here's how to get involved:
+homepool started life as a fork of [Pooly](https://github.com/aurel-f/pooly), created by
+[aurel-f](https://github.com/aurel-f) — the original app, its data model, and the core
+idea of a clean, self-hosted pool/spa tracker all trace back to that project. homepool has
+since grown into its own thing (new name, Home Assistant integration, salt-pool support,
+configurable ranges, and more), so it's no longer maintained as a fork, but credit for the
+original idea belongs there. If you like this project, go star the
+[original repository](https://github.com/aurel-f/pooly) too.
 
-```bash
-# Fork the repo, then:
-git clone https://github.com/alecc08/homepool.git
-cd homepool
-git checkout -b feature/my-feature
+---
 
-# Make your changes, then:
-git commit -m "feat: describe the feature"
-git push origin feature/my-feature
-# Open a Pull Request
-```
+### ☕ Support
 
-**Appreciated contribution types:**
-- 🐛 Bug fixes
-- ✨ New features
-- 🌍 Translations
-- 📸 Screenshots and demos
-- 📖 Documentation improvements
+If homepool is useful to you, consider buying me a coffee:
 
-Check the [open issues](https://github.com/alecc08/homepool/issues) to find something to work on.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T61NJXQS)
 
 ---
 

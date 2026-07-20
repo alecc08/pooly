@@ -2,29 +2,8 @@
 @import "tailwindcss";
 
 :root {
-  /* Brand vars, not themeable (always fixed) */
-  --pooly-primary: #123852;
-  --pooly-cyan: #2dd4bf;
-  --pooly-indigo: #8b5cf6;
-
-  /* Themeable vars — light defaults (overridden by theme.css in dark) */
-  --pooly-bg:           var(--bg-page);
-  --pooly-surface:      var(--bg-surface);
-  --pooly-border-color: var(--border);
-  --pooly-sidebar:      #08121c;
-  --pooly-sidebar-active: #123852;
-  --pooly-text:         var(--text-primary);
-  --pooly-body:         var(--text-secondary);
-  --pooly-muted:        var(--text-muted);
-  --pooly-ok-text:      var(--status-ok-text);
-  --pooly-ok-bg:        var(--status-ok-bg);
-  --pooly-warn-text:    var(--status-warn-text);
-  --pooly-warn-bg:      var(--status-warn-bg);
-  --pooly-bad-text:     var(--status-danger-text);
-  --pooly-bad-bg:       var(--status-danger-bg);
-
   /* Shadcn tokens inherited from theme.css + local overrides */
-  --accent-foreground: 205 55% 22%;
+  --accent-foreground: 189 85% 53%;
 }
 
 @theme {
@@ -57,8 +36,8 @@
 body {
   margin: 0;
   font-family: "Sora", system-ui, sans-serif;
-  color: var(--pooly-text);
-  background: var(--pooly-bg);
+  color: var(--text-primary);
+  background: var(--bg-page);
   min-height: 100vh;
 }
 
@@ -76,16 +55,120 @@ button {
   min-height: 100vh;
 }
 
+/* ── Core surfaces & buttons ─────────────────────────────── */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: "Sora", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--accent);
+  color: var(--accent-fg);
+  cursor: pointer;
+  transition: filter 0.15s;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: "Sora", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-decoration: none;
+}
+
+.btn-ghost:hover {
+  background: var(--bg-raised);
+  color: var(--text-primary);
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: "Sora", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--status-danger-text);
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.btn-danger:hover {
+  filter: brightness(1.08);
+}
+
+.field-label {
+  display: block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.modal-section {
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+
 /* ── Sidebar ─────────────────────────────────────────────── */
 .sidebar {
   width: 232px;
   flex-shrink: 0;
-  background: linear-gradient(180deg, #0c1a28 0%, var(--pooly-sidebar) 100%);
-  border-right: 1px solid rgba(45, 212, 191, 0.08);
-  box-shadow: 6px 0 28px rgba(0, 0, 0, 0.22);
+  background: var(--bg-page);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 22px 0;
+  padding: 20px 0 12px;
   position: fixed;
   top: 0;
   left: 0;
@@ -93,122 +176,112 @@ button {
   z-index: 100;
 }
 
-.sidebar-logo {
-  padding: 0 20px 24px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.sidebar-logo img {
-  width: 120px;
-  height: auto;
-  border-radius: 9px;
-  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.2), 0 4px 16px rgba(45, 212, 191, 0.12);
-}
-
 .sidebar-nav {
   flex: 1;
-  padding: 16px 12px 0;
+  padding: 14px 12px 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .sidebar-nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
   font-family: "Sora", sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background 0.15s, color 0.15s;
   text-decoration: none;
-  border: 1px solid transparent;
+  border: none;
+  border-left: 2px solid transparent;
   background: none;
   width: 100%;
   text-align: left;
-  position: relative;
 }
 
 .sidebar-nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
+  background: var(--bg-raised);
+  color: var(--text-primary);
 }
 
 .sidebar-nav-item.active {
-  background: linear-gradient(135deg, rgba(45, 212, 191, 0.16), rgba(139, 92, 246, 0.14));
-  border-color: rgba(45, 212, 191, 0.25);
-  color: #ffffff;
-}
-
-.sidebar-nav-item.active::before {
-  content: '';
-  position: absolute;
-  left: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 18px;
-  border-radius: 3px;
-  background: linear-gradient(180deg, var(--accent), var(--accent-indigo));
+  background: var(--accent-dim);
+  border-left: 2px solid var(--accent);
+  color: var(--text-primary);
 }
 
 .sidebar-footer {
-  padding: 16px 12px 0;
+  padding: 12px 12px 0;
+  border-top: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.btn-sidebar-add {
-  border: none;
-  background: linear-gradient(135deg, #2dd4bf, #8b5cf6);
-  color: #0a1420;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-family: "Sora", sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 4px 16px rgba(45, 212, 191, 0.22);
-  transition: filter 0.15s, transform 0.15s;
-}
-
-.btn-sidebar-add:hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
+  gap: 6px;
 }
 
 .btn-sidebar-logout {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-muted);
   font-family: "Sora", sans-serif;
   font-size: 12px;
   cursor: pointer;
-  padding: 6px 16px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
   text-align: left;
   width: 100%;
-  transition: color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
 .btn-sidebar-logout:hover {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-primary);
+  background: var(--bg-raised);
 }
 
 /* ── Main content ────────────────────────────────────────── */
 .main-content {
-  margin-left: 220px;
+  margin-left: 232px;
   flex: 1;
-  padding: 32px;
-  background: var(--pooly-bg);
+  padding: 28px 32px;
+  background: var(--bg-page);
   min-height: 100vh;
+}
+
+/* ── Page header pattern ─────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.page-header-title {
+  font-family: "Sora", sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.page-header-sub {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* ── Auth page ───────────────────────────────────────────── */
@@ -217,63 +290,83 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--pooly-bg);
+  background: var(--bg-page);
   padding: 24px;
 }
 
 .auth-logo {
   display: flex;
   justify-content: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .auth-logo img {
-  width: 140px;
+  width: 120px;
   height: auto;
+}
+
+.auth-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-card);
+  width: 100%;
+  max-width: 400px;
 }
 
 /* ── Stat cards ──────────────────────────────────────────── */
 .stat-card {
-  background: var(--pooly-surface);
-  border: 1px solid var(--pooly-border-color);
-  border-radius: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
   padding: 20px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.stat-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
-}
-
-/* ── KPI cards (dashboard hero row) ───────────────────────── */
-.kpi-card {
+/* ── Param tiles (dashboard status board) ─────────────────── */
+.param-tile {
   position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 12px 14px 12px 16px;
   overflow: hidden;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-.kpi-card::before {
+.param-tile:hover {
+  background: var(--bg-raised);
+  border-color: var(--border);
+}
+
+.param-tile::before {
   content: '';
   position: absolute;
-  top: 0;
   left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-indigo));
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--tile-rail, transparent);
 }
 
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+.param-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .stat-value {
   font-family: "IBM Plex Mono", monospace;
   font-size: 24px;
   font-weight: 500;
-  color: var(--pooly-text);
+  color: var(--text-primary);
   line-height: 1;
 }
 
@@ -281,41 +374,38 @@ button {
   font-family: "IBM Plex Mono", monospace;
   font-size: 11px;
   font-weight: 400;
-  color: var(--pooly-muted);
+  color: var(--text-muted);
   margin-top: 8px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
-/* ── Page title ──────────────────────────────────────────── */
+/* ── Page title (legacy) ─────────────────────────────────── */
 .page-title {
   font-family: "Sora", sans-serif;
   font-size: 22px;
   font-weight: 600;
-  color: var(--pooly-text);
+  color: var(--text-primary);
   margin: 0 0 28px;
 }
 
 /* ── Section title ───────────────────────────────────────── */
 .section-title {
   font-family: "Sora", sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--pooly-text);
+  color: var(--text-primary);
   margin: 0 0 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 /* ── History table ───────────────────────────────────────── */
 .history-table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--pooly-surface);
-  border: 1px solid var(--pooly-border-color);
-  border-radius: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .history-table thead {
@@ -328,8 +418,8 @@ button {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--pooly-muted);
-  padding: 12px 16px;
+  color: var(--text-muted);
+  padding: 10px 16px;
   text-align: left;
 }
 
@@ -345,7 +435,11 @@ button {
 .history-table td.mono {
   font-family: "IBM Plex Mono", monospace;
   font-weight: 500;
-  color: var(--pooly-text);
+  color: var(--text-primary);
+}
+
+.history-table tbody tr:hover td {
+  background: var(--bg-raised);
 }
 
 /* ── Status badges ───────────────────────────────────────── */
@@ -360,18 +454,18 @@ button {
 }
 
 .badge-ok {
-  color: var(--pooly-ok-text);
-  background: var(--pooly-ok-bg);
+  color: var(--status-ok-text);
+  background: var(--status-ok-bg);
 }
 
 .badge-warn {
-  color: var(--pooly-warn-text);
-  background: var(--pooly-warn-bg);
+  color: var(--status-warn-text);
+  background: var(--status-warn-bg);
 }
 
 .badge-bad {
-  color: var(--pooly-bad-text);
-  background: var(--pooly-bad-bg);
+  color: var(--status-danger-text);
+  background: var(--status-danger-bg);
 }
 
 /* ── homepool label ──────────────────────────────────────── */
@@ -390,16 +484,6 @@ button {
   z-index: 200 !important;
 }
 
-/* ── Dark mode — KPI labels ──────────────────────────────── */
-[data-theme="dark"] .kpi-label {
-  color: #4a6478 !important;
-}
-
-/* ── Dark mode — history table row hover ─────────────────── */
-[data-theme="dark"] .history-table tbody tr:hover td {
-  background: rgba(255,255,255,0.02);
-}
-
 /* ── Date input ──────────────────────────────────────────── */
 input[type="date"] {
   font-family: 'IBM Plex Mono', monospace;
@@ -408,7 +492,7 @@ input[type="date"] {
   color-scheme: light dark;
 }
 
-/* ── Checkboxes charte homepool ──────────────────────────── */
+/* ── Checkboxes ──────────────────────────────────────────── */
 input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -425,20 +509,20 @@ input[type="checkbox"] {
 }
 
 input[type="checkbox"]:checked {
-  background: #2dd4bf;
-  border-color: #2dd4bf;
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 input[type="checkbox"]:checked::after {
-  content: '✓';
+  content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 10px;
-  color: #123852;
-  font-weight: 700;
-  line-height: 1;
+  top: 2px;
+  left: 5px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--accent-fg);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
 }
 
 /* ── Loading / error ─────────────────────────────────────── */
@@ -448,19 +532,8 @@ input[type="checkbox"]:checked::after {
   justify-content: center;
   min-height: 100vh;
   font-size: 14px;
-  color: var(--pooly-muted);
+  color: var(--text-muted);
   font-family: "Sora", sans-serif;
-}
-
-/* ── Auth card ───────────────────────────────────────────── */
-.auth-card {
-  background: var(--pooly-surface);
-  border: 1px solid var(--pooly-border-color);
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 4px 24px rgba(10, 20, 31, 0.08);
-  width: 100%;
-  max-width: 400px;
 }
 
 /* ── Fade animation ──────────────────────────────────────── */
@@ -498,8 +571,39 @@ input[type="checkbox"]:checked::after {
 /* ── Dashboard 2-column layout ───────────────────────────── */
 .dashboard-columns {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1fr 1.2fr;
   gap: 14px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+
+/* ── Segmented control (period pills) ────────────────────── */
+.segmented {
+  display: inline-flex;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.segmented button {
+  font-family: "Sora", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted);
+  transition: background 0.12s, color 0.12s;
+}
+
+.segmented button.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-card);
 }
 
 /* ── Measurements table ──────────────────────────────────── */
@@ -516,14 +620,16 @@ input[type="checkbox"]:checked::after {
 .measurements-table th:nth-child(5) { width: 100px; }
 .measurements-table th:nth-child(6) { width: 80px; }
 
-/* ── Bar chart colors ────────────────────────────────────── */
-.bar-ok     { background: #a7f3d0; }
-.bar-warn   { background: #fde68a; }
-.bar-danger { background: #fca5a5; }
+.measurements-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-surface);
+  z-index: 1;
+}
 
-[data-theme="dark"] .bar-ok     { background: rgba(16, 185, 129, 0.35); }
-[data-theme="dark"] .bar-warn   { background: rgba(245, 158, 11, 0.3); }
-[data-theme="dark"] .bar-danger { background: rgba(239, 68, 68, 0.3); }
+.measurements-table tbody tr:hover td {
+  background: var(--bg-raised);
+}
 
 /* ── Measurements charts 2-column layout ─────────────────── */
 .measurements-charts {
@@ -544,14 +650,6 @@ input[type="checkbox"]:checked::after {
   }
 }
 
-/* ── Spa indicator ───────────────────────────────────────── */
-.spa-indicator svg {
-  filter: drop-shadow(0 1px 2px rgba(10,31,60,0.06));
-}
-[data-theme="dark"] .spa-indicator svg {
-  filter: none;
-}
-
 /* ── Bottom nav (mobile PWA) ─────────────────────────────── */
 .bottom-nav {
   display: none;
@@ -564,7 +662,7 @@ input[type="checkbox"]:checked::after {
   gap: 3px;
   flex: 1;
   padding: 8px 0;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-muted);
   font-family: "Sora", sans-serif;
   font-size: 10px;
   font-weight: 500;
@@ -576,7 +674,7 @@ input[type="checkbox"]:checked::after {
 }
 
 .bn-item.active {
-  color: #2dd4bf;
+  color: var(--accent);
 }
 
 .bn-item svg {
@@ -587,15 +685,15 @@ input[type="checkbox"]:checked::after {
 .bn-fab {
   width: 48px;
   height: 48px;
-  border-radius: 14px;
-  background: #2dd4bf;
-  color: #123852;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-fg);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(45, 212, 191, 0.35);
+  box-shadow: var(--shadow-pop);
   flex-shrink: 0;
   transition: transform 0.1s;
 }
@@ -610,27 +708,27 @@ input[type="checkbox"]:checked::after {
   bottom: 80px;
   left: 16px;
   right: 16px;
-  background: #123852;
-  color: white;
-  border-radius: 12px;
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
   padding: 12px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 8px 24px rgba(10, 20, 31, 0.3);
+  box-shadow: var(--shadow-pop);
   z-index: 200;
   animation: slideUp 0.3s ease;
-  border: 1px solid rgba(45, 212, 191, 0.15);
+  border: 1px solid var(--border);
 }
 
 .install-banner-btn {
-  background: #2dd4bf;
-  color: #123852;
+  background: var(--accent);
+  color: var(--accent-fg);
   font-family: "Sora", sans-serif;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 7px 14px;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
   white-space: nowrap;
@@ -680,10 +778,10 @@ input[type="checkbox"]:checked::after {
     left: 0;
     right: 0;
     z-index: 200;
-    background: rgba(10, 20, 31, 0.92);
+    background: color-mix(in srgb, var(--bg-page) 88%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid var(--border-subtle);
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
@@ -699,12 +797,12 @@ input[type="checkbox"]:checked::after {
   .mobile-header-logout {
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--text-secondary);
     font-family: "Sora", sans-serif;
     font-size: 12px;
     cursor: pointer;
     padding: 10px 12px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     min-height: 44px;
     display: flex;
     align-items: center;
@@ -713,7 +811,7 @@ input[type="checkbox"]:checked::after {
   }
 
   .mobile-header-logout:hover {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--text-primary);
   }
 
   /* Mobile bottom nav */
@@ -749,7 +847,7 @@ input[type="checkbox"]:checked::after {
   }
 
   .mobile-nav-item.active {
-    color: var(--pooly-primary);
+    color: var(--accent);
   }
 
   .mobile-nav-add {
@@ -764,7 +862,7 @@ input[type="checkbox"]:checked::after {
     font-family: "Sora", sans-serif;
     font-size: 10px;
     font-weight: 500;
-    color: var(--pooly-primary);
+    color: var(--accent);
     background: none;
     border: none;
     cursor: pointer;
@@ -773,12 +871,12 @@ input[type="checkbox"]:checked::after {
   .mobile-nav-add-circle {
     width: 36px;
     height: 36px;
-    background: var(--pooly-primary);
+    background: var(--accent);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--accent-fg);
     font-size: 20px;
     line-height: 1;
   }
@@ -790,8 +888,8 @@ input[type="checkbox"]:checked::after {
     left: 0;
     right: 0;
     height: 64px;
-    background: #123852;
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-around;
@@ -808,33 +906,9 @@ input[type="checkbox"]:checked::after {
     padding-bottom: calc(72px + env(safe-area-inset-bottom) + 16px);
   }
 
-  /* Params banner: 2×2 grid on mobile */
-  .params-banner {
-    flex-wrap: wrap !important;
-    padding: 0 !important;
-  }
-
-  .params-banner > * {
-    flex: 0 0 50% !important;
-    border-left: none !important;
-    border-bottom: 1px solid var(--border-subtle);
-    padding: 12px 16px !important;
-    box-sizing: border-box;
-  }
-
-  .params-banner > *:nth-child(even) {
-    border-left: 1px solid var(--border-subtle) !important;
-  }
-
-  .params-banner > *:nth-last-child(-n+2) {
-    border-bottom: none;
-  }
-
-  /* Salt installations have 5 param blocks (odd) once Chlorine is added — the lone
-     trailing block would otherwise sit half-width with a stray left border. */
-  .params-banner > *:nth-last-child(1):nth-child(5) {
-    flex-basis: 100% !important;
-    border-left: none !important;
+  /* Param tiles: 2 cols on mobile */
+  .param-tile-grid {
+    grid-template-columns: 1fr 1fr;
   }
 
   /* History table: hide Parameters & Notes columns on mobile */
@@ -850,6 +924,11 @@ input[type="checkbox"]:checked::after {
 
   .history-table th {
     padding: 10px 10px;
+  }
+
+  /* Actions always visible on touch */
+  .row-actions {
+    opacity: 1 !important;
   }
 
   /* Full-screen dialog on mobile — safe area + nav bar padding */

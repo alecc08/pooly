@@ -79,6 +79,15 @@ export const translations = {
     todo_title: 'À faire',
     todo_all_ok: 'Tout est à jour ✓',
 
+    // Tableau de bord (redesign)
+    attention_title: "Points d'attention",
+    attention_all_ok: 'Tout est à jour',
+    dash_empty_title: 'Aucune donnée pour le moment',
+    dash_empty_sub: "Enregistrez votre première mesure pour suivre l'état de l'eau.",
+    dash_log_first: 'Enregistrer une première mesure',
+    param_ideal_label: 'idéal',
+    dash_last_measured: 'Dernière mesure',
+
     // Page Mesures
     page_measurements_title: 'Mesures',
     page_measurements_sub: "Suivi des paramètres de qualité de l'eau",
@@ -494,6 +503,15 @@ export const translations = {
     // À faire
     todo_title: 'To do',
     todo_all_ok: 'All up to date ✓',
+
+    // Dashboard (redesign)
+    attention_title: 'Needs attention',
+    attention_all_ok: 'All up to date',
+    dash_empty_title: 'No data yet',
+    dash_empty_sub: 'Log your first measurement to start tracking your water.',
+    dash_log_first: 'Log first measurement',
+    param_ideal_label: 'ideal',
+    dash_last_measured: 'Last measured',
 
     // Page Mesures
     page_measurements_title: 'Measurements',

@@ -85,8 +85,8 @@ export default function SimulatorModal({ open, onClose }: Props) {
               style={{
                 padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer',
                 fontFamily: '"Sora", sans-serif', fontSize: 13, fontWeight: 600,
-                color: tab === tb ? '#2dd4bf' : 'var(--text-secondary)',
-                borderBottom: tab === tb ? '2px solid #2dd4bf' : '2px solid transparent',
+                color: tab === tb ? 'var(--accent)' : 'var(--text-secondary)',
+                borderBottom: tab === tb ? '2px solid var(--accent)' : '2px solid transparent',
                 marginBottom: -1,
               }}
             >

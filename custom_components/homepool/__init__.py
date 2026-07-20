@@ -1,7 +1,13 @@
 """The Homepool integration."""
 from __future__ import annotations
 
+import json
+import logging
+from pathlib import Path
+
 import voluptuous as vol
+from homeassistant.components import frontend
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_API_KEY, CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -12,7 +18,31 @@ from .api import HomepoolApiError
 from .const import DOMAIN
 from .coordinator import HomepoolDataUpdateCoordinator
 
+_LOGGER = logging.getLogger(__name__)
+
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BUTTON]
+
+# Served by async_setup below. The Lovelace card (frontend/homepool-card.js) is a
+# hand-written vanilla ES module with no build step — this integration serves it
+# directly rather than shipping a separate HACS "plugin" repo (HACS allows only
+# one category per repo, and this one is registered as Integration).
+CARD_URL_PATH = "/homepool/homepool-card.js"
+_FRONTEND_DIR = Path(__file__).parent / "frontend"
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Registers the Lovelace card's static JS once per HA run (independent of
+    config entries — the resource should be available even before a user adds
+    their first homepool installation)."""
+    manifest = json.loads((Path(__file__).parent / "manifest.json").read_text())
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(CARD_URL_PATH, str(_FRONTEND_DIR / "homepool-card.js"), cache_headers=True)]
+    )
+    # The ?v= cache-bust is mandatory: browsers/HA frontend aggressively cache
+    # extra_js_url resources, so without a version bump on every card change,
+    # users get served a stale card after an update.
+    frontend.async_register_extra_js_url(hass, f"{CARD_URL_PATH}?v={manifest['version']}")
+    return True
 
 SERVICE_LOG_MEASUREMENT = "log_measurement"
 

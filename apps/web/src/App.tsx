@@ -182,7 +182,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
   }
 
   if (loading && actions.length === 0) return <div className="page-loading">{t('loading')}</div>
-  if (error) return <div className="page-loading" style={{ color: 'var(--pooly-bad-text)' }}>{error}</div>
+  if (error) return <div className="page-loading" style={{ color: 'var(--status-danger-text)' }}>{error}</div>
 
   return (
     <div className="app-layout">
@@ -206,7 +206,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
           ? <HistoryPage actions={actions} products={products} onEdit={setEditingAction} onDelete={setDeletingAction} />
           : page === 'recommendations'
           ? <RecommendationsPage />
-          : <DashboardPage actions={actions} products={products} onEdit={setEditingAction} onDelete={setDeletingAction} onExport={handleExport} onImport={handleImport} onNavigate={navigate} />
+          : <DashboardPage actions={actions} products={products} onEdit={setEditingAction} onDelete={setDeletingAction} onExport={handleExport} onImport={handleImport} onNavigate={navigate} onAdd={() => setShowForm(true)} />
         }
       </main>
 
@@ -257,16 +257,10 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
                 {t('modal_delete_irreversible')}
               </p>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button
-                  onClick={() => setDeletingAction(null)}
-                  style={{ fontFamily: '"Sora", sans-serif', fontSize: 13, padding: '6px 14px', borderRadius: 7, border: '1px solid var(--border)', background: 'var(--bg-surface)', cursor: 'pointer', color: 'var(--text-secondary)' }}
-                >
+                <button className="btn-ghost" onClick={() => setDeletingAction(null)}>
                   {t('modal_cancel')}
                 </button>
-                <button
-                  onClick={() => handleDelete(deletingAction.id)}
-                  style={{ fontFamily: '"Sora", sans-serif', fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 7, border: 'none', background: 'var(--status-danger-text)', cursor: 'pointer', color: 'var(--bg-surface)' }}
-                >
+                <button className="btn-danger" onClick={() => handleDelete(deletingAction.id)}>
                   {t('modal_delete')}
                 </button>
               </div>
