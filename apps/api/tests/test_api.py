@@ -472,14 +472,16 @@ def auth_headers(key: str) -> dict:
 def test_v1_installations_lists_owned_installations(client: TestClient):
     login(client)
     key = get_api_key(client)
-    client.post("/installations", json={"name": "Backyard Pool", "type": "pool"})
+    client.post("/installations", json={"name": "Backyard Pool", "type": "pool", "sanitizer": "salt"})
     client.post("/installations", json={"name": "Hot Tub", "type": "spa"})
     r = client.get("/v1/installations", headers=auth_headers(key))
     assert r.status_code == 200
     data = r.json()
     names = {i["name"]: i["type"] for i in data}
     assert names == {"Backyard Pool": "pool", "Hot Tub": "spa"}
-    assert set(data[0].keys()) == {"id", "name", "type"}
+    assert set(data[0].keys()) == {"id", "name", "type", "sanitizer"}
+    sanitizers = {i["name"]: i["sanitizer"] for i in data}
+    assert sanitizers["Backyard Pool"] == "salt"
 
 
 def test_v1_installations_requires_api_key(client: TestClient):
@@ -527,10 +529,10 @@ def test_v1_current_requires_api_key(client: TestClient):
 
 
 def test_v1_current_includes_status_and_ideal_range(client: TestClient):
-    """ParamValueOut carries status/ideal_min/ideal_max (added for the Home
-    Assistant card's status dots) — verifies ok/warn/danger classification
-    and that ideal_min/ideal_max mirror WATER_PARAMS' default pool+chlorine
-    ph band."""
+    """ParamValueOut carries status/ideal_min/ideal_max/acceptable_min/
+    acceptable_max (added for the Home Assistant card's status dots and
+    gauge) — verifies ok/warn/danger classification and that the ranges
+    mirror WATER_PARAMS' default pool+chlorine ph band."""
     login(client)
     key = get_api_key(client)
     inst_r = client.post("/installations", json={"name": "My pool", "sanitizer": "chlorine"})
@@ -552,7 +554,11 @@ def test_v1_current_includes_status_and_ideal_range(client: TestClient):
     assert data["ph"]["status"] == "ok"
     assert data["ph"]["ideal_min"] == pytest.approx(7.2)
     assert data["ph"]["ideal_max"] == pytest.approx(7.6)
+    assert data["ph"]["acceptable_min"] == pytest.approx(6.8)
+    assert data["ph"]["acceptable_max"] == pytest.approx(7.8)
     assert data["chlorine"]["status"] == "danger"
+    assert data["chlorine"]["acceptable_min"] == pytest.approx(0.5)
+    assert data["chlorine"]["acceptable_max"] == pytest.approx(4.0)
 
 
 # ── /v1/todo ─────────────────────────────────────────────────────────────

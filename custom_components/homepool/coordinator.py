@@ -36,6 +36,7 @@ class HomepoolDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict]]):
                 data[installation["id"]] = {
                     "name": installation["name"],
                     "type": installation["type"],
+                    "sanitizer": installation.get("sanitizer"),
                     "fields": fields,
                     "todo": todo,
                 }

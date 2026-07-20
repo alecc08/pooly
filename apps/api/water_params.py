@@ -148,13 +148,14 @@ def param_status(value: float, ideal: Optional[Tuple[float, float]], acceptable:
 
 
 def attach_status(conditions: Dict[str, Dict], ranges: Dict[str, Dict]) -> Dict[str, Dict]:
-    """Adds status ("ok"/"warn"/"danger") and ideal_min/ideal_max to each field
-    entry in `conditions` (as returned by extract_current_conditions), using
-    `ranges` (WATER_PARAMS defaults merged with any installation overrides —
-    see main.py's _merge_range_overrides). Mutates and returns `conditions`.
-    Fields with no matching range (e.g. a combo that doesn't track that param)
-    are left without a status, so older/newer clients can treat its absence
-    as "unknown" rather than a false negative."""
+    """Adds status ("ok"/"warn"/"danger") and ideal_min/ideal_max/acceptable_min/
+    acceptable_max to each field entry in `conditions` (as returned by
+    extract_current_conditions), using `ranges` (WATER_PARAMS defaults merged
+    with any installation overrides — see main.py's _merge_range_overrides).
+    Mutates and returns `conditions`. Fields with no matching range (e.g. a
+    combo that doesn't track that param) are left without a status, so
+    older/newer clients can treat its absence as "unknown" rather than a
+    false negative."""
     for field, entry in conditions.items():
         range_key = CURRENT_FIELD_TO_RANGE_KEY.get(field)
         bands = ranges.get(range_key) if range_key else None
@@ -164,6 +165,8 @@ def attach_status(conditions: Dict[str, Dict], ranges: Dict[str, Dict]) -> Dict[
         acceptable = bands.get("acceptable")
         if ideal:
             entry["ideal_min"], entry["ideal_max"] = ideal
+        if acceptable:
+            entry["acceptable_min"], entry["acceptable_max"] = acceptable
         entry["status"] = param_status(entry["value"], ideal, acceptable)
     return conditions
 

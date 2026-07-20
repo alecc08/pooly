@@ -37,6 +37,30 @@ const DUE_SUFFIXES = {
   filter_maintenance: 'days_until_filter_maintenance_due',
 };
 
+const FORM_FIELD_LABELS = {
+  ph: 'pH',
+  chlorine: 'Cl',
+  bromine: 'Br',
+  cc: 'CC',
+  tac: 'TAC',
+  hardness: 'CH',
+  salt: 'Salt',
+  stabilizer: 'CYA',
+  temp: 'T°',
+};
+
+// Quick-add field set per sanitizer — keeps the default form short and
+// relevant instead of showing every field regardless of pool type. Anything
+// not in the active set is still reachable via the "more fields" toggle.
+// Installations on a server too old to send `sanitizer` (or with it unset)
+// fall back to the original always-shown set.
+const SANITIZER_FORM_FIELDS = {
+  chlorine: ['ph', 'chlorine', 'cc', 'tac', 'temp'],
+  bromine: ['ph', 'bromine', 'tac', 'temp'],
+  salt: ['ph', 'chlorine', 'salt', 'tac', 'temp'],
+};
+const DEFAULT_FORM_FIELDS = ['ph', 'chlorine', 'bromine', 'tac', 'temp'];
+
 const STRINGS = {
   en: {
     title: 'homepool',
@@ -55,6 +79,8 @@ const STRINGS = {
     log_measurement: 'Log measurement',
     save: 'Save',
     cancel: 'Cancel',
+    more_fields: 'More fields',
+    notes: 'Notes',
   },
   fr: {
     title: 'homepool',
@@ -73,6 +99,8 @@ const STRINGS = {
     log_measurement: 'Enregistrer une mesure',
     save: 'Enregistrer',
     cancel: 'Annuler',
+    more_fields: 'Plus de champs',
+    notes: 'Notes',
   },
 };
 
@@ -102,6 +130,31 @@ function fmtValue(v) {
   return Number.isInteger(v) ? String(v) : v.toFixed(1);
 }
 
+function clamp(v, min, max) {
+  return Math.min(max, Math.max(min, v));
+}
+
+// A small horizontal scale: the acceptable band (or, lacking that, a padded
+// ideal band) as the track, the ideal band highlighted within it, and a
+// marker at the current value — same status palette as the tile's dot/rail.
+function gaugeHtml(value, attrs) {
+  const iMin = attrs.ideal_min;
+  const iMax = attrs.ideal_max;
+  if (iMin === undefined || iMax === undefined || Number.isNaN(value)) return '';
+  const idealSpan = iMax - iMin || 1;
+  const scaleMin = attrs.acceptable_min !== undefined ? attrs.acceptable_min : iMin - idealSpan * 0.5;
+  const scaleMax = attrs.acceptable_max !== undefined ? attrs.acceptable_max : iMax + idealSpan * 0.5;
+  const span = scaleMax - scaleMin || 1;
+  const pct = (v) => clamp(((v - scaleMin) / span) * 100, 0, 100);
+  return `
+    <div class="hp-gauge">
+      <div class="hp-gauge-track"></div>
+      <div class="hp-gauge-ideal" style="left:${pct(iMin)}%;width:${pct(iMax) - pct(iMin)}%"></div>
+      <div class="hp-gauge-marker" style="left:${pct(value)}%;background:${statusColor(attrs.status)}"></div>
+    </div>
+  `;
+}
+
 class HomepoolCard extends HTMLElement {
   static getStubConfig() {
     return {
@@ -128,6 +181,7 @@ class HomepoolCard extends HTMLElement {
     };
     if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
     this._formOpen = false;
+    this._formMoreOpen = false;
     this._render();
   }
 
@@ -142,6 +196,16 @@ class HomepoolCard extends HTMLElement {
 
   _entityId(base) {
     return `${this._config.entity_prefix}_${base}`;
+  }
+
+  // Sourced from the pH sensor's `sanitizer` attribute (every installation
+  // tracks pH, so it's a reliable anchor) — null on older servers that don't
+  // send it yet, in which case the form falls back to showing every field.
+  _sanitizer() {
+    const hass = this._hass;
+    if (!hass) return null;
+    const phEntity = hass.states[this._entityId(FIELD_SUFFIXES.ph)];
+    return (phEntity && phEntity.attributes && phEntity.attributes.sanitizer) || null;
   }
 
   _paramEntities() {
@@ -183,10 +247,12 @@ class HomepoolCard extends HTMLElement {
     if (!this._config.installation_id) return;
     const data = { installation_id: this._config.installation_id };
     for (const [k, v] of Object.entries(values)) {
-      if (v !== '' && v !== null && v !== undefined) data[k] = parseFloat(v);
+      if (v === '' || v === null || v === undefined) continue;
+      data[k] = k === 'notes' ? v : parseFloat(v);
     }
     this._hass.callService('homepool', 'log_measurement', data);
     this._formOpen = false;
+    this._formMoreOpen = false;
     this._render();
   }
 
@@ -220,6 +286,7 @@ class HomepoolCard extends HTMLElement {
       const idealLine = (attrs.ideal_min !== undefined && attrs.ideal_max !== undefined)
         ? `<div class="hp-ideal">${t(hass, 'ideal')} ${fmtValue(attrs.ideal_min)}–${fmtValue(attrs.ideal_max)}</div>`
         : '';
+      const gauge = gaugeHtml(value, attrs);
       const da = daysAgo(attrs.date);
       const measuredLine = da === null ? ''
         : `<div class="hp-measured">${
@@ -237,6 +304,7 @@ class HomepoolCard extends HTMLElement {
             <span class="hp-value">${fmtValue(value)}</span>
             ${unit ? `<span class="hp-unit">${unit}</span>` : ''}
           </div>
+          ${gauge}
           ${idealLine}
           ${measuredLine}
         </div>
@@ -263,7 +331,7 @@ class HomepoolCard extends HTMLElement {
       }</button>
     `).join('');
 
-    const formHtml = this._formOpen ? this._formHtml(hass) : '';
+    const formHtml = this._formOpen ? this._formHtml(hass, this._sanitizer()) : '';
 
     this.shadowRoot.innerHTML = `
       ${this._styles()}
@@ -302,28 +370,45 @@ class HomepoolCard extends HTMLElement {
         this._submitForm(Object.fromEntries(data.entries()));
       });
       const cancelBtn = this.shadowRoot.getElementById('hp-form-cancel');
-      if (cancelBtn) cancelBtn.addEventListener('click', () => { this._formOpen = false; this._render(); });
+      if (cancelBtn) cancelBtn.addEventListener('click', () => { this._formOpen = false; this._formMoreOpen = false; this._render(); });
+      const moreToggle = this.shadowRoot.getElementById('hp-form-more-toggle');
+      if (moreToggle) {
+        moreToggle.addEventListener('click', () => {
+          this._formMoreOpen = !this._formMoreOpen;
+          this._render();
+        });
+      }
     }
   }
 
-  _formHtml(hass) {
-    const fields = [
-      ['ph', 'pH'],
-      ['chlorine', 'Cl'],
-      ['bromine', 'Br'],
-      ['tac', 'TAC'],
-      ['temp', 'T°'],
-    ];
+  _formHtml(hass, sanitizer) {
+    const primary = SANITIZER_FORM_FIELDS[sanitizer] || DEFAULT_FORM_FIELDS;
+    const more = Object.keys(FORM_FIELD_LABELS).filter((f) => !primary.includes(f));
+    const fieldInput = (name) => `
+      <label class="hp-form-field">
+        <span>${FORM_FIELD_LABELS[name]}</span>
+        <input name="${name}" type="number" step="0.1" inputmode="decimal" />
+      </label>
+    `;
     return `
       <form id="hp-form" class="hp-form">
         <div class="hp-form-grid">
-          ${fields.map(([name, label]) => `
-            <label class="hp-form-field">
-              <span>${label}</span>
-              <input name="${name}" type="number" step="0.1" inputmode="decimal" />
-            </label>
-          `).join('')}
+          ${primary.map(fieldInput).join('')}
         </div>
+        ${more.length ? `
+          <button type="button" id="hp-form-more-toggle" class="hp-form-more-toggle">
+            ${this._formMoreOpen ? '−' : '+'} ${t(hass, 'more_fields')}
+          </button>
+          ${this._formMoreOpen ? `
+            <div class="hp-form-grid hp-form-more">
+              ${more.map(fieldInput).join('')}
+              <label class="hp-form-field hp-form-field-wide">
+                <span>${t(hass, 'notes')}</span>
+                <input name="notes" type="text" />
+              </label>
+            </div>
+          ` : ''}
+        ` : ''}
         <div class="hp-form-actions">
           <button type="button" id="hp-form-cancel" class="hp-btn">${t(hass, 'cancel')}</button>
           <button type="submit" class="hp-btn hp-btn-accent">${t(hass, 'save')}</button>
@@ -439,6 +524,32 @@ class HomepoolCard extends HTMLElement {
           font-size: 9px;
           color: var(--hp-text-muted);
         }
+        .hp-gauge {
+          position: relative;
+          height: 5px;
+          margin: 5px 0 4px;
+        }
+        .hp-gauge-track {
+          position: absolute;
+          inset: 0;
+          border-radius: 3px;
+          background: var(--hp-border);
+        }
+        .hp-gauge-ideal {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          border-radius: 3px;
+          background: rgba(63, 182, 139, 0.35);
+        }
+        .hp-gauge-marker {
+          position: absolute;
+          top: -2px;
+          width: 2px;
+          height: 9px;
+          border-radius: 1px;
+          transform: translateX(-1px);
+        }
         .hp-section-label {
           font-size: 10px;
           text-transform: uppercase;
@@ -494,6 +605,18 @@ class HomepoolCard extends HTMLElement {
           background: var(--hp-bg-2);
           color: var(--hp-text);
         }
+        .hp-form-field-wide {
+          grid-column: 1 / -1;
+        }
+        .hp-form-more-toggle {
+          background: none;
+          border: none;
+          color: var(--hp-accent);
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          padding: 0 0 8px;
+        }
         .hp-form-actions {
           display: flex;
           justify-content: flex-end;
@@ -504,44 +627,75 @@ class HomepoolCard extends HTMLElement {
   }
 }
 
+// Sorted longest-first so e.g. "stabilizer_cya" is tried before any shorter
+// suffix that could otherwise false-match a prefix of it.
+const SORTED_FIELD_SUFFIXES = Object.values(FIELD_SUFFIXES).sort((a, b) => b.length - a.length);
+
 class HomepoolCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = config;
-    this._render();
+    this._buildOrSync();
   }
 
   set hass(hass) {
     this._hass = hass;
+    this._buildOrSync();
   }
 
-  _render() {
+  // Builds the form DOM exactly once. Every later call (from our own
+  // config-changed round trip, or a `hass` update) only pushes values into
+  // the existing nodes — rebuilding via innerHTML on every keystroke is what
+  // destroyed the focused <input> and reset the cursor on every character.
+  _buildOrSync() {
     if (!this.shadowRoot) this.attachShadow({ mode: 'open' });
-    const c = this._config || {};
+    if (!this._built) {
+      this._build();
+      this._built = true;
+    }
+    this._sync();
+  }
+
+  _build() {
     this.shadowRoot.innerHTML = `
       <style>
         .row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
         label { font-size: 12px; font-weight: 600; }
         input { padding: 6px 8px; font-size: 13px; }
+        .hint { font-size: 11px; font-weight: 400; color: var(--secondary-text-color); }
       </style>
       <div class="row">
         <label>Title</label>
-        <input id="title" value="${c.title ?? ''}" />
+        <input id="title" />
+      </div>
+      <div class="row">
+        <label>Pool sensor <span class="hint">(pick any sensor from the installation — fills in the fields below)</span></label>
+        <div id="picker-slot"></div>
       </div>
       <div class="row">
         <label>Entity prefix (e.g. sensor.my_pool)</label>
-        <input id="entity_prefix" value="${c.entity_prefix ?? ''}" />
+        <input id="entity_prefix" />
       </div>
       <div class="row">
         <label>Installation ID (for the log-measurement form)</label>
-        <input id="installation_id" type="number" value="${c.installation_id ?? ''}" />
+        <input id="installation_id" type="number" />
       </div>
       <div class="row">
-        <label><input id="show_buttons" type="checkbox" ${c.show_buttons !== false ? 'checked' : ''} /> Show quick-add buttons</label>
+        <label><input id="show_buttons" type="checkbox" /> Show quick-add buttons</label>
       </div>
       <div class="row">
-        <label><input id="show_due" type="checkbox" ${c.show_due !== false ? 'checked' : ''} /> Show due chips</label>
+        <label><input id="show_due" type="checkbox" /> Show due chips</label>
       </div>
     `;
+
+    this._picker = document.createElement('ha-entity-picker');
+    this._picker.includeDomains = ['sensor'];
+    this._picker.entityFilter = (stateObj) => {
+      const entry = this._hass && this._hass.entities && this._hass.entities[stateObj.entity_id];
+      return !!entry && entry.platform === 'homepool';
+    };
+    this._picker.addEventListener('value-changed', (e) => this._onPick(e.detail.value));
+    this.shadowRoot.getElementById('picker-slot').appendChild(this._picker);
+
     ['title', 'entity_prefix'].forEach((id) => {
       this.shadowRoot.getElementById(id).addEventListener('input', (e) => this._update(id, e.target.value));
     });
@@ -551,6 +705,60 @@ class HomepoolCardEditor extends HTMLElement {
     ['show_buttons', 'show_due'].forEach((id) => {
       this.shadowRoot.getElementById(id).addEventListener('change', (e) => this._update(id, e.target.checked));
     });
+  }
+
+  // Finds the entity_id (if any is currently loaded) that represents the
+  // configured entity_prefix, so the picker can show it as selected.
+  _guessEntity(prefix) {
+    if (!prefix) return '';
+    const candidates = SORTED_FIELD_SUFFIXES.map((s) => `${prefix}_${s}`);
+    if (this._hass) {
+      const found = candidates.find((id) => this._hass.states[id] !== undefined);
+      if (found) return found;
+    }
+    return candidates[0] ?? '';
+  }
+
+  _sync() {
+    const c = this._config || {};
+    const active = this.shadowRoot.activeElement;
+    const syncInput = (id, value) => {
+      const el = this.shadowRoot.getElementById(id);
+      if (el && el !== active) el.value = value ?? '';
+    };
+    syncInput('title', c.title);
+    syncInput('entity_prefix', c.entity_prefix);
+    syncInput('installation_id', c.installation_id ?? '');
+
+    const showButtons = this.shadowRoot.getElementById('show_buttons');
+    if (showButtons && showButtons !== active) showButtons.checked = c.show_buttons !== false;
+    const showDue = this.shadowRoot.getElementById('show_due');
+    if (showDue && showDue !== active) showDue.checked = c.show_due !== false;
+
+    if (this._picker && this._hass) {
+      this._picker.hass = this._hass;
+      const derived = this._guessEntity(c.entity_prefix);
+      if (this._picker.value !== derived) this._picker.value = derived;
+    }
+  }
+
+  // Picking one sensor derives both entity_prefix (strip the known field
+  // suffix) and installation_id (via the entity's device identifiers,
+  // `(DOMAIN, installation_id)` — see sensor.py's device_info) so the user
+  // never has to type either by hand.
+  _onPick(entityId) {
+    if (!entityId) return;
+    const suffix = SORTED_FIELD_SUFFIXES.find((s) => entityId.endsWith(`_${s}`));
+    const updates = { entity_prefix: suffix ? entityId.slice(0, -(suffix.length + 1)) : entityId };
+
+    const entry = this._hass && this._hass.entities && this._hass.entities[entityId];
+    const device = entry && this._hass.devices && this._hass.devices[entry.device_id];
+    const identifier = device && device.identifiers && device.identifiers.find(([domain]) => domain === 'homepool');
+    if (identifier) updates.installation_id = parseInt(identifier[1], 10);
+
+    this._config = { ...this._config, ...updates };
+    this.dispatchEvent(new CustomEvent('config-changed', { detail: { config: this._config } }));
+    this._sync();
   }
 
   _update(key, value) {
