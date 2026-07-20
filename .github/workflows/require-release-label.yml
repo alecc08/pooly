@@ -1,0 +1,31 @@
+name: Require release label
+
+# Blocks merging any PR into main/release/** until it carries exactly the
+# kind of label release.yml needs to decide what to do: release:no-release
+# to skip, or release:major/minor/patch to cut a release. This is what
+# prevents a PR from silently defaulting to some assumed release level (the
+# original cause of a mislabeled release) — Renovate applies its own label
+# automatically via renovate.json; everything else needs one added by hand.
+
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize, reopened]
+    branches: [main, 'release/**']
+
+jobs:
+  check:
+    name: require release label
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify a release label is present
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          labels=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json labels --jq '.labels[].name')
+          if echo "$labels" | grep -qxE "release:(major|minor|patch|no-release)"; then
+            echo "Release label present."
+          else
+            echo "::error::This PR needs one of release:major / release:minor / release:patch / release:no-release before it can merge." >&2
+            exit 1
+          fi
