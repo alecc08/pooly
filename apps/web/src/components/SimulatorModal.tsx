@@ -65,8 +65,10 @@ function stepFor(param: ParamKey): number {
 }
 
 // Maps a dosage ParamKey to extractMeasuredParams' (differently-named) field, for
-// prefilling the sliders from the installation's own logged measurements.
-const MEASURED_KEY_FOR_PARAM: Partial<Record<ParamKey, keyof MeasuredParams>> = {
+// prefilling the sliders from the installation's own logged measurements. Excludes
+// 'date' (the one non-numeric MeasuredParams field) so measured[key] below stays a
+// plain number | null instead of widening to include 'date's string | null.
+const MEASURED_KEY_FOR_PARAM: Partial<Record<ParamKey, Exclude<keyof MeasuredParams, 'date'>>> = {
   ph: 'ph', cl: 'chlorine', br: 'bromine', tac: 'tac', salt: 'salt', cya: 'stabilizer', hardness: 'hardness',
 }
 
