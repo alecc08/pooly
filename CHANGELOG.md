@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Dashboard tiles for CYA/stabilizer and hardness alongside the existing pH, chlorine/bromine, TAC, and temperature tiles (#11).
+- A "Simulator" tool for freestyle what-if dosage estimates and a pool heating-energy (kWh) calculator, without needing a saved installation reading (#11).
+
+### Changed
+
+- **Breaking:** renamed the Home Assistant integration's domain from `pooly` to `homepool` to match the web app's rebrand. If you already had the integration installed, entity IDs change from `sensor.pooly_*` to `sensor.homepool_*` and the service moves from `pooly.log_measurement` to `homepool.log_measurement` — update any dashboards or automations that reference the old names, then reinstall/reload the integration (#11).
+
+### Fixed
+
+- Dosage recommendations now trigger as soon as a reading leaves the tighter "ideal" band, matching the dashboard's "Watch" status badge; previously a param could show a "Watch" warning on the dashboard while the Recommendations page reported everything as fine (#11).
+
 ## [0.1.0] - 2026-07-19
 
 ### Added

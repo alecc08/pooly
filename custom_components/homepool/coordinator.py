@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for Pooly."""
+"""DataUpdateCoordinator for Homepool."""
 from __future__ import annotations
 
 import logging
@@ -8,13 +8,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import PoolyApiError, PoolyClient
+from .api import HomepoolApiError, HomepoolClient
 from .const import DEFAULT_SCAN_INTERVAL_MINUTES, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class PoolyDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict]]):
+class HomepoolDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict]]):
     """Polls /v1/installations then /v1/current for each installation."""
 
     def __init__(self, hass: HomeAssistant, base_url: str, api_key: str) -> None:
@@ -24,7 +24,7 @@ class PoolyDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict]]):
             name=DOMAIN,
             update_interval=timedelta(minutes=DEFAULT_SCAN_INTERVAL_MINUTES),
         )
-        self.client = PoolyClient(async_get_clientsession(hass), base_url, api_key)
+        self.client = HomepoolClient(async_get_clientsession(hass), base_url, api_key)
 
     async def _async_update_data(self) -> dict[int, dict]:
         try:
@@ -40,5 +40,5 @@ class PoolyDataUpdateCoordinator(DataUpdateCoordinator[dict[int, dict]]):
                     "todo": todo,
                 }
             return data
-        except PoolyApiError as err:
+        except HomepoolApiError as err:
             raise UpdateFailed(str(err)) from err

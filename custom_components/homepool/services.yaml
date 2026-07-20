@@ -1,10 +1,10 @@
 log_measurement:
   name: Log measurement
-  description: Records a water measurement (pH, chlorine, etc.) for a Pooly installation.
+  description: Records a water measurement (pH, chlorine, etc.) for a homepool installation.
   fields:
     installation_id:
       name: Installation ID
-      description: The Pooly installation to log the measurement for.
+      description: The homepool installation to log the measurement for.
       required: true
       example: 1
       selector:

@@ -19,6 +19,8 @@ import {
   getSaltStatus,
   getTacStatus,
   getTempStatus,
+  getStabilizerStatus,
+  getHardnessStatus,
   getPhHistory,
   getActionsThisMonth,
   getActionsLastMonth,
@@ -298,6 +300,24 @@ export default function DashboardPage({ actions, products: _products, onEdit, on
             </div>
           )}
         </div>
+        {ranges?.stabilizer && (
+          <ParamBlock
+            label={t('guidance_cya_label')}
+            value={params.stabilizer !== null ? String(Math.round(params.stabilizer)) : '—'}
+            unit="ppm"
+            status={params.stabilizer !== null ? getStabilizerStatus(params.stabilizer, ranges ?? undefined) : null}
+            showDivider={true}
+          />
+        )}
+        {ranges?.hardness && (
+          <ParamBlock
+            label={t('param_hardness')}
+            value={params.hardness !== null ? String(Math.round(params.hardness)) : '—'}
+            unit={active?.hardness_unit ?? 'ppm'}
+            status={params.hardness !== null ? getHardnessStatus(params.hardness, ranges ?? undefined) : null}
+            showDivider={true}
+          />
+        )}
       </div>
 
       {/* 2-column layout */}

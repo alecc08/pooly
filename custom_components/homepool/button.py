@@ -1,4 +1,4 @@
-"""Button platform for Pooly maintenance quick-actions."""
+"""Button platform for homepool maintenance quick-actions."""
 from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity
@@ -7,14 +7,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import PoolyConfigEntry
+from . import HomepoolConfigEntry
 from .const import BUTTON_META, DOMAIN
-from .coordinator import PoolyDataUpdateCoordinator
+from .coordinator import HomepoolDataUpdateCoordinator
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: PoolyConfigEntry,
+    entry: HomepoolConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator = entry.runtime_data
@@ -22,19 +22,19 @@ async def async_setup_entry(
     for installation_id in coordinator.data:
         for action_type in BUTTON_META:
             entities.append(
-                PoolyMaintenanceButton(coordinator, entry.entry_id, installation_id, action_type)
+                HomepoolMaintenanceButton(coordinator, entry.entry_id, installation_id, action_type)
             )
     async_add_entities(entities)
 
 
-class PoolyMaintenanceButton(CoordinatorEntity[PoolyDataUpdateCoordinator], ButtonEntity):
+class HomepoolMaintenanceButton(CoordinatorEntity[HomepoolDataUpdateCoordinator], ButtonEntity):
     """Logs a maintenance action for a single installation on press."""
 
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: PoolyDataUpdateCoordinator,
+        coordinator: HomepoolDataUpdateCoordinator,
         entry_id: str,
         installation_id: int,
         action_type: str,
@@ -60,7 +60,7 @@ class PoolyMaintenanceButton(CoordinatorEntity[PoolyDataUpdateCoordinator], Butt
         return DeviceInfo(
             identifiers={(DOMAIN, str(self._installation_id))},
             name=installation["name"],
-            manufacturer="Pooly",
+            manufacturer="homepool",
             model=installation["type"].capitalize(),
         )
 

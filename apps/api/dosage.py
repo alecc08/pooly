@@ -145,6 +145,30 @@ def _volume_in_liters(installation: Installation) -> Optional[float]:
     return installation.volume
 
 
+def _options_with_amounts(options: List[Dict], delta: float, volume_L: Optional[float]) -> List[Dict]:
+    """Computes amount_grams/amount_ml for each TREATMENT_TABLE option, given how far the
+    param needs to move (delta) and the installation's volume. Shared by
+    compute_recommendations (delta from a stored reading) and simulate_dosage (delta from
+    user-supplied what-if values) so the dosing math lives in exactly one place."""
+    options_out = []
+    for opt in options:
+        amount = None
+        if opt["exact"] and volume_L is not None:
+            amount = round(
+                opt["dose_amount"] * (abs(delta) / opt["dose_param_delta"]) * (volume_L / opt["dose_volume_L"]),
+                2,
+            )
+        options_out.append({
+            "product_id": opt["product_id"],
+            "form": opt["form"],
+            "exact": opt["exact"],
+            "amount_grams": amount if amount is not None and opt["form"] == "solid" else None,
+            "amount_ml": amount if amount is not None and opt["form"] == "liquid" else None,
+            "notes_key": opt.get("notes_key"),
+        })
+    return options_out
+
+
 def _guidance_only_recommendation(
     param: str, current_value: float, target_value: float, direction: str,
     volume_known: bool, notes_key: str,
@@ -168,11 +192,12 @@ def _guidance_only_recommendation(
 
 def compute_recommendations(current: Dict, ranges: Dict, installation: Installation) -> List[Dict]:
     """For each param in `ranges` whose `current` value falls outside its
-    acceptable band, returns a dosing recommendation. Params with no known
-    current value, or that are within their acceptable band, are omitted
-    entirely. Never invents amounts for non-exact products or when the
-    installation's volume isn't set — `amount_grams`/`amount_ml` are None
-    in those cases."""
+    ideal band, returns a dosing recommendation — matching the dashboard's
+    "Watch" status, which also fires on leaving the ideal (not acceptable)
+    band. Params with no known current value, or that are within their ideal
+    band, are omitted entirely. Never invents amounts for non-exact products
+    or when the installation's volume isn't set — `amount_grams`/`amount_ml`
+    are None in those cases."""
     volume_L = _volume_in_liters(installation)
     volume_known = volume_L is not None
 
@@ -191,7 +216,7 @@ def compute_recommendations(current: Dict, ranges: Dict, installation: Installat
             continue
         current_value = current_entry["value"]
 
-        lo, hi = acceptable
+        lo, hi = ideal
         if lo <= current_value <= hi:
             continue
         direction = "raise" if current_value < lo else "lower"
@@ -215,22 +240,7 @@ def compute_recommendations(current: Dict, ranges: Dict, installation: Installat
             ))
             continue
 
-        options_out = []
-        for opt in direction_entry["options"]:
-            amount = None
-            if opt["exact"] and volume_L is not None:
-                amount = round(
-                    opt["dose_amount"] * (abs(delta) / opt["dose_param_delta"]) * (volume_L / opt["dose_volume_L"]),
-                    2,
-                )
-            options_out.append({
-                "product_id": opt["product_id"],
-                "form": opt["form"],
-                "exact": opt["exact"],
-                "amount_grams": amount if amount is not None and opt["form"] == "solid" else None,
-                "amount_ml": amount if amount is not None and opt["form"] == "liquid" else None,
-                "notes_key": opt.get("notes_key"),
-            })
+        options_out = _options_with_amounts(direction_entry["options"], delta, volume_L)
 
         recommendations.append({
             "param": param,

@@ -1,14 +1,14 @@
 {
-  "domain": "pooly",
-  "name": "Pooly",
+  "domain": "homepool",
+  "name": "homepool",
   "codeowners": [
     "@alecc08"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/alecc08/pooly",
+  "documentation": "https://github.com/alecc08/homepool",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/alecc08/pooly/issues",
+  "issue_tracker": "https://github.com/alecc08/homepool/issues",
   "requirements": [],
   "version": "0.1.0"
 }
