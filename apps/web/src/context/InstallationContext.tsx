@@ -35,7 +35,7 @@ export function useInstallation(): InstallationCtx {
 export function InstallationProvider({ children }: { children: React.ReactNode }) {
   const [installations, setInstallations] = useState<Installation[]>([])
   const [activeId, setActiveId] = useState<number | null>(() => {
-    const stored = localStorage.getItem('pooly_active_installation')
+    const stored = localStorage.getItem('homepool_active_installation')
     return stored ? parseInt(stored) : null
   })
   const [ranges, setRanges] = useState<DynamicRanges | null>(null)
@@ -58,7 +58,7 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
       const data: Installation[] = await res.json()
       setInstallations(data)
       if (data.length > 0) {
-        const stored = localStorage.getItem('pooly_active_installation')
+        const stored = localStorage.getItem('homepool_active_installation')
         const storedId = stored ? parseInt(stored) : null
         const validId = storedId && data.find(i => i.id === storedId) ? storedId : data[0].id
         setActiveId(validId)
@@ -72,14 +72,14 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (active) {
-      localStorage.setItem('pooly_active_installation', String(active.id))
+      localStorage.setItem('homepool_active_installation', String(active.id))
       fetchParams(active.id, active)
     }
   }, [active, fetchParams])
 
   const setActive = useCallback((id: number) => {
     setActiveId(id)
-    localStorage.setItem('pooly_active_installation', String(id))
+    localStorage.setItem('homepool_active_installation', String(id))
   }, [])
 
   const refresh = useCallback(async () => {
@@ -121,7 +121,7 @@ export function InstallationProvider({ children }: { children: React.ReactNode }
     }
     setInstallations(prev => prev.filter(i => i.id !== id))
     if (activeId === id) {
-      localStorage.removeItem('pooly_active_installation')
+      localStorage.removeItem('homepool_active_installation')
       setActiveId(null)
     }
   }, [activeId])

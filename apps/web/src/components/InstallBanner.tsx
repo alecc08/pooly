@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Droplets, X } from 'lucide-react'
 import { useT } from '../context/LocaleContext'
 
-const DISMISS_KEY = 'pooly_install_dismissed'
+const DISMISS_KEY = 'homepool_install_dismissed'
 const DISMISS_TTL = 7 * 24 * 60 * 60 * 1000 // 7 jours
 
 function isDismissedRecently(): boolean {

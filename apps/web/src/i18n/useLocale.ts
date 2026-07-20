@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { translations, type Locale, type TranslationKey } from './translations'
 
-const STORAGE_KEY = 'pooly_locale'
+const STORAGE_KEY = 'homepool_locale'
 
 function getSavedLocale(): Locale {
   const saved = localStorage.getItem(STORAGE_KEY)

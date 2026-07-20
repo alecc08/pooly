@@ -300,7 +300,7 @@ async def lifespan(app: FastAPI):
 
 # ── App ────────────────────────────────────────────────────────────────────
 
-app = FastAPI(title="Pooly API", lifespan=lifespan)
+app = FastAPI(title="homepool API", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(
     RateLimitExceeded,

@@ -111,7 +111,7 @@ function AppMain({ user, onLogout, onUserUpdate, theme, setTheme }: AppMainProps
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `pooly-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.download = `homepool-backup-${new Date().toISOString().slice(0, 10)}.json`
     a.click()
     URL.revokeObjectURL(url)
   }

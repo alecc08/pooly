@@ -151,7 +151,7 @@ export default function InstallationModal({ open, onClose, installation }: Props
         )}
 
         {isEdit && tab === 'water' && installation ? (
-          <WaterChemistryTargets installation={installation} />
+          <WaterChemistryTargets installation={installation} onSaved={handleClose} />
         ) : (
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="flex-1 overflow-y-auto overscroll-contain grid gap-4" style={{ paddingTop: 4 }}>

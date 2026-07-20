@@ -1,6 +1,6 @@
 FROM python:3.13-slim
 
-LABEL description="Pooly API — FastAPI backend"
+LABEL description="Homepool API — FastAPI backend"
 
 WORKDIR /app
 

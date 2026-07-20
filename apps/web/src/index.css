@@ -469,7 +469,7 @@ button {
 }
 
 /* ── homepool label ──────────────────────────────────────── */
-.pooly-label {
+.homepool-label {
   font-family: "IBM Plex Mono", monospace !important;
   font-size: 11px !important;
   font-weight: 500 !important;

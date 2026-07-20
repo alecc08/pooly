@@ -196,13 +196,13 @@ type MeasureMode = 'strip' | 'manual'
 
 function readMode(): MeasureMode {
   try {
-    const v = localStorage.getItem('pooly_measure_mode')
+    const v = localStorage.getItem('homepool_measure_mode')
     return v === 'manual' || v === 'device' ? 'manual' : 'strip'
   } catch { return 'strip' }
 }
 
 function saveMode(m: MeasureMode) {
-  try { localStorage.setItem('pooly_measure_mode', m) } catch { /* ignore */ }
+  try { localStorage.setItem('homepool_measure_mode', m) } catch { /* ignore */ }
 }
 
 // ── Test-strip data ───────────────────────────────────────────────────────

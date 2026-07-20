@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pooly-v2';
+const CACHE_NAME = 'homepool-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

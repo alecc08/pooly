@@ -1,8 +1,8 @@
 # ── Stage 1 : Build ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 
-LABEL maintainer="pooly"
-LABEL description="Pooly — build stage"
+LABEL maintainer="homepool"
+LABEL description="Homepool — build stage"
 
 WORKDIR /app
 

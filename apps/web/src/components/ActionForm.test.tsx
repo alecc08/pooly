@@ -66,7 +66,7 @@ function makeMesureAction(overrides: Partial<Action> = {}): Action {
 beforeEach(() => {
   mockUseInstallation.mockReset()
   localStorage.clear()
-  localStorage.setItem('pooly_measure_mode', 'device')
+  localStorage.setItem('homepool_measure_mode', 'device')
 })
 
 describe('ActionForm', () => {
@@ -148,7 +148,7 @@ describe('ActionForm', () => {
   })
 
   it('strip mode for a sel installation does not render a salt/CYA/CC swatch panel, but does render Chlore', () => {
-    localStorage.setItem('pooly_measure_mode', 'strip')
+    localStorage.setItem('homepool_measure_mode', 'strip')
     setActiveInstallation(makeInstallation({ sanitizer: 'salt' }))
     const editAction = makeMesureAction()
     render(<ActionForm products={products} editAction={editAction} onEdit={vi.fn()} />)
@@ -211,7 +211,7 @@ describe('ActionForm', () => {
     })
 
     it('strip mode renders no temperature swatch panel, for any sanitizer', () => {
-      localStorage.setItem('pooly_measure_mode', 'strip')
+      localStorage.setItem('homepool_measure_mode', 'strip')
       setActiveInstallation(makeInstallation({ sanitizer: 'salt' }))
       const editAction = makeMesureAction()
       render(<ActionForm products={products} editAction={editAction} onEdit={vi.fn()} />)

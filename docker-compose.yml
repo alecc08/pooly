@@ -5,13 +5,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-pooly}
+      POSTGRES_USER: ${POSTGRES_USER:-homepool}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD variable is required}
-      POSTGRES_DB: ${POSTGRES_DB:-pooly}
+      POSTGRES_DB: ${POSTGRES_DB:-homepool}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pooly}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-homepool}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,7 +30,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-pooly}:${POSTGRES_PASSWORD:?required}@db:5432/${POSTGRES_DB:-pooly}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-homepool}:${POSTGRES_PASSWORD:?required}@db:5432/${POSTGRES_DB:-homepool}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET variable is required}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
@@ -57,7 +57,7 @@ services:
       context: ./apps/web
       dockerfile: Dockerfile
       target: production
-    image: pooly-web:latest
+    image: homepool-web:latest
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-8090}:80"

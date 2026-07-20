@@ -15,6 +15,7 @@ type DraftValues = Record<string, [string, string]> // `${param}:${band}` -> [mi
 
 type Props = {
   installation: Installation
+  onSaved?: () => void
 }
 
 function metricToDisplay(param: ParamKey, value: number, installation: Installation): number {
@@ -40,7 +41,7 @@ function unitLabel(param: ParamKey, installation: Installation): string {
 
 const key = (param: string, band: Band) => `${param}:${band}`
 
-export default function WaterChemistryTargets({ installation }: Props) {
+export default function WaterChemistryTargets({ installation, onSaved }: Props) {
   const { t } = useT()
   const { updateRanges } = useInstallation()
   const [full, setFull] = useState<InstallationParamsFull | null>(null)
@@ -209,6 +210,7 @@ export default function WaterChemistryTargets({ installation }: Props) {
       if (!res.ok) throw new Error('failed')
       const merged: InstallationWaterParams = await res.json()
       updateRanges(installationParamsToRanges(merged, installation))
+      onSaved?.()
     } catch {
       setSaveError(t('ranges_save_error'))
     } finally {

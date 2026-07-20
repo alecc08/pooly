@@ -1,3 +1,15 @@
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T61NJXQS)
+
+homepool started life as a fork of [Pooly](https://github.com/aurel-f/pooly), created by
+[aurel-f](https://github.com/aurel-f) — the original app, its data model, and the core
+idea of a clean, self-hosted pool/spa tracker all trace back to that project. homepool has
+since grown into its own thing (new name, Home Assistant integration, salt-pool support,
+configurable ranges, and more), so it's no longer maintained as a fork, but credit for the
+original idea belongs there. If you like this project, go star the
+[original repository](https://github.com/aurel-f/pooly) too.
+
+---
+
 <div align="center">
 
 <img src="docs/homepool.png" alt="homepool" width="220">
@@ -185,26 +197,6 @@ Every ideal/acceptable range shown in the app (pH, free chlorine, salt, CYA, alk
 | Auth | Cookie sessions (httpOnly, same_site=strict) |
 | Deployment | Docker Compose |
 | Typography | Sora + IBM Plex Mono |
-
----
-
-### 🙏 Credits
-
-homepool started life as a fork of [Pooly](https://github.com/aurel-f/pooly), created by
-[aurel-f](https://github.com/aurel-f) — the original app, its data model, and the core
-idea of a clean, self-hosted pool/spa tracker all trace back to that project. homepool has
-since grown into its own thing (new name, Home Assistant integration, salt-pool support,
-configurable ranges, and more), so it's no longer maintained as a fork, but credit for the
-original idea belongs there. If you like this project, go star the
-[original repository](https://github.com/aurel-f/pooly) too.
-
----
-
-### ☕ Support
-
-If homepool is useful to you, consider buying me a coffee:
-
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T61NJXQS)
 
 ---
 
