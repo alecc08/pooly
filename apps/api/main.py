@@ -75,25 +75,30 @@ WATER_PARAMS: Dict[Tuple[str, str], Dict] = {
     # less chlorine to sunlight -- at a higher CYA (60-80 ppm) than a manually-dosed
     # pool, which in turn means free chlorine needs to sit meaningfully higher than
     # the traditional 1-3 ppm CDC-style band to stay effective at that CYA level.
+    # TAC also runs lower than a manually-dosed pool (60-80 ppm vs. 80-180 ppm):
+    # SWG cells electrolyze water in a way that steadily raises pH, and a lower
+    # total alkalinity slows that rise, so SWG pools are intentionally run leaner
+    # on TA rather than being flagged low against a non-SWG band.
     ("pool", "salt"): {
         "ph":     {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
         "salt":   {"ideal": (2700, 3400), "acceptable": (2500, 4500)},
         "cya":    {"ideal": (60, 80),     "acceptable": (30, 100)},
         "cl":     {"ideal": (3.0, 5.0),   "acceptable": (2.0, 6.0)},
         "cc":     {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
-        "tac":    {"ideal": (80, 180),    "acceptable": (60, 200)},
+        "tac":    {"ideal": (60, 80),     "acceptable": (50, 100)},
         "temp":   {"ideal": (24, 28),     "acceptable": (15, 35)},
         "hardness": {"ideal": (100, 500),   "acceptable": (50, 1000)},
     },
     # Salt spas are far less standardized than salt pools; this band is an
-    # approximation pending better field data.
+    # approximation pending better field data. TAC follows the same lower SWG
+    # band as salt pools, for the same pH-rise reasoning.
     ("spa", "salt"): {
         "ph":     {"ideal": (7.2, 7.6),   "acceptable": (6.8, 7.8)},
         "salt":   {"ideal": (2500, 3200), "acceptable": (2000, 4000)},
         "cya":    {"ideal": (30, 50),     "acceptable": (0, 80)},
         "cl":     {"ideal": (3.0, 5.0),   "acceptable": (2.0, 6.0)},
         "cc":     {"ideal": (0, 0.2),     "acceptable": (0, 0.5)},
-        "tac":    {"ideal": (80, 180),    "acceptable": (60, 200)},
+        "tac":    {"ideal": (60, 80),     "acceptable": (50, 100)},
         "temp":   {"ideal": (36, 40),     "acceptable": (30, 42)},
         "hardness": {"ideal": (100, 500),   "acceptable": (50, 1000)},
     },
