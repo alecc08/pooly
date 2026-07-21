@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-21
+
 ### Added
 
 - Lovelace card: tapping a parameter tile opens the log-measurement popup focused on that field, and a 📈 icon on each tile opens Home Assistant's native more-info dialog for that sensor (#32).
