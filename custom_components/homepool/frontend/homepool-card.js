@@ -53,6 +53,33 @@ function taskButtonPrefix(entityPrefix) {
   return `button.${entityPrefix.replace(/^sensor\./, '')}_`;
 }
 
+// Discovers the homepool installations known to this HA instance, so the card
+// editors can offer a "pick a pool" dropdown instead of making the user find a
+// sensor. Anchors on each installation's history sensor (`sensor.<prefix>_history`,
+// created unconditionally per installation in sensor.py) — a robust anchor that
+// doesn't depend on which measurement fields exist and survives legacy sticky
+// ids like `sensor.backyard_home_history`. Recovers `prefix` by stripping the
+// `_history` suffix, reads `installationId` from the device's homepool
+// identifier `(DOMAIN, id)`, and labels each entry by device name (falling back
+// to the prefix). Returns [{ deviceId, installationId, name, prefix }] sorted by
+// name; [] when hass/registries aren't loaded yet.
+function discoverInstallations(hass) {
+  if (!hass || !hass.entities || !hass.devices) return [];
+  return Object.keys(hass.entities)
+    .map((id) => ({ id, entry: hass.entities[id] }))
+    .filter(({ id, entry }) => entry && entry.platform === 'homepool' && id.endsWith('_history'))
+    .map(({ id, entry }) => {
+      const prefix = id.slice(0, -'_history'.length);
+      const device = hass.devices[entry.device_id];
+      const identifier = device && device.identifiers
+        && device.identifiers.find(([domain]) => domain === 'homepool');
+      const installationId = identifier ? parseInt(identifier[1], 10) : undefined;
+      const name = (device && (device.name_by_user || device.name)) || prefix;
+      return { deviceId: entry.device_id, installationId, name, prefix };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
 const FORM_FIELD_LABELS = {
   ph: 'pH',
   chlorine: 'Cl',
@@ -874,10 +901,6 @@ class HomepoolCard extends HTMLElement {
   }
 }
 
-// Sorted longest-first so e.g. "stabilizer_cya" is tried before any shorter
-// suffix that could otherwise false-match a prefix of it.
-const SORTED_FIELD_SUFFIXES = Object.values(FIELD_SUFFIXES).sort((a, b) => b.length - a.length);
-
 class HomepoolCardEditor extends HTMLElement {
   setConfig(config) {
     this._config = config;
@@ -925,6 +948,7 @@ class HomepoolCardEditor extends HTMLElement {
         .row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
         label { font-size: 12px; font-weight: 600; }
         input { padding: 6px 8px; font-size: 13px; }
+        select { padding: 6px 8px; font-size: 13px; }
         .hint { font-size: 11px; font-weight: 400; color: var(--secondary-text-color); }
         .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
         .chip {
@@ -949,8 +973,8 @@ class HomepoolCardEditor extends HTMLElement {
         <input id="title" />
       </div>
       <div class="row">
-        <label>Pool sensor <span class="hint">(pick any sensor from the installation — fills in the fields below)</span></label>
-        <div id="picker-slot"></div>
+        <label>Pool / Spa <span class="hint">(pick an installation — fills in the fields below)</span></label>
+        <select id="installation-picker"></select>
       </div>
       <div class="row">
         <label>Entity prefix (e.g. sensor.my_pool)</label>
@@ -982,14 +1006,8 @@ class HomepoolCardEditor extends HTMLElement {
       </div>
     `;
 
-    this._picker = document.createElement('ha-entity-picker');
-    this._picker.includeDomains = ['sensor'];
-    this._picker.entityFilter = (stateObj) => {
-      const entry = this._hass && this._hass.entities && this._hass.entities[stateObj.entity_id];
-      return !!entry && entry.platform === 'homepool';
-    };
-    this._picker.addEventListener('value-changed', (e) => this._onPick(e.detail.value));
-    this.shadowRoot.getElementById('picker-slot').appendChild(this._picker);
+    this.shadowRoot.getElementById('installation-picker')
+      .addEventListener('change', (e) => this._onPickInstallation(e.target.value));
 
     ['title', 'entity_prefix'].forEach((id) => {
       this.shadowRoot.getElementById(id).addEventListener('input', (e) => this._update(id, e.target.value));
@@ -1006,18 +1024,6 @@ class HomepoolCardEditor extends HTMLElement {
     this.shadowRoot.querySelectorAll('#parameter-chips .chip').forEach((chip) => {
       chip.addEventListener('click', () => this._toggleParameter(chip.dataset.parameter));
     });
-  }
-
-  // Finds the entity_id (if any is currently loaded) that represents the
-  // configured entity_prefix, so the picker can show it as selected.
-  _guessEntity(prefix) {
-    if (!prefix) return '';
-    const candidates = SORTED_FIELD_SUFFIXES.map((s) => `${prefix}_${s}`);
-    if (this._hass) {
-      const found = candidates.find((id) => this._hass.states[id] !== undefined);
-      if (found) return found;
-    }
-    return candidates[0] ?? '';
   }
 
   _sync() {
@@ -1051,10 +1057,29 @@ class HomepoolCardEditor extends HTMLElement {
       chip.classList.toggle('active', activeParams.includes(chip.dataset.parameter));
     });
 
-    if (this._picker && this._hass) {
-      this._picker.hass = this._hass;
-      const derived = this._guessEntity(c.entity_prefix);
-      if (this._picker.value !== derived) this._picker.value = derived;
+    const picker = this.shadowRoot.getElementById('installation-picker');
+    if (picker) {
+      const installs = discoverInstallations(this._hass);
+      // Rebuild the <option> set only when the discovered installations change
+      // (guarded by a deviceId:name signature) so a dropdown the user has open
+      // isn't clobbered on every `hass` tick.
+      const signature = installs.map((i) => `${i.deviceId}:${i.name}`).join('|');
+      if (this._installSig !== signature) {
+        this._installSig = signature;
+        picker.textContent = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '— Select pool / spa —';
+        picker.appendChild(placeholder);
+        installs.forEach((inst) => {
+          const opt = document.createElement('option');
+          opt.value = inst.deviceId;
+          opt.textContent = inst.name; // textContent, never innerHTML — device names are untrusted
+          picker.appendChild(opt);
+        });
+      }
+      const selected = installs.find((i) => i.prefix === c.entity_prefix);
+      picker.value = selected ? selected.deviceId : '';
     }
   }
 
@@ -1076,20 +1101,15 @@ class HomepoolCardEditor extends HTMLElement {
     this._sync();
   }
 
-  // Picking one sensor derives both entity_prefix (strip the known field
-  // suffix) and installation_id (via the entity's device identifiers,
-  // `(DOMAIN, installation_id)` — see sensor.py's device_info) so the user
-  // never has to type either by hand.
-  _onPick(entityId) {
-    if (!entityId) return;
-    const suffix = SORTED_FIELD_SUFFIXES.find((s) => entityId.endsWith(`_${s}`));
-    const updates = { entity_prefix: suffix ? entityId.slice(0, -(suffix.length + 1)) : entityId };
-
-    const entry = this._hass && this._hass.entities && this._hass.entities[entityId];
-    const device = entry && this._hass.devices && this._hass.devices[entry.device_id];
-    const identifier = device && device.identifiers && device.identifiers.find(([domain]) => domain === 'homepool');
-    if (identifier) updates.installation_id = parseInt(identifier[1], 10);
-
+  // Picking an installation from the dropdown sets both entity_prefix and
+  // installation_id from the discovered entry (see discoverInstallations), so
+  // the user never has to type either by hand.
+  _onPickInstallation(deviceId) {
+    if (!deviceId) return;
+    const inst = discoverInstallations(this._hass).find((i) => i.deviceId === deviceId);
+    if (!inst) return;
+    const updates = { entity_prefix: inst.prefix };
+    if (inst.installationId !== undefined) updates.installation_id = inst.installationId;
     this._config = { ...this._config, ...updates };
     this.dispatchEvent(new CustomEvent('config-changed', { detail: { config: this._config } }));
     this._sync();
@@ -1104,10 +1124,6 @@ class HomepoolCardEditor extends HTMLElement {
 // ── History table card ───────────────────────────────────────────────────
 
 const HISTORY_KINDS = ['measurement', 'treatment', 'maintenance'];
-
-// Longest-first so "history" is tried before any shorter field suffix that
-// could false-match a prefix of it (mirrors SORTED_FIELD_SUFFIXES' intent).
-const HISTORY_PICK_SUFFIXES = [...Object.values(FIELD_SUFFIXES), 'history'].sort((a, b) => b.length - a.length);
 
 function fmtHistoryDate(hass, dateStr) {
   if (!dateStr) return '';
@@ -1340,6 +1356,7 @@ class HomepoolHistoryCardEditor extends HTMLElement {
         .row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
         label { font-size: 12px; font-weight: 600; }
         input { padding: 6px 8px; font-size: 13px; }
+        select { padding: 6px 8px; font-size: 13px; }
         .hint { font-size: 11px; font-weight: 400; color: var(--secondary-text-color); }
         .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
         .chip {
@@ -1364,8 +1381,8 @@ class HomepoolHistoryCardEditor extends HTMLElement {
         <input id="title" />
       </div>
       <div class="row">
-        <label>Pool sensor <span class="hint">(pick any homepool sensor from the installation)</span></label>
-        <div id="picker-slot"></div>
+        <label>Pool / Spa <span class="hint">(pick an installation — fills in the entity prefix)</span></label>
+        <select id="installation-picker"></select>
       </div>
       <div class="row">
         <label>Entity prefix (e.g. sensor.my_pool)</label>
@@ -1387,14 +1404,8 @@ class HomepoolHistoryCardEditor extends HTMLElement {
       </div>
     `;
 
-    this._picker = document.createElement('ha-entity-picker');
-    this._picker.includeDomains = ['sensor'];
-    this._picker.entityFilter = (stateObj) => {
-      const entry = this._hass && this._hass.entities && this._hass.entities[stateObj.entity_id];
-      return !!entry && entry.platform === 'homepool';
-    };
-    this._picker.addEventListener('value-changed', (e) => this._onPick(e.detail.value));
-    this.shadowRoot.getElementById('picker-slot').appendChild(this._picker);
+    this.shadowRoot.getElementById('installation-picker')
+      .addEventListener('change', (e) => this._onPickInstallation(e.target.value));
 
     this.shadowRoot.getElementById('title').addEventListener('input', (e) => this._update('title', e.target.value));
     this.shadowRoot.getElementById('entity_prefix').addEventListener('input', (e) => this._update('entity_prefix', e.target.value));
@@ -1407,17 +1418,6 @@ class HomepoolHistoryCardEditor extends HTMLElement {
     this.shadowRoot.querySelectorAll('#type-chips .chip').forEach((chip) => {
       chip.addEventListener('click', () => this._toggleType(chip.dataset.type));
     });
-  }
-
-  _guessEntity(prefix) {
-    if (!prefix) return '';
-    if (this._hass) {
-      const historyId = `${prefix}_history`;
-      if (this._hass.states[historyId] !== undefined) return historyId;
-      const found = HISTORY_PICK_SUFFIXES.map((s) => `${prefix}_${s}`).find((id) => this._hass.states[id] !== undefined);
-      if (found) return found;
-    }
-    return `${prefix}_history`;
   }
 
   _sync() {
@@ -1441,10 +1441,29 @@ class HomepoolHistoryCardEditor extends HTMLElement {
       chip.classList.toggle('active', activeTypes.includes(chip.dataset.type));
     });
 
-    if (this._picker && this._hass) {
-      this._picker.hass = this._hass;
-      const derived = this._guessEntity(c.entity_prefix);
-      if (this._picker.value !== derived) this._picker.value = derived;
+    const picker = this.shadowRoot.getElementById('installation-picker');
+    if (picker) {
+      const installs = discoverInstallations(this._hass);
+      // Rebuild the <option> set only when the discovered installations change
+      // (guarded by a deviceId:name signature) so a dropdown the user has open
+      // isn't clobbered on every `hass` tick.
+      const signature = installs.map((i) => `${i.deviceId}:${i.name}`).join('|');
+      if (this._installSig !== signature) {
+        this._installSig = signature;
+        picker.textContent = '';
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '— Select pool / spa —';
+        picker.appendChild(placeholder);
+        installs.forEach((inst) => {
+          const opt = document.createElement('option');
+          opt.value = inst.deviceId;
+          opt.textContent = inst.name; // textContent, never innerHTML — device names are untrusted
+          picker.appendChild(opt);
+        });
+      }
+      const selected = installs.find((i) => i.prefix === c.entity_prefix);
+      picker.value = selected ? selected.deviceId : '';
     }
   }
 
@@ -1456,11 +1475,13 @@ class HomepoolHistoryCardEditor extends HTMLElement {
     this._sync();
   }
 
-  _onPick(entityId) {
-    if (!entityId) return;
-    const suffix = HISTORY_PICK_SUFFIXES.find((s) => entityId.endsWith(`_${s}`));
-    const entity_prefix = suffix ? entityId.slice(0, -(suffix.length + 1)) : entityId;
-    this._config = { ...this._config, entity_prefix };
+  // Picking an installation sets entity_prefix from the discovered entry (the
+  // history card has no installation_id). See discoverInstallations.
+  _onPickInstallation(deviceId) {
+    if (!deviceId) return;
+    const inst = discoverInstallations(this._hass).find((i) => i.deviceId === deviceId);
+    if (!inst) return;
+    this._config = { ...this._config, entity_prefix: inst.prefix };
     this.dispatchEvent(new CustomEvent('config-changed', { detail: { config: this._config } }));
     this._sync();
   }
